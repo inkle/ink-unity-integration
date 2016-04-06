@@ -1,0 +1,47 @@
+# =============== #
+# Unity generated #
+# =============== #
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Uu]nityGenerated/
+Assets/AssetStoreTools*
+ 
+# =============================================== #
+# Visual Studio / MonoDevelop / Sublime generated #
+# =============================================== #
+ExportedObj/
+*.svd
+*.userprefs
+*.csproj
+*.pidb
+*.suo
+*.sln
+*.user
+*.unityproj
+*.booproj
+*.sublime-project
+ 
+# ============ #
+# OS generated #
+# ============ #
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# ============== #
+# Game specific  #
+# ============== #
+Bin/
+
+# =========== #
+# Other files #
+# =========== #
+*~
+Assets/Textures/intercept-design.psd
+Assets/Textures/intercept-design.psd.meta
