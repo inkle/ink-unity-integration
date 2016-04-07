@@ -22,9 +22,11 @@ For more information on **ink**, see [the documentation in the main ink repo](ht
 
 ## Customisation
 
-This package has been designed to be modular. You can delete many of the folders to remove functionality without causing errors.
+This package is structured modularly. The folders correllating to the features described below can all be safely deleted if their functionality is not required.
 
-You should never delete the DLL folder (although you may delete the windows/mac dlls if you are sure no team members are on a certain platform)
+The only files required to play ink in your game are those in the DLL folder.
+
+The inklecate DLLs used to compile ink are quite large files. You may safely delete the DLLs not corresponding to your current OS.
 
 ## Using ink in game your game. 
 
@@ -34,8 +36,13 @@ The **ink player** is the core feature of this package; the minimal requirements
 
 The Ink Player (**Ink > Player Window**) allows you to play stories in an editor window, and provides functionality to edit variables on the fly, save and load states, and divert.
 
-To play a story, drag in a compiled ink story TextAsset.
+**Playing a story**: You can play stories by clicking the "Play" button on the inspector of a master ink file, or by manually choosing a compiled ink story TextAsset in the Ink Player window and clicking "Play". You can then use the choice panel to advance the story, and the undo/redo buttons to rewind and test different paths.
 
+**Saving and restoring story states**: You can save and restore the current state of the story using the save and load buttons in the Story State panel. States are stored as .json files.
+
+**Diverting to a stitch**: To instantly move to a specific stitch in a story, you can manually enter the path of a stitch in the Divert panel. You need to use the full path of a stitch, including the knot that contains it. For example: "the_orient_express.in_first_class".
+
+**Editing variables**: The variables panel allows you to view and edit all the story variables.
 
 ## Automatic compilation
 	
