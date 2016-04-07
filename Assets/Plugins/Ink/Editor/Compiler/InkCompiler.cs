@@ -10,12 +10,28 @@ using System.Text.RegularExpressions;
 using Debug = UnityEngine.Debug;
 
 namespace Ink.UnityIntegration {
+	[InitializeOnLoad]
 	public static class InkCompiler {
-
+		public static bool compiling {
+			get {
+				return inkJSONAssetsToLoad.Count > 0;
+			}
+		}
 		public static List<KeyValuePair<string, string>> inkJSONAssetsToLoad = new List<KeyValuePair<string, string>>();
 
 		public delegate void OnCompileInkEvent (string inkAbsoluteFilePath, TextAsset compiledJSONTextAsset);
 		public static event OnCompileInkEvent OnCompileInk;
+
+		static InkCompiler () {
+			EditorApplication.playmodeStateChanged += OnPlayModeChange;
+		}
+
+		private static void OnPlayModeChange () {
+			if(EditorApplication.isPlayingOrWillChangePlaymode) {
+				if(compiling)
+					Debug.LogWarning("Entered Play Mode while Ink was still compiling. Recommend exiting and re-entering play mode.");
+			}
+		}
 
 		[MenuItem("Ink/Recompile Ink")]
 		public static void RecompileAll() {
