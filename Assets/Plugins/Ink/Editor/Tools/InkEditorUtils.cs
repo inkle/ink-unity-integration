@@ -33,8 +33,10 @@ namespace Ink.UnityIntegration {
 		}
 
 		public static TextAsset CreateStoryStateTextFile (string jsonStoryState, string defaultPath = "Assets/Ink", string defaultName = "storyState") {
-			string name = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(defaultPath, defaultName+".txt")).Substring(defaultPath.Length+1);
-			string fullPathName = EditorUtility.SaveFilePanel("Save Story State", defaultPath, name, "txt");
+			string name = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(defaultPath, defaultName+".json")).Substring(defaultPath.Length+1);
+			string fullPathName = EditorUtility.SaveFilePanel("Save Story State", defaultPath, name, "json");
+			if(fullPathName == "") 
+				return null;
 			using (StreamWriter outfile = new StreamWriter(fullPathName)) {
 				outfile.Write(jsonStoryState);
 			}

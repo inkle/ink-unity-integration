@@ -15,7 +15,19 @@ namespace Ink.UnityIntegration {
 		private TextAsset storyJSONTextAsset;
 		private string storyJSON;
 		private Story story;
-		private TextAsset storyStateTextAsset;
+		private TextAsset _storyStateTextAsset;
+		private TextAsset storyStateTextAsset {
+			get {
+				return _storyStateTextAsset;
+			} set {
+				if(_storyStateTextAsset == value) 
+					return;
+				_storyStateTextAsset = value;
+				if(_storyStateTextAsset != null)
+					storyStateValid = InkEditorUtils.CheckStoryStateIsValid(storyJSONTextAsset.text, storyStateTextAsset.text);
+			}
+		}
+
 		private UndoHistory<InkPlayerHistoryItem> storyStateHistory;
 		private List<InkPlayerHistoryContentItem> storyHistory;
 		private bool displayChoicesInLog = false;
@@ -345,18 +357,15 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.BeginHorizontal();
 			EditorGUI.BeginChangeCheck();
 			storyStateTextAsset = EditorGUILayout.ObjectField("Load Story State JSON File", storyStateTextAsset, typeof(TextAsset), false) as TextAsset;
-			if (EditorGUI.EndChangeCheck() && storyStateTextAsset != null) {
-				storyStateValid = InkEditorUtils.CheckStoryStateIsValid(storyJSONTextAsset.text, storyStateTextAsset.text);
-			}
-			if(storyStateTextAsset != null && !storyStateValid) {
-				EditorGUILayout.HelpBox("Story state file is not valid.", MessageType.Error);
-			}
 			EditorGUI.BeginDisabledGroup(storyStateTextAsset == null);
 			if (GUILayout.Button("Load")) {
 				LoadStoryState(storyStateTextAsset.text);
 			}
 			EditorGUI.EndDisabledGroup();
 			EditorGUILayout.EndHorizontal();
+			if(storyStateTextAsset != null && !storyStateValid) {
+				EditorGUILayout.HelpBox("Loaded story state file is not valid.", MessageType.Error);
+			}
 			GUILayout.EndVertical();
 		}
 
