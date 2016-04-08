@@ -108,12 +108,8 @@ namespace Ink.UnityIntegration {
 
 			serializedObject.ApplyModifiedProperties();
 
-//			EditorGUILayout.BeginVertical();
 			string trimmedStory = inkFile.fileContents.Substring(0, Mathf.Min(inkFile.fileContents.Length, 5000));
-//			GUILayout.Label(trimmedStory, EditorStyles.textArea);
-//			EditorGUILayout.EndVertical();
-
-			float width = EditorGUIUtility.currentViewWidth-28;
+			float width = EditorGUIUtility.currentViewWidth-44;
 			float height = EditorStyles.wordWrappedLabel.CalcHeight(new GUIContent(trimmedStory), width);
 			EditorGUILayout.SelectableLabel(trimmedStory, EditorStyles.wordWrappedLabel, GUILayout.ExpandHeight(true), GUILayout.Width(width), GUILayout.Height(height));
 		}
