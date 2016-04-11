@@ -69,9 +69,9 @@ namespace Ink.UnityIntegration {
 			process.StartInfo.RedirectStandardOutput = true;
 			process.StartInfo.UseShellExecute = false;
 			process.EnableRaisingEvents = true;
-//			process.StartInfo.EnvironmentVariables["inkAbsoluteFilePath"] = inputPath;
-//			process.StartInfo.EnvironmentVariables["jsonAbsoluteFilePath"] = outputPath;
-//			process.Exited += OnCompileProcessComplete;
+			process.StartInfo.EnvironmentVariables["inkAbsoluteFilePath"] = inputPath;
+			process.StartInfo.EnvironmentVariables["jsonAbsoluteFilePath"] = outputPath;
+			process.Exited += OnCompileProcessComplete;
 			process.Start();
 		}
 
