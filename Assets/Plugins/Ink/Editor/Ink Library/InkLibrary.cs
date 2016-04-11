@@ -25,7 +25,7 @@ namespace Ink.UnityIntegration {
 			string[] inkFilePaths = Directory.GetFiles(Application.dataPath, "*.ink", SearchOption.AllDirectories);
 			inkLibrary = new InkFile[inkFilePaths.Length];
 			for (int i = 0; i < inkFilePaths.Length; i++) {
-				inkLibrary [i] = new InkFile (inkFilePaths [i]);
+				inkLibrary [i] = new InkFile (inkFilePaths [i].Replace('\\', '/'));
 			}
 			foreach (InkFile inkFile in inkLibrary) {
 				if(inkFile.includePaths.Count > 0) {
@@ -57,6 +57,7 @@ namespace Ink.UnityIntegration {
 				if(inkFile.filePath == path) {
 					return inkFile;
 				}
+				Debug.Log (inkFile.filePath+" "+path);
 			}
 			return null;
 		}
