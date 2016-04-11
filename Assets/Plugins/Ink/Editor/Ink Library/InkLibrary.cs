@@ -57,7 +57,6 @@ namespace Ink.UnityIntegration {
 				if(inkFile.filePath == path) {
 					return inkFile;
 				}
-				Debug.Log (inkFile.filePath+" "+path);
 			}
 			return null;
 		}
