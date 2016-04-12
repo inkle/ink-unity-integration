@@ -16,7 +16,7 @@ namespace Ink.UnityIntegration {
 
 	    static InkBrowserIcons() {
 			float unityVersion = float.Parse(Application.unityVersion.Substring (0, 3));
-			if(Application.platform == RuntimePlatform.OSXEditor && unityVersion > 5.4f) {
+			if(Application.platform == RuntimePlatform.OSXEditor && unityVersion >= 5.4f) {
 				inkFileIcon = Resources.Load<Texture2D>("InkFileIcon-retina");
 	    	} else {
 				inkFileIcon = Resources.Load<Texture2D>("InkFileIcon");
