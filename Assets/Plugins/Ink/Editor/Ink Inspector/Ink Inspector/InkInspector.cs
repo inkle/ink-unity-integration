@@ -42,7 +42,7 @@ namespace Ink.UnityIntegration {
 
 			if (inkFile.jsonAsset != null) {
 				// This can be slow. Disable if you find viewing an ink file in the inspector takes too long.
-//				InkEditorUtils.CheckStoryIsValid (masterInkFile.jsonAsset.text, out exception);
+				InkEditorUtils.CheckStoryIsValid (masterInkFile.jsonAsset.text, out exception);
 			}
 		}
 

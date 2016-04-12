@@ -24,9 +24,9 @@ For more information on **ink**, see [the documentation in the main ink repo](ht
 
 This package is structured modularly. The folders correllating to the features described below can all be safely deleted if their functionality is not required.
 
-The only files required to play ink in your game are those in the DLL folder.
+The only files required to play ink in your game is ink-engine and Newtonsoft.Json in the DLL folder.
 
-The inklecate DLLs used to compile ink are quite large files. You may safely delete the DLLs not corresponding to your current OS.
+The inklecate DLLs used to compile ink are quite large files. You may safely delete the DLLs not corresponding to your current OS, or both of them if not using the compiler.
 
 ## Using ink in game your game. 
 
