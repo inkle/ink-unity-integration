@@ -6,7 +6,7 @@ Features:
 
  - **Running ink in game**: Allows usage of JSON-compiled ink files in Unity via the included `ink-engine.dll` (and Json.Net dependency).
 
- - **Auto Compilation**: Instantly creates and updates a JSON story file when a `.ink` is updated.
+ - **Auto Compilation**: Instantly creates and updates a JSON story file when a `.ink` is updated. Errors in your `.ink` script are displayed as errors in Unity's own console.
  	
  - **Ink Player**: Provides a powerful player window for playing and debugging stories.
  	
