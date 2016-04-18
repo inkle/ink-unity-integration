@@ -13,14 +13,29 @@ namespace Ink.UnityIntegration {
 	public static class InkEditorUtils {
 		public const string inkFileExtension = ".ink";
 
-		[MenuItem("Assets/Create/Ink")]
+		[MenuItem("Ink/Create .Ink", false, -2)]
 		public static void CreateFile() {
-	//		var icon = AssetDatabase.LoadAssetAtPath("Assets/Plugins/Ink/Resources/InkIcon.png", typeof(Texture2D)) as Texture2D;
-	//		ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<Ink>(), "NewFSharpFile.fs", icon, "");
-			//....
-			//IO stuff to create the file.
-	//		ProjectWindowUtil.ShowCreatedAsset(file);
+			string fileName = "New Ink File.ink";
+			string filePath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(GetSelectedPathOrFallback(), fileName));
+			System.IO.File.WriteAllText(filePath, "");
+			AssetDatabase.ImportAsset(filePath);
+			var asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(filePath);
+			EditorGUIUtility.PingObject(asset);
+//			ProjectWindowUtil.StartNameEditingIfProjectWindowExists(asset.GetInstanceID(), null, filePath, null, null);
 		}
+
+		private static string GetSelectedPathOrFallback() {
+	         string path = "Assets";
+	         foreach (UnityEngine.Object obj in Selection.GetFiltered(typeof(UnityEngine.Object), SelectionMode.Assets)) {
+	             path = AssetDatabase.GetAssetPath(obj);
+	             if (!string.IsNullOrEmpty(path) && File.Exists(path)) {
+	                 path = Path.GetDirectoryName(path);
+	                 break;
+	             }
+	         }
+	         return path;
+	     }
+
 
 		[MenuItem("Ink/Help/About")]
 		public static void OpenAbout() {

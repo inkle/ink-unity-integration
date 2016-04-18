@@ -30,6 +30,8 @@ namespace Ink.UnityIntegration {
 			InkLibrary.Refresh();
 			string assetPath = AssetDatabase.GetAssetPath(target);
 			inkFile = InkLibrary.GetInkFileWithPath(assetPath);
+			if(inkFile == null) 
+				return;
 			InkFile masterInkFile = inkFile;
 			if(inkFile.master == null) {
 				if(inkFile.includes != null) {
@@ -94,7 +96,9 @@ namespace Ink.UnityIntegration {
 
 		public override void OnInspectorGUI () {
 			serializedObject.Update();
-			GUI.enabled = true;
+
+			if(inkFile == null) 
+				return;
 
 			InkFile masterInkFile = inkFile;
 			if(inkFile.master == null) {

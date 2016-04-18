@@ -27,8 +27,10 @@ namespace Ink.UnityIntegration {
 		}
 
 		public override void OnInspectorGUI () {
-			if(objectInspector != null)
+			if(objectInspector != null) {
+				GUI.enabled = true;
 				objectInspector.OnInspectorGUI();
+			}
 			else if (target.GetType() != typeof(UnityEditor.DefaultAsset))
 				base.OnInspectorGUI();
 		}
