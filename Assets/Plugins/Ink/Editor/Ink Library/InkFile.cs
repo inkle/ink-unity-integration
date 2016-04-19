@@ -28,8 +28,18 @@ namespace Ink.UnityIntegration {
 		// The paths of the files included by this file
 		public List<string> includePaths;
 		// The loaded files included by this file
-		[System.NonSerialized]
-		public List<InkFile> includes;
+//		[System.NonSerialized]
+		public List<InkFile> includes {
+			get {
+				List<InkFile> _includes = new List<InkFile>();
+				foreach (InkFile inkFile in InkLibrary.inkLibrary) {
+					if(inkFile.master == this && includePaths.Contains(inkFile.absoluteFilePath)) {
+						_includes.Add(inkFile);
+					}
+				}
+				return _includes;
+			}
+		}
 		// If this file is included by another, the other is the master file.
 
 		public InkFile master;
@@ -74,11 +84,11 @@ namespace Ink.UnityIntegration {
 		
 		// Finds include files from paths and the list of all the ink files to check.
 		public void GetIncludes (InkFile[] inkFiles) {
-			includes = new List<InkFile>();
+//			includes = new List<InkFile>();
 			foreach (InkFile inkFile in inkFiles) {
 				if(includePaths.Contains(inkFile.absoluteFilePath)) {
 					inkFile.master = this;
-					includes.Add(inkFile);
+//					includes.Add(inkFile);
 				}
 			}
 		}
