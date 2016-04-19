@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 
 namespace Ink.UnityIntegration {
 	// Helper class for ink files that maintains INCLUDE connections between ink files
+	[System.Serializable]
 	public class InkFile {
 		
 		private const string includeKey = "INCLUDE ";
@@ -27,6 +28,7 @@ namespace Ink.UnityIntegration {
 		// The paths of the files included by this file
 		public List<string> includePaths;
 		// The loaded files included by this file
+		[System.NonSerialized]
 		public List<InkFile> includes;
 		// If this file is included by another, the other is the master file.
 
@@ -36,6 +38,11 @@ namespace Ink.UnityIntegration {
 		public UnityEngine.Object inkFile;
 		// The compiled json file. Use this to start a story.
 		public TextAsset jsonAsset;
+
+		public bool lastCompileFailed = false;
+		public List<string> errors = new List<string>();
+		public List<string> warnings = new List<string>();
+		public List<string> todos = new List<string>();
 
 		public InkFile (string absoluteFilePath) {
 			this.absoluteFilePath = absoluteFilePath;

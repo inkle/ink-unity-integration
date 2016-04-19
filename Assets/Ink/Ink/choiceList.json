@@ -1,0 +1,4022 @@
+﻿[
+  {
+    "filename": "archaeology2/system/system.ink",
+    "choiceText": ""
+  },
+  {
+    "filename": "archaeology2/system/system.ink",
+    "choiceText": "MOVE"
+  },
+  {
+    "filename": "archaeology2/system/system.ink",
+    "choiceText": "MOVE"
+  },
+  {
+    "filename": "archaeology2/system/system.ink",
+    "choiceText": " Ink.Parsed.Wrap`1[Ink.Runtime.Glue]locator_nameInk.Parsed.Wrap`1[Ink.Runtime.Glue] - DEPART"
+  },
+  {
+    "filename": "archaeology2/system/system.ink",
+    "choiceText": "ARRIVE"
+  },
+  {
+    "filename": "archaeology2/system/system.ink",
+    "choiceText": "El:\t\t(Say nothing)"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El: \tHow long till we reach Elboreth?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tI'll stay awake for a while, I think."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tGood idea."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tI'll sleep here, I think."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El: \tThank you, Six."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tSome water."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tI don't need anything."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tWhy don't you go and rest?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tWe've had a few close calls recently."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tDo you think we're getting close to finding anything out here, Six?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": ""
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t There are people in this Nebula who have no idea what's out here."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tBy myself?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tNo."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tI had to be rescued."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tI'm a better sailor now, Six."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tNo; I'd throw you overboard for thrust."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tThanks, Six, it's nice to know."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tWhat do you think?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tThe first time? I was young."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tNo."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tThey wanted to give me a job. At twelve."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tI'd found something."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tDon't you know?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t Never mind, anyway."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tIn a way, I suppose so."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tIt's ancient history now."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:  \tDo you ever look at it, Six? This Nebula of ours."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tYou're dodging the question."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El: \tBut what do you make of it?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tWhat does it hide, do you suppose?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\t... the shape. The structure. All these scattered rocks, planets."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\t... quite right, somehow."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\t... good enough, to me. I would expect the creator to do better."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\t... the most elegant of designs for a universe."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\t... that's true enough."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\t... it just seems like a strange way for the universe to be."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\t... you see lines of force, and nothing more than that."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tBut what is gravity, really?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tBut what is ether flow, exactly?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tBut what if there's more to it?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tThen why is it such a state?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El: \tThere's a dream I often have..."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tIt's not only me. Others have it."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tI suppose so. I don't know where I first heard it."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tEvery story is a reflection of some need."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tIt's a dream of a tidier place. This one is too messy."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\t... it's easy to assume that everything has meaning."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\t... what do you suppose is out there?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El: \tYou do? Then what's the point in what we do?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tThat's a poor way to live."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tNothing is ever well-defined, Six."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El: \tSo you think it's just a matter of minor details?"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:"
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tI'm sorry, Six, you're simply poorly built."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El: \tDon't let anyone on Iox hear you say that."
+  },
+  {
+    "filename": "archaeology2/generic/aboard_ship.ink",
+    "choiceText": "El:\t\tThat much is obvious."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tNo one knows."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tJust people, most likely."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tSeveral of these sites are unexplored. They may still be here."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tThe sites are full of temples promising \"ascension\"."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tThey moved off the asteroids, and onto the planets."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tThat's the big question."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El: \tAnother time, maybe."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El: \tDo you know the first Principle of Action?"
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tIt was nothing personal."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tFive saved my life."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tSomething like that."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tRight. Exactly."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tWasn't the only thing I had aboard, either."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tSix, why do you have to have that face?"
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tNever mind."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tYou could have any face you like."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tI don't like it. I don't like your face."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tHow did they choose it?"
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tShouldn't I be able to change it? To get what I want?"
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tSo why does your face look like my ex-husband?"
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tYes, but not the way you mean."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tI'm not going to talk about it to you."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tWas that a joke, Six?"
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tGood idea."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tI'm fine, I don't need to restore anything."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tWell, I don't like it. Can't you turn it off?"
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\tBut that face. It can't be a coincidence."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tYour presence irritates me."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tIt's not one thing."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tI'm sorry, Six."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t... but it's not your fault."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t... but I shouldn't take it out on you."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t... and I didn't ask to have you with me."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tSo were the other five."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tNo matter. Forget I mentioned it."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tYou're not the first robot I've had tailing me."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tDon't I know it."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tAnd why is that, I wonder?"
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tWe must do something about that."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tOf course."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\tBut Six, they keep on giving me robots."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t... I can't figure out why."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t... They must take my safety very seriously."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t... It's like they're trying to get rid of them."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tPerhaps you're right."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tSo you're a spy?"
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tSome research assistant."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tIs that what you want?"
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tOr are you just copying what I do?"
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tDo you really want to research?"
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El: \tNever mind."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tYou worry too much."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tI could look after myself."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tYou're right, I suppose."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tI'm not going to apologise to a robot."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tSo you're a scanner in a hip-bag."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tYou're very helpful, Six."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El:\t\tNow, don't mention this again."
+  },
+  {
+    "filename": "archaeology2/generic/genericSixChat.ink",
+    "choiceText": "El: \tAnyway. Let's see if you and I can do better."
+  },
+  {
+    "filename": "archaeology2/generic/genericchamber.ink",
+    "choiceText": "Doorway - Look Above"
+  },
+  {
+    "filename": "archaeology2/generic/genericchamber.ink",
+    "choiceText": "Doorway - Brush"
+  },
+  {
+    "filename": "archaeology2/generic/genericchamber.ink",
+    "choiceText": "Chamber - Enter"
+  },
+  {
+    "filename": "archaeology2/generic/genericchamber.ink",
+    "choiceText": "Doorway - Leave"
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "NEXT"
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "NEXT"
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "NEXT"
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El:\t\tIs the signal still strong?"
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El:\t \tWe'll scan from orbit first."
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El: \tWhat kinds of structure?"
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El:\t \tAnd the temple?"
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El:\t\tA full city?"
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El: \tStone? Metal?"
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El: \tTake us down."
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El: \tI'll do it."
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El: \tToo rough?"
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El: \tGo ahead then."
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El:\t\tHave I still not turned that off?"
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El:\t\tThe fault of my own Ethical Core, then."
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El:\t\tHow sure are you?"
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El: \tNo one does."
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El:\t\tYou can consider it a threat, if you like."
+  },
+  {
+    "filename": "archaeology2/toptail/intro_vo.ink",
+    "choiceText": "El:\t\tTake us down."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tWhere am I?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: \tWhat happened?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tWho's there?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: Collapsing ruins?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tMy head..."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tI don't remember anything."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tThe hopper?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: \tMy head is aching."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: \tI'll be all right."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tJust tell me what happened down there."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tWhat's going on? Where am I?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: \tWhere am I?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "Mirror - Look"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "Room - Look"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "Stone Head - Look"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "Stone Head - Look"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: \tWhat are you?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tWhat is your purpose?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "Window - Look"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "Cabin Door - Enter"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": ""
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: \tWhat happened down there?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t \tThank you."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: \tThis tastes awful."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tWere we finished here?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tHow long is the return journey?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: \tJust ..."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\t... keep ..."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: \t... running ..."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "Marked Wall - Look"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "Left Path - Run"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "Right Path - Run"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\tHope ..."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: ... and ..."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t... pray ..."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\tHere ..."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: ... goes ..."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: ... nothing ..."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tLight!"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tSix!"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "Passageway - Look Back"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\tSix! Six, are you there?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "Opening - Run"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\tNo time to waste."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\tThis place will fall apart any moment."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\t... Where are you?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\t... Hide, quick!"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\t... Get us out of here!"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t Look at me! What do you think?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "Side of Opening - Hide"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "Dune - Run"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tI touched something."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tTell you later."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\tJust keep running."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\tJust stay in cover."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: \tGlad to hear it."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: \tNot affected by whatever was going on below?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": " Console - Look"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": " Starfield - Look"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: \tFrom here? No."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tCan you?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: \tWhich one?"
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El: \tMaybe you'd better navigate."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": "El:\t\tI'll find my way by feel."
+  },
+  {
+    "filename": "archaeology2/toptail/prologue.ink",
+    "choiceText": " Console - Sit"
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tFine. I'm fine."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tI hate this place."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tThen stop detecting them."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tLook at this place."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El: \t...\tThere's so much money here."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tThere are."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\tYou're right, of course."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\t... It's beautiful."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tDon't pretend to have feelings."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t \tInk.Parsed.Wrap`1[Ink.Runtime.Glue]!beautifulInk.Parsed.Wrap`1[Ink.Runtime.Glue] This isn't home."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El: So you like it here?"
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tYou feel like that, do you?"
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tI didn't know you had feelings."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "Library - Look"
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "Library - Enter"
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "Dome of Philosophy - Look"
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "Dome of Philosophy - Enter"
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tProfessor!"
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tShe's been waiting for us."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tI didn't blow anything up, if that's what you mean."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tDon't treat me like an idiot."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tGuilty until proven innocent, I see."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tProfessor, what happened on that asteroid wasn't my fault."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tI've not done anything to Six."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "El:\t\tSix and I have been getting on well."
+  },
+  {
+    "filename": "archaeology2/iox/on_iox.ink",
+    "choiceText": "Dome of Philosophy - Enter"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\tShh."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tYes?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tNo."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tWhy?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tPerhaps, if I find anything interesting."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tYou don't need my permission."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tFascinating."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tAll right. But stay close if you go."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "Books - Look"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "Books - Search for Information"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "Doorway - Walk"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El: \tNot yet."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tWhy not?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": ""
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "Six - Wait"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "Library - Return"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tAnything on Hyaf?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tWellspings..."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "Bookshelf - Put book back"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "Six - Hand over the book"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\tThanks."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tI'll look at it myself."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tSix is faster than me."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tSometimes."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tThat doesn't happen."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tIt's only a book."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tThat's all right."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tGo ahead."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tWorth visiting?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tDoes it provide a location?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El: Anything else of interest?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tThank you, Six."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tWhat's so complicated about a well?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tSo where does it come from?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tAny interesting observations?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tAnything else?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tSix isn't a he."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\t(Ignore him)"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tIs there such a planet?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tFor you, anything."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tIs it an interesting place, or isn't it?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "Huang - Look at"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tHuang."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\tIt's El."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tWhat are you reading?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tLooking around."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tI'm talking to you, aren't I?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "Huang - Distract"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tI think I heard the Professor calling you."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tWhat time are you leaving here?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tJust wondering."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tI wondered if you wanted to go somewhere and talk."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tI find your presence annoying."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "Locket - Look"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El: ... valuable."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El: ... unusual."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t... great on you."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\tI'm glad to hear that."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\tI'm not sure what you're implying."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\tSome. Not me."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\tWe do the work to dig the things up, you know."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tI hate to think how you pay for things, Huang."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tI'm just saying it suits you."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\tWhere did you get it from?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tI've never heard of it."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tThere are a lot of moons out there."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tTell me about Hyaf."
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tWhat kind of archaeologist would I be if I didn't?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tNo?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El:\t\tIs the well ruined now?"
+  },
+  {
+    "filename": "archaeology2/iox/iox_library.ink",
+    "choiceText": "El: \tSounds like a rich place."
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tSomeone makes them."
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tI don't have the freedom of Iox the way you do."
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tWhat are you saying?"
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tI knew it. The robot is a spy for someone else."
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tI have no idea."
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tFound them?"
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tSomeone must have made them."
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tRobots?"
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t \tGo on."
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tThis is nonsense."
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tA tunnel?"
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El: \tA container?"
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\t(say nothing)"
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tIs Six one of these?"
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tThey still worked?"
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tHow many robots?"
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tAnd you've never found any more?"
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tSo who made them? The Ancestors."
+  },
+  {
+    "filename": "archaeology2/iox/robots_story.ink",
+    "choiceText": "El:\t\tDo the robots remember anything? From before?"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tWe've not been to Fenris before, have we?"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tA word of warning, Six."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tJust keep your eyes to yourself."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tThey sell things here that other people wouldn't sell."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tDon't say I didn't warn you."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tI'm afraid your Ethical Core is in for a beating."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t \tThis way."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t \tA slave market."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El: \tDon't worry about it, we aren't staying."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El: \tCan't you tell?"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tJust keep your head down, Six."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El: \tAre you surprised?"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tYou must have known, Six."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tJust ignore your programming and let's keep moving."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tThat's true for everyone."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tLet's not talk about it, Six."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tYes."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tDoes it matter?"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tWe won't be staying long."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tThey buy and sell people, Six, not machines."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tWhat's the problem?"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tThen your ethical core is broken."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tProgrammed by optimists."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tThere's nothing you can do, Six."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tLet's just keep moving and try not attract too much attention."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tI'm sorry, Six."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El: \tThere's someone here I'd like you to meet."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tYou'll see."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tJust stay quiet, won't you?"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\tI'm sure they are."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tIt's not for your benefit, Six."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tOne day, this will change, Six. It has to."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "MOVE"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tI don't know."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tYou have to believe it."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tSlaves always overthrow their masters in the end."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El: \tThat's when you have to believe."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tThere is only one fact that matters."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tNothing stays the same, Six. Nothing."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\tSome will be."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tThere's only so far you can run when you've got a chain around your ankles."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tSome do. I doubt they get far."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tSix, just leave it."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tI don't know, Six."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tThe money. They trade others powerlessness for their own power."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "Slaves - Look"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "Trader - Look"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "Low Door - Look"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "Low Door - Walk"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tGet out of my way."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tYou've got keen eyes, trader."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tIt's not for sale."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tHappy to treat people like machines instead?"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tThen we have nothing to discuss."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tIs there something you want?"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tDon't do that again."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tI'd rather my servant wasn't a person."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tI don't want argument with you."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El: \tI've got business here."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tI'll do what I choose."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tPeace, trader. We'll be gone soon enough."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tWhat's wrong with you?"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\t\tThe only respect you deserve is my spit in your eye."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\t\tI don't want any trouble."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\t\tDon't you have a shop to run?"
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tIf you go out of business, I won't shed a tear."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El: \tIt won't be robots that stick a knife in your belly."
+  },
+  {
+    "filename": "archaeology2/fenris/slave_market.ink",
+    "choiceText": "El:\t\tYou don't look underfed to me."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tDon't be fooled."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tWe'll be off this rock soon."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tSix, no one says 'establishment'."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\tSells and repairs things. Mechanicals, mostly."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\tIt's not junk."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tIt's not a dig site."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El: Was that a joke?"
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\tWhat did you think we were doing here?"
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\t\tWhy wouldn't I be?"
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\tJust about."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "Toys - Look"
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tNot robots, exactly."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tLittle devices. Toys."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tJust trinkets."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\t(Say nothing)"
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tAbout you, yes."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tYou're not a person."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tWhere's Amauld?"
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tAmauld, come out from behind the curtain."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "Toys - Look"
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "Bell - Ring"
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "Wait"
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "Doorway - Exit"
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tAmauld."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tI didn't know it was broken."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tI don't have anything to sell you."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tI don't remember that."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tBe seeing you, Amauld."
+  },
+  {
+    "filename": "archaeology2/fenris/amaulds_shop.ink",
+    "choiceText": "El:\t\tHave you heard any rumours about unknown sites?"
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "Blue Monkey - Look"
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "Blue Monkey - Enter"
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "Passersby - Look"
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "Apartment Tunnel - Look"
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "Apartment Tunnel - Enter"
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "El:\t \tI want to look around a little first."
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "El:\t\tWe'll have plenty to do in the morning."
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "El:\t\tMight as well get some rest."
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "El:\t\tBut I need a drink first."
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "El:\t\tKeep your voice down."
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "El:\t\tI hate selling this stuff."
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "El:\t\tTo the person who buys them, only."
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "El:\t\tSurely they belong in a museum."
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "El:\t\tI suppose that's true."
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "El:\t\tSo they don't pay as well."
+  },
+  {
+    "filename": "archaeology2/elboreth/elboreth.ink",
+    "choiceText": "El:\t\tThat's fifteen hundred times someone didn't fence a ring."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El: \tJust about."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tSounds good."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tI don't need your charity."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tIt's quiet in here today."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tI've missed this place."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tThanks, Timor."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tI won't stay long."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tGreat."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "Bar Stool - Sit"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "Table - Sit"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "Bar - Sell Artefacts"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "Pictures - Look"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "Ink.Parsed.Wrap`1[Ink.Runtime.Glue]drink_atInk.Parsed.Wrap`1[Ink.Runtime.Glue] Drink - Drink"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "Ink.Parsed.Wrap`1[Ink.Runtime.Glue]drink_atInk.Parsed.Wrap`1[Ink.Runtime.Glue] Drink - Finish"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tI'd better be going, Timor."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "Ink.Parsed.Wrap`1[Ink.Runtime.Glue]drink_atInk.Parsed.Wrap`1[Ink.Runtime.Glue] Drink - Push"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "Bar Door - Leave"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El: \tSo where is everybody?"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tIf things go bad, I'll move to Iox."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tIf you talk this that, no wonder people don't drink here."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tTea."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El: \tWine."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tA Sunflower, please."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:  \tJust water."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tNothing, but I've got a few things for you."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t \tDon't waste it on me."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El: \tSounds great."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": ""
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tOut there? Not yet."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tI can't talk about it."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tOf course it doesn't."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El: \tThings aren't right at the university."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tYou're an idealist."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tA few things."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tDo you have any idea how large the Cloud is, Timor?"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tThe truth."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tI don't know. There are so many questions to answer."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tI despise that place."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tI thought better of you, Timor."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tAn eagle."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tShould I roar?"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El: \tI'm a footsore archaeologist, nothing more."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tI'm glad it helped you."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tAre you asking me out?"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tWhat they teach at Temple goes against everything I believe."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tThanks. I'll consider it."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tI'll show you what I've got."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tNothing right now."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El: Come on, Timor. I don't sell my finds."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tNot for long."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El: \tI'd like to."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tYou did?"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El: \tA real letter?"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El: \tYou miss him?"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tNo."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El: \tApart from Six?"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tWhere is he?"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tI could fly you there."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tWhy not? I go out almost every day."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tYou could, if you wanted to."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tI think you're afraid to leave your bar."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tYou should do it one day."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tIt'll take a day at the most."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tHe'll come back."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tI did. And I do."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tWhere else is there to go?"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\tSo how is your son doing?"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tWhere is he?"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\t\tWhy did he leave?"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El: \tDid he mention a woman?"
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El: \tFollowing his heart, perhaps."
+  },
+  {
+    "filename": "archaeology2/elboreth/bar.ink",
+    "choiceText": "El:\tYour son, Rashid. Where is he?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tYou stay out here."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tGuard the door."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\tAnything you like."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\tI'm not sleeping with you inside the room."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El: Good night."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\tYou stay here."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El: \tYou might as well come in."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "Els Door - Enter"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\tThis offer from Atlas Expeditions..."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tFlattering."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tAnd most work for this lot."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tWe'd be well-funded, for once. A good ship."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tI wouldn't have the freedom the university gives me."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tI wonder how they make their money?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "Six - Call Atlas Expeditions"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "Door - Leave"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tAll right."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tGive me a moment."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "Sink - Wash my face"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "Light - Turn on"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El: All right, then."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\tSorry to keep you waiting."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tWhat can I do for you?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tIf this is about the asteroid yesterday..."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tI've only just woken up."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\tNo. Should I have?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\tWhat's this about?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tWe landed, and set off some kind of system."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tNothing. We looked around."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tSeriously. What's happened?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tGone?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tIt was falling to pieces when we left."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El: \tThe winds..."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tThat doesn't make any sense."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tDo you want me to go and have a look?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\tI have somewhere else I should be."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tI'll head over once I'm up."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tI could go and have a look."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tYes?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tGoodbye, Professor."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tI suppose so."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tI haven't decided yet."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tWe'll have to go back to that little planet, Six."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tWhat happened?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tDid we cause it?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tWe didn't destroyed the entire asteroid."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t \tThe Professor won't be pleased."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El: \tWhat kind of machinery does that?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tWell, at least we found something."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tIn a moment."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tDid we destroy that asteroid, Six?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tYou think I'm close to death when I use a toaster."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tCan't you go somewhere else?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tThat's all right, Six."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t \tNo more than last night."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tDo you have to do that?"
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tGood night, Six."
+  },
+  {
+    "filename": "archaeology2/elboreth/apartment.ink",
+    "choiceText": "El:\t\tIt was probably your bleeps that set off that asteroid."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tIt's just El."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tNowhere, really."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tI went to the bar."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El: \tI'm not a girl."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tPlease. You're not my mother."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tHow are you, Kati?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tGood to know."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tSame as usual, then?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tWell, good night."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tAnd you've been waiting here to give it to me?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tMy thanks, then."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El: \tWhat young man?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tWhat message?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tWho from?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tWhat did he want?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tI doubt he was 'calling on' me."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El: \tWhat was the message?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tWhat's this?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tI don't want it, whatever it is."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\tPlease call me El."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tThis isn't where I come from."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tGood night, Katya."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\tIt's just El."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "Els Door - Enter"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "Els Door - Enter"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "Man - Look"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\tYou want something?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tJust El."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tWho are you?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tI am."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tGet out of my way, I'm tired."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tI doubt you do."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tNo, you won't."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El: \tYou don't look like an archaeologist."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tI've heard of your company, of course."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El: \tI'm not interested."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tYour company doesn't have the best reputation."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tYes. Whatever it is."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\tOf course I'm certain."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El: \tNo."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tAnd then you sell what you find."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t \tAre you here to threaten me?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tYou want to offer me a job?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t \tI'm serious. Get out of my way or I'll call security."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tI'm not going to work for you."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tKeep talking."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tI already have a job."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t \tI doubt that."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tUntil I had to decide who to hand over my findings to."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tI said no."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tSounds good to me."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tLet me know where to be."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tWhy not?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tOf course I'll tell them."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tUnderstood."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tI'll think about it."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tYou can ask, but I won't answer."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tSomething important."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\tGood night."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\tAre we friends?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\tYou wouldn't understand."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tThe answer. To the real question."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t...\t\tWhere did they all go?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t... \tWhere did they all come from?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tI've never seen any proof for it."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tThat would make a convert our of anyone."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tYours would do."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tIs that a threat?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tThere has to be a better explanation."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tWhat is the Loop Hypothesis, exactly?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tThat's crazy."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tIs that possible?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tAnd where does it all come from?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tAnd where were you?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tI thought you were supposed to protect me?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El: \tWhat were you doing?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El: \tNo, I'm all right."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El: \tYour timing is just bad, that's all."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El: \tThe sooner I get you chipped, the better."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tLet's put that to the test, shall we?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El: \tYou keep telling yourself that."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\tNo one."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tIt doesn't matter."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El: \tAtlas Expeditions."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t\tAre you asking as a friend, or a university asset?"
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El: \tI don't know."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El:\t Not a chance."
+  },
+  {
+    "filename": "archaeology2/elboreth/job_offer.ink",
+    "choiceText": "El: \tIt sounds like it should be simple enough."
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Alleymouth - Look"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Rubbish Pile - Hide"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Fire Ladder - Climb"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Broken Pipe - Grab"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": " Doorway - Look"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Doorway - Open"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Broken Pipe - Get"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Doorway - Smash with the Pipe"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Alley - Throw the pipe aside"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Low Wall - Look"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Low Wall - Climb"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Walls - Look"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Alley - Listen"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Wall - Climb"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Junk - Search"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Sword - Take"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "El:\t\tIt must be valuable."
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "El:\t\tNo one would chase me with this."
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "El:\t\tIt's beautiful."
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": " Container Crate - Examine"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Container Crate - Move"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": " Container Crate - Pry Free"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Container Crate - Move"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Rock - Examine"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Symbols - Examine"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "Ring of Stones - Connect"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "El:\t\tIs there anyone there?"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "El:\t\tEcho?"
+  },
+  {
+    "filename": "archaeology2/elboreth/slums_flashback.ink",
+    "choiceText": "El:\t\tStay calm, El."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tLook at that, Six. Look at it."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tThere's something here, at least."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\tYou can't ever be sure."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tLet's see if it has anything of value."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tIf this rock can hide this..."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tIt does."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tI think we've seen as much as it has to offer."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tIt's a large site, Six. We can't leave it unexplored."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tAll right. Let's go back to the ship."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tLet's look around a little more."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tYou can't land us closer?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tYou mean, you won't."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tThere's a lot within reach."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tAnd there might be a tunnel or something."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tLet's not give up before we've tried."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tThat's good to know."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tAnd we will never see the results."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tI hope so, I really do."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tProfessor Myari funds me, Six, but who funds her?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tIt's my find, Six. I don't want to hand it over."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\tHow are we doing for time?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\tAre you coping with the dust?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "Mountain Slope - Look"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tBut definitely a settlement."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tSome kind of workplace?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tWhat else could it be?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tAren't rows and rows of houses evidence enough for you?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tWhat sort of evidence are you thinking of?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tIt's a strange layout for a city."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El: \tA mining camp..."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El: \tCouldn't we see from orbit?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "Buildings - Look"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\tIf it is a city."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El: Clearly not."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "Wall - Inspect"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": " Wall - Brush"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "Mountain Slope - Climb"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El: You can handle the slope, can't you?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\tI'll go, you wait here."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "Low Building - Explore"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": " Six - Show Bracket"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": " Path - Return to Ship"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tHowever what?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tWhere's the most intact part?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tI don't like the look of the boulders."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tThanks for the warning."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tI'll go up."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tYour weight, or mine?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tYou're a good companion, Six."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tRemind me why I travel with you again?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tBut there must be hundreds of finds to make up there."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tLook at that."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t \tDoes it look safe?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t \tOn the inside?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El: ... \tA barracks, for instance."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t... \tA prison."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t.... \tA warehouse."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "Doorway - Back Out"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "Ladder - Test"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El: \tGood enough for you, Six?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tI'll just take a quick look on the next level."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "Ladder - Climb"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": " Six - Show Bracket"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tSix? What do you make of this?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\tI pulled it out of the wall."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t \tIt's hardly a large item."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tWe take artefacts off-site all the time, Six."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tI'll put it back."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\tLying on the floor in the room above."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tSo a mount for a chain?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tIt's small, though."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\tIs this a prison or a workcamp?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tI've seen enough."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tOf course I'll be careful."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tStop worrying."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El:\t\tHow's the floor looking from down there?"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "El: \tAll right. I'm coming down."
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "Ladder Top - Climb Down"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "Window - Look Through"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "Low Shelf - Inspect"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "Metal Bracket - Examine"
+  },
+  {
+    "filename": "archaeology2/sites/mountainplanet.ink",
+    "choiceText": "Metal Bracket - Pull"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tI'm more curious about the sleepers in the hut."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tWhat happened to the body?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tThat coffin wasn't made by these villagers."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tJust a tomb."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tI have no idea, Six."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t... did the hopper still function?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t... what was the coffin's original purpose?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tSo there's something else here?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tSomething in orbit, perhaps."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tTo take people - somewhere."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tI feel like we have unfinished business here, Six."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tAre you saying you know how long I have to live?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: And what the hell does that mean?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tYou're not going to tell me?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tAll right. Forget it."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tWe'll slip through."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tWe'll see what they have to say about it."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tThen we'll respect that."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tThen we'll convince them."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tWe'll take that as it comes."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tIs the site much visited?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tDoes your ethical core allow snake-squashing?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tYou're not supposed to not harm animals?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tBut they're alive. They suffer."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tYou just don't care."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: \tWhere is everybody?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tHow many people live here, would you say?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tThe fields here must be poor."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWhat kind of agriculture does this place have?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t \tEights months, you said?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWhat else can you tell about this place?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tWell, let's not waste our chance."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tBut why?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tThey're alive though, are they?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tNot everywhere eats meat."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tThe fields can't be very productive."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tThey can't support them."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tThe fields can't be very productive."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tThe size of one apartment tunnel on Elboreth."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tThey must be all inbred."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tI can do without."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tAll right."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tI'd guess about five years."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tDo you just know these things? All the time?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tSounds a depressing way to live."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tAnd that's not depressing?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tHow can you possibly know that?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWhat colour are her eyes?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tNext you'll tell me how long I have to live."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWe should tell them."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Post - Examine"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tStrange name for a village."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Fields - Look"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Hill - Look"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Houses - Look"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Crossroads - Walk"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Edge - Walk"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Hut - Look"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Hut - Knock"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tThank you. I'm not afraid."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tI think you might scare the souls from them."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tGo ahead."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tBut you say it's not empty, Six?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tSeven or eight? What are you measuring?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: \tDoing what?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tMaybe they don't like visitors."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Hut - Open"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tIsn't that against your Ethical Core?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tThere's no need for that."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tGo on then."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Hut - Enter"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tI wonder if there aren't any isn't a clue somewhere."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tHello? Is there anyone there?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tAfter you, Six."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": ""
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tI don't think we've interrupted at all."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tPlace of Ghosts all right."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Pipe - Look"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tBetter than tilling a dying field."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tNo choices left."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tDo you dream, Six?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tThat's not the same."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tI don't think these people are hypothesising."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tI wonder where they got it from."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Pipe - Scan"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Pipe - Turn Off"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tWe've come to look at your tomb!"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tAll right. We've done our bit."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t There's something wrong here."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tYou don't mind? Fantastic."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tSix, you can tell the Professor I asked for permission."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tFair point."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tThat one nodded."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Bodies - Look"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Bodies - Look"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tBut you broke the door down."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tThey're sleeping pretty hard."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tNot dead, then."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Door - Leave"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Hill - Look"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tAll right, then."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tI'd feel better if we'd spoken to someone."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Hill - Walk"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Village - Return"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tIt's a some distance past the village."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tIt's not still in use, is it? The tomb?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tDo you think anyone saw us?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t \tLook at that."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWe break the seal, of course."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tThe tomb's owner has been dead a long time. It's only fair to bring thing back into circulation a little."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tAfter a fashion."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tCan you scan anything through the rock?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tI'll see what I can do."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: \tAre you going to fit through the entrance?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t Don't break anything."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tNo. I said, don't break anything."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tAfter you."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t You can go first."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWhy don't I go alone?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWhy don't I go on in alone?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tAre you good against snakes?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tI hate snakes."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tWhat makes you say that?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tBut why snakes? Why not spiders?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tNever mind."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: \tGo on."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tWe should leave this intact."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tBack to the ship."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tIn a moment."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t All right, then. Time to go."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Cracked Wall - Examine"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: ... it's open on the other side."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: ... can you get in?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Cracked Wall - Brush"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tIt's possible."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: Or a hasty one."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tYou go first, Six."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Distant Village - Look"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWe'd best be quick about it, then."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tYou let me know if anyone approaches."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Cracked Wall - Squeeze Through"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t What are you doing?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tBig enough for you?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t I hope the other side of that wasn't carved or engraved."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tThat's enough."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tAre you being sarcastic?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Cracked Wall - Listen"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tNothing."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tNo ghosts."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tJust checking."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Inside the Chamber - Enter"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Distant Village - Return"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t... A hundred years?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t... It's an incredible thought."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "EL:\t... Can you scan for that?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tKyla."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tI can."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWho else could it be?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Walls - Examine"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Walls - Read"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tSix, can you make anything of these paintings here?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Opening - Look Out"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tEight months."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tAnd the fields are empty."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tWhat can we do for these people?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Opening - Leave"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Walls - Examine"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Metal Panel - Examine"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: \tSix, push this panel open."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Metal Panel - Open"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tNo poisoned spikes yet."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: Thank you, Six."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tThere's no way the villagers built this coffin, of course."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Coffin - Examine"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Coffin - Blow"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tNo, thank you."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: \tCan you look inside without opening it?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tGo ahead."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tLet it be."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tIt's a human thing."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tI would hope so."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tCarefully."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Coffin - Open"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tTomb robbers?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWas it buried empty?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tWhy would anyone seal up an empty chest?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tSome kind of symbolic burial?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWhat's that supposed to mean?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tNo, there must be something else to it."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Coffin - Look Inside"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Coffin - Scan Inside"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: \tAnd it's always been empty?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWhatever you can tell me."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tJust do it, Six."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tAll right."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tSo there is something?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tWhat is?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "Coffin - Brush"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tJust how old are you, Six?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tI'm an orphan, you know that."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tNo, Six. You're a robot."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tI've found a few grey hairs."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tDo you feel anything?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tCan you tell what they were for?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tCan you tell what they connect to?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tCan you repair them?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: \tAnything you can tell me?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWhy?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t \tSo there was so system active here."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tTell me a story, Six."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tGive me the summary."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tSo far, so God."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tI said, summarise."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tFood?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: \tGo on."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tKilled? Are you sure about that?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tThat's a surprise."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tThe villagers fought back? Good for them."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tSo where is she?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tDoesn't look like it worked out for the villagers, did it?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: So shall we open up and see a God?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tAnything else?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWhat can you see?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\t(Let it work)"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tWhat do you mean?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tJust tell me what you saw."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tNothing valuable."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tMeaning what?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\t\tThe same as in a hopper?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tIs that why it's empty?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: \tIs it still active?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El: \tQuantium is valuable. Can we strip it out?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tYes?"
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tIf it's needless, don't say it."
+  },
+  {
+    "filename": "archaeology2/sites/hill_burial.ink",
+    "choiceText": "El:\tStrip it, Six."
+  }
+]

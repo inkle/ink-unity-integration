@@ -16,7 +16,8 @@ namespace Ink.UnityIntegration {
 		private InkFile inkFile;
 		private ReorderableList includesFileList;
 		private ReorderableList todosList;
-		private System.Exception exception;
+//		private System.Exception exception;
+//		private bool checkedStoryForErrors;
 
 		public override bool IsValid(string assetPath) {
 			if(Path.GetExtension(assetPath) == ".ink") {
@@ -26,27 +27,35 @@ namespace Ink.UnityIntegration {
 		}
 
 		public override void OnEnable () {
-			InkCompiler.OnCompileInk += OnCompileInk;
 			InkLibrary.Refresh();
 			string assetPath = AssetDatabase.GetAssetPath(target);
 			inkFile = InkLibrary.GetInkFileWithPath(assetPath);
 			if(inkFile == null) 
 				return;
 			InkFile masterInkFile = inkFile;
-			if(inkFile.master == null) {
-				if(inkFile.includes != null) {
-					CreateIncludeList();
-				}
-			} else {
+			if(inkFile.master != null) {
 				masterInkFile = inkFile.master;
 			}
-//			CreateTODOList();
 
-			if (inkFile.jsonAsset != null) {
-				// This can be slow. Disable if you find viewing an ink file in the inspector takes too long.
-				InkEditorUtils.CheckStoryIsValid (masterInkFile.jsonAsset.text, out exception);
+			if(inkFile.includes != null) {
+				CreateIncludeList();
 			}
+			CreateTODOList();
+
+//			if (masterInkFile.jsonAsset != null) {
+//				// This can be slow. Disable if you find viewing an ink file in the inspector takes too long.
+//				GetStoryErrors();
+//			}
+			InkCompiler.OnCompileInk += OnCompileInk;
 		}
+
+		public override void OnDisable () {
+			InkCompiler.OnCompileInk -= OnCompileInk;
+		}
+//		void GetStoryErrors () {
+//			checkedStoryForErrors = true;
+//			InkEditorUtils.CheckStoryIsValid (inkFile.jsonAsset.text, out exception);
+//		}
 
 		void OnCompileInk (string inkAbsoluteFilePath, TextAsset compiledJSONTextAsset) {
 			InkCompiler.OnCompileInk -= OnCompileInk;
@@ -96,58 +105,111 @@ namespace Ink.UnityIntegration {
 
 		public override void OnInspectorGUI () {
 			serializedObject.Update();
-
 			if(inkFile == null) 
 				return;
 
 			InkFile masterInkFile = inkFile;
 			if(inkFile.master == null) {
-				EditorGUI.BeginDisabledGroup(true);
-				EditorGUILayout.ObjectField("JSON Asset", inkFile.jsonAsset, typeof(TextAsset), false);
-				EditorGUI.EndDisabledGroup();
-
-				if(GUILayout.Button("Play")) {
-					InkPlayerWindow.LoadAndPlay(inkFile.jsonAsset);
-				}
-				if(includesFileList != null) {
-					includesFileList.DoLayoutList();
-				}
+				DrawMasterFileHeader();
 			} else {
 				masterInkFile = inkFile.master;
-				EditorGUILayout.HelpBox("This file is included by a master file.", MessageType.Info);
-				EditorGUI.BeginDisabledGroup(true);
-				EditorGUILayout.ObjectField("Master Ink File", masterInkFile.inkFile, typeof(Object), false);
-				EditorGUI.EndDisabledGroup();
+				DrawSubFileHeader();
 			}
 
-			DateTime lastEditDate = File.GetLastWriteTime(inkFile.absoluteFilePath);
-			EditorGUILayout.LabelField("Last edit date "+lastEditDate.ToString());
-
-			if(masterInkFile.jsonAsset == null) {
-				EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Info);
-				if(GUILayout.Button("Compile")) {
-					InkCompiler.CompileInk(masterInkFile);
-				}
-			} else {
-				DateTime lastCompileDate = File.GetLastWriteTime(Path.Combine(Application.dataPath, AssetDatabase.GetAssetPath(masterInkFile.jsonAsset).Substring(7)));
-				EditorGUILayout.LabelField("Last compile date "+lastCompileDate.ToString());
-
-				if(lastEditDate > lastCompileDate && GUILayout.Button("Recompile")) {
-					InkCompiler.CompileInk(masterInkFile);
-				}
-
-				if(exception != null) {
-					EditorGUILayout.HelpBox("Story is invalid\n"+exception.ToString(), MessageType.Error);
-				}
+			if(inkFile.errors.Count > 0) {
+				string errors = string.Join("\n", inkFile.errors.ToArray());
+				EditorGUILayout.HelpBox(errors, MessageType.Error);
+			} else if(inkFile.warnings.Count > 0) {
+				string warnings = string.Join("\n", inkFile.warnings.ToArray());
+				EditorGUILayout.HelpBox(warnings, MessageType.Warning);
+			} else if(inkFile.todos.Count > 0) {
+				string todos = string.Join("\n", inkFile.todos.ToArray());
+				EditorGUILayout.HelpBox(todos, MessageType.Info);
 			}
 
-			if(todosList != null) {
-				todosList.DoLayoutList();
-			}
-
+			DrawEditAndCompileDates(masterInkFile);
+			DrawIncludedFiles();
+			DrawCompileButton(masterInkFile);
+			DrawTODOList();
 			DrawFileContents ();
 
 			serializedObject.ApplyModifiedProperties();
+		}
+
+		void DrawMasterFileHeader () {
+			EditorGUILayout.LabelField("Master File", EditorStyles.boldLabel);
+			EditorGUI.BeginDisabledGroup(true);
+			EditorGUILayout.ObjectField("JSON Asset", inkFile.jsonAsset, typeof(TextAsset), false);
+			EditorGUI.EndDisabledGroup();
+
+			if(inkFile.jsonAsset != null && GUILayout.Button("Play")) {
+				InkPlayerWindow.LoadAndPlay(inkFile.jsonAsset);
+			}
+
+//				if(!checkedStoryForErrors) {
+//					if(GUILayout.Button("Check for errors")) {
+//						GetStoryErrors();
+//					}
+//				} else {
+//					if(exception != null) {
+//						EditorGUILayout.HelpBox("Story is invalid\n"+exception.ToString(), MessageType.Error);
+//					} else {
+//						EditorGUILayout.HelpBox("Story is valid", MessageType.Info);
+//					}
+//				}
+		}
+
+		void DrawSubFileHeader() {
+			EditorGUILayout.LabelField("Sub File", EditorStyles.boldLabel);
+			EditorGUI.BeginDisabledGroup(true);
+			EditorGUILayout.ObjectField("Master Ink File", inkFile.master.inkFile, typeof(Object), false);
+			EditorGUI.EndDisabledGroup();
+		}
+
+		void DrawEditAndCompileDates (InkFile masterInkFile) {
+			string editAndCompileDateString = "";
+			DateTime lastEditDate = File.GetLastWriteTime(inkFile.absoluteFilePath);
+			editAndCompileDateString += "Last edit date "+lastEditDate.ToString();
+			if(masterInkFile.jsonAsset != null) {
+				DateTime lastCompileDate = File.GetLastWriteTime(Path.Combine(Application.dataPath, AssetDatabase.GetAssetPath(masterInkFile.jsonAsset).Substring(7)));
+				editAndCompileDateString += "\nLast compile date "+lastCompileDate.ToString();
+				if(lastEditDate > lastCompileDate) {
+					EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.Warning);
+					if(GUILayout.Button("Recompile")) {
+						InkCompiler.CompileInk(masterInkFile);
+					}
+				} else {
+					EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.None);
+				}
+			} else {
+				EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.None);
+			}
+		}
+
+		void DrawIncludedFiles () {
+			if(includesFileList != null) {
+				includesFileList.DoLayoutList();
+			}
+		}
+
+		void DrawCompileButton (InkFile masterInkFile) {
+			bool drawButton = false;
+			if(masterInkFile.lastCompileFailed) {
+				EditorGUILayout.HelpBox("Last compiled failed", MessageType.Error);
+				drawButton = true;
+			} else if(masterInkFile.jsonAsset == null) {
+				EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
+				drawButton = true;
+			}
+			if(drawButton && GUILayout.Button("Compile")) {
+				InkCompiler.CompileInk(masterInkFile);
+			}
+		}
+
+		void DrawTODOList () {
+			if(todosList != null && todosList.count > 0) {
+				todosList.DoLayoutList();
+			}
 		}
 
 		void DrawFileContents () {
