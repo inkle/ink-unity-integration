@@ -227,11 +227,11 @@ namespace Ink.UnityIntegration {
 
 		void DrawCompileButton (InkFile masterInkFile) {
 			bool drawButton = false;
-			if(masterInkFile.errors.Count > 0) {
+			if(masterInkFile.hasErrors > 0) {
 				EditorGUILayout.HelpBox("Last compiled failed", MessageType.Error);
 				drawButton = true;
-			} else if(masterInkFile.jsonAsset == null) {
-				EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
+			} else if(masterInkFile.hasWarnings == null) {
+				EditorGUILayout.HelpBox("Last compile had errors", MessageType.Warning);
 				drawButton = true;
 			} else if(masterInkFile.jsonAsset == null) {
 				EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
