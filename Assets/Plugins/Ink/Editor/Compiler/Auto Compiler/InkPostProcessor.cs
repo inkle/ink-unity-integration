@@ -28,31 +28,6 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		static void OnImportAssets (string[] importedAssets) {
-			foreach (var deletedAssetPath in importedAssets) {
-				Debug.Log("Imported Asset: "+deletedAssetPath);
-			}
-
-			List<string> importedInkAssets = new List<string>();
-			string inklecateFileLocation = null;
-			
-			foreach (var importedAssetPath in importedAssets) {
-				if(Path.GetExtension(importedAssetPath) == InkEditorUtils.inkFileExtension) 
-					importedInkAssets.Add(importedAssetPath);
-				else if (Path.GetFileName(importedAssetPath) == "inklecate" && Path.GetExtension(importedAssetPath) == "")
-					inklecateFileLocation = importedAssetPath;
-			}
-			
-			if(importedInkAssets.Count > 0)
-				PostprocessInkFiles(importedInkAssets);
-			if(inklecateFileLocation != null)
-				PostprocessInklecate(inklecateFileLocation);
-			
-			if(PlayerSettings.apiCompatibilityLevel == ApiCompatibilityLevel.NET_2_0_Subset) {
-				Debug.LogWarning("Detected PlayerSettings.apiCompatibilityLevel is .NET 2.0 Subset. Due to JSON.Net as used by ink-engine.dll, API Compatibility Level must be set to .NET 2.0 for standalone builds to function. Change this in PlayerSettings.");
-			}
-		}
-
 		static void OnDeleteAssets (string[] deletedAssets) {
 			foreach (var deletedAssetPath in deletedAssets) {
 				if(Path.GetExtension(deletedAssetPath) != InkEditorUtils.inkFileExtension) 
@@ -77,6 +52,30 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
+		static void OnImportAssets (string[] importedAssets) {
+			foreach (var importedAssetPath in importedAssets) {
+				Debug.Log("Imported Asset: "+importedAssetPath);
+			}
+
+			List<string> importedInkAssets = new List<string>();
+			string inklecateFileLocation = null;
+			foreach (var importedAssetPath in importedAssets) {
+				if(Path.GetExtension(importedAssetPath) == InkEditorUtils.inkFileExtension) 
+					importedInkAssets.Add(importedAssetPath);
+				else if (Path.GetFileName(importedAssetPath) == "inklecate" && Path.GetExtension(importedAssetPath) == "")
+					inklecateFileLocation = importedAssetPath;
+			}
+			
+			if(importedInkAssets.Count > 0)
+				PostprocessInkFiles(importedInkAssets);
+			if(inklecateFileLocation != null)
+				PostprocessInklecate(inklecateFileLocation);
+			
+			if(PlayerSettings.apiCompatibilityLevel == ApiCompatibilityLevel.NET_2_0_Subset) {
+				Debug.LogWarning("Detected PlayerSettings.apiCompatibilityLevel is .NET 2.0 Subset. Due to JSON.Net as used by ink-engine.dll, API Compatibility Level must be set to .NET 2.0 for standalone builds to function. Change this in PlayerSettings.");
+			}
+		}
+
 		static void PostprocessInklecate (string inklecateFileLocation) {
 			Debug.Log("Inklecate updated. Recompiling all Ink files...");
 			InkCompiler.RecompileAll();
@@ -84,19 +83,28 @@ namespace Ink.UnityIntegration {
 
 		static void PostprocessInkFiles (List<string> importedInkAssets) {
 			Debug.ClearDeveloperConsole();
+			Debug.Log("POSTPROCESS INK");
 			InkLibrary.Refresh();
-			List<string> inkAssetsToCompile = new List<string>();
+//			foreach (var importedAssetPath in importedInkAssets) {
+//				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
+//				if(inkFile == null) {
+////					InkLibrary.Instance.inkLibrary.Add(new InkFile(AssetDatabase.));
+////					inkFile = new InkFile(AssetDatabase.LoadAssetAtPath<DefaultAsset>(importedAssetPath);
+//				}
+//			}
+			List<InkFile> inkFilesToCompile = new List<InkFile>();
 			foreach (var importedAssetPath in importedInkAssets) {
-				InkFile file = InkLibrary.GetInkFileWithPath(importedAssetPath);
-				if(file.master != null) {
-					InkFile master = InkLibrary.GetInkFileWithFile((DefaultAsset)file.master);
-					if(!inkAssetsToCompile.Contains(master.absoluteFilePath))
-						inkAssetsToCompile.Add(master.absoluteFilePath);
-				} else if (file.master == null && !inkAssetsToCompile.Contains(file.absoluteFilePath))
-					inkAssetsToCompile.Add(file.absoluteFilePath);
+				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
+				if(inkFile.master == null) {
+					if(!inkFilesToCompile.Contains(inkFile.masterInkFile))
+						inkFilesToCompile.Add(inkFile.masterInkFile);
+				} else {
+					if(!inkFilesToCompile.Contains(inkFile))
+						inkFilesToCompile.Add(inkFile);
+				}
 			}
 
-			foreach (var inkAssetToCompile in inkAssetsToCompile) {
+			foreach (var inkAssetToCompile in inkFilesToCompile) {
 				InkCompiler.CompileInk(inkAssetToCompile);
 			}
 		}

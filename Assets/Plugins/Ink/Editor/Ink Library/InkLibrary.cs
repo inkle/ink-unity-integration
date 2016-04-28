@@ -26,6 +26,7 @@ namespace Ink.UnityIntegration {
 		public const string defaultSettingsPath = "Assets/Plugins/Ink/Editor/Ink Library/InkLibrary.asset";
 
 		public List<InkFile> inkLibrary;
+		public Dictionary<InkFile, InkCompiler.PendingInkFileProperties> compilingFiles = new Dictionary<InkFile, InkCompiler.PendingInkFileProperties>();
 
 		private static InkLibrary FindOrCreateLibrary () {
 			InkLibrary tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(defaultSettingsPath);
@@ -83,8 +84,8 @@ namespace Ink.UnityIntegration {
 					foreach (InkFile otherInkFile in newInkLibrary) {
 						if(inkFile == otherInkFile) 
 							continue;
-						if(inkFile.includes.Contains(otherInkFile.inkFile)) {
-							otherInkFile.master = inkFile.inkFile;
+						if(inkFile.includes.Contains(otherInkFile.inkAsset)) {
+							otherInkFile.master = inkFile.inkAsset;
 						}
 					}
 				}
@@ -117,7 +118,7 @@ namespace Ink.UnityIntegration {
 		public static InkFile GetInkFileWithFile (DefaultAsset file) {
 			if(InkLibrary.Instance.inkLibrary == null) return null;
 			foreach(InkFile inkFile in InkLibrary.Instance.inkLibrary) {
-				if(inkFile.inkFile == file) {
+				if(inkFile.inkAsset == file) {
 					return inkFile;
 				}
 			}

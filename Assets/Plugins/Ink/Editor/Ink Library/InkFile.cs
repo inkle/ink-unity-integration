@@ -33,7 +33,7 @@ namespace Ink.UnityIntegration {
 		// The file path relative to the Assets folder
 		public string filePath {
 			get {
-				return AssetDatabase.GetAssetPath(inkFile);
+				return AssetDatabase.GetAssetPath(inkAsset);
 			}
 		}
 
@@ -41,10 +41,15 @@ namespace Ink.UnityIntegration {
 		public string fileContents;
 
 		// A reference to the ink file (UnityEngine.DefaultAsset)
-		public Object inkFile;
+		public Object inkAsset;
 
 		// If file that contains this file as an include, if one exists. (UnityEngine.DefaultAsset)
 		public Object master;
+		public InkFile masterInkFile {
+			get {
+				return InkLibrary.GetInkFileWithFile((DefaultAsset)master);
+			}
+		}
 
 		// The files included by this file (UnityEngine.DefaultAsset)
 		public List<Object> includes = new List<Object>();
@@ -73,7 +78,8 @@ namespace Ink.UnityIntegration {
 				return todos.Count > 0;
 			}
 		}
-//		public int lastCompileDateTime;
+
+		public int lastCompileDateTime;
 
 		[System.Serializable]
 		public class InkFileLog {
@@ -90,7 +96,7 @@ namespace Ink.UnityIntegration {
 
 		public InkFile (DefaultAsset inkFile) {
 			Debug.Assert(inkFile != null);
-			this.inkFile = inkFile;
+			this.inkAsset = inkFile;
 //			this.filePath = AssetDatabase.GetAssetPath(inkFile);
 			Refresh();
 		}

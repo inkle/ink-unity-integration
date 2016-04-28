@@ -47,7 +47,7 @@ namespace Ink.UnityIntegration {
 			InkCompiler.OnCompileInk -= OnCompileInk;
 		}
 
-		void OnCompileInk (string inkAbsoluteFilePath, TextAsset compiledJSONTextAsset) {
+		void OnCompileInk (InkFile inkFile) {
 			InkCompiler.OnCompileInk -= OnCompileInk;
 			OnEnable();
 		}
@@ -187,10 +187,10 @@ namespace Ink.UnityIntegration {
 			} else if(masterInkFile.hasWarnings) {
 				GUILayout.Label(new GUIContent(InkBrowserIcons.warningIcon), GUILayout.Width(20));
 			}
-			EditorGUILayout.ObjectField("Master Ink File", masterInkFile.inkFile, typeof(Object), false);
+			EditorGUILayout.ObjectField("Master Ink File", masterInkFile.inkAsset, typeof(Object), false);
 			EditorGUI.EndDisabledGroup();
 			if(GUILayout.Button("Select", GUILayout.Width(60))) {
-				Selection.activeObject = masterInkFile.inkFile;
+				Selection.activeObject = masterInkFile.inkAsset;
 			}
 			EditorGUILayout.EndHorizontal();
 		}
@@ -227,10 +227,10 @@ namespace Ink.UnityIntegration {
 
 		void DrawCompileButton (InkFile masterInkFile) {
 			bool drawButton = false;
-			if(masterInkFile.hasErrors > 0) {
+			if(masterInkFile.hasErrors) {
 				EditorGUILayout.HelpBox("Last compiled failed", MessageType.Error);
 				drawButton = true;
-			} else if(masterInkFile.hasWarnings == null) {
+			} else if(masterInkFile.hasWarnings) {
 				EditorGUILayout.HelpBox("Last compile had errors", MessageType.Warning);
 				drawButton = true;
 			} else if(masterInkFile.jsonAsset == null) {

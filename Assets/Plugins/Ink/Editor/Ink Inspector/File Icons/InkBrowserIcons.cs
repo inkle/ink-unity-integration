@@ -54,9 +54,9 @@ namespace Ink.UnityIntegration {
 					GUI.DrawTexture(rect, inkFileIcon);
 
 					Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
-					if(inkFile.hasErrors > 0) {
+					if(inkFile.hasErrors) {
 						GUI.DrawTexture(miniRect, errorIcon);
-					} else if(inkFile.hasWarnings > 0) {
+					} else if(inkFile.hasWarnings) {
 						GUI.DrawTexture(miniRect, warningIcon);
 					}
 				}
