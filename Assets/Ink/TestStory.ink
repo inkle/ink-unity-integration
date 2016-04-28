@@ -1,4 +1,4 @@
-VAR tension = 0
+VAR tension = 0asd
 INCLUDE TestStory1.ink
 - I looked at Monsieur Fogg 
 *   ... and I could contain myself no longer.

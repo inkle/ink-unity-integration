@@ -1,5 +1,4 @@
-VAR x = asdf
-INCLUDE TestStory3.ink
+INCLUDE TestStory2.ink
 - I looked at Monsieur Fogg 
 *   ... and I could contain myself no longer.
 *   ... but I said nothing[] and <> 

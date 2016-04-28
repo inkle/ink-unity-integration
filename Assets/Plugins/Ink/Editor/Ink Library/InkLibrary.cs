@@ -14,27 +14,23 @@ using Ink.Runtime;
 /// Provides helper functions to easily obtain these files.
 /// </summary>
 namespace Ink.UnityIntegration {
-	public static class InkLibrary {
-		private static InkLibraryScriptableObject _inkLibrarySO;
-		private static InkLibraryScriptableObject inkLibrarySO {
+	public class InkLibrary : ScriptableObject {
+		private static InkLibrary _Instance;
+		public static InkLibrary Instance {
 			get {
-				if(_inkLibrarySO == null)
-					_inkLibrarySO = FindOrCreateLibrary();
-				return _inkLibrarySO;
+				if(_Instance == null)
+					_Instance = FindOrCreateLibrary();
+				return _Instance;
 			}
 		}
 		public const string defaultSettingsPath = "Assets/Plugins/Ink/Editor/Ink Library/InkLibrary.asset";
 
-		public static InkFile[] inkLibrary {
-			get {
-				return inkLibrarySO.inkLibrary;
-			}
-		}
+		public InkFile[] inkLibrary;
 
-		private static InkLibraryScriptableObject FindOrCreateLibrary () {
-			InkLibraryScriptableObject tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibraryScriptableObject>(defaultSettingsPath);
+		private static InkLibrary FindOrCreateLibrary () {
+			InkLibrary tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(defaultSettingsPath);
 			if(tmpSettings == null) {
-				string[] GUIDs = AssetDatabase.FindAssets("t:"+typeof(InkLibraryScriptableObject).Name);
+				string[] GUIDs = AssetDatabase.FindAssets("t:"+typeof(InkLibrary).Name);
 				if(GUIDs.Length > 0) {
 					string path = AssetDatabase.GUIDToAssetPath(GUIDs[0]);
 
@@ -53,8 +49,8 @@ namespace Ink.UnityIntegration {
 			return tmpSettings;
 		}
 		
-		private static InkLibraryScriptableObject CreateInkLibrary () {
-			var asset = ScriptableObject.CreateInstance<InkLibraryScriptableObject>();
+		private static InkLibrary CreateInkLibrary () {
+			var asset = ScriptableObject.CreateInstance<InkLibrary>();
 			AssetDatabase.CreateAsset (asset, defaultSettingsPath);
 			AssetDatabase.SaveAssets ();
 			AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(asset));
@@ -76,23 +72,32 @@ namespace Ink.UnityIntegration {
 				InkFile inkFile = GetInkFileWithAbsolutePath(inkFilePaths [i]);
 				if(inkFile == null)
 					inkFile = new InkFile (inkFilePaths [i]);
+				else {
+					inkFile.Refresh();
+				}
 				newInkLibrary [i] = inkFile;
 			}
 			foreach (InkFile inkFile in newInkLibrary) {
-				if(inkFile.includePaths.Count > 0) {
-					inkFile.GetIncludes(newInkLibrary);
+				if(inkFile.includes.Count > 0) {
+					foreach (InkFile otherInkFile in newInkLibrary) {
+						if(inkFile == otherInkFile) 
+							continue;
+						if(inkFile.includes.Contains(otherInkFile.inkFile)) {
+							otherInkFile.master = inkFile.inkFile;
+						}
+					}
 				}
 			}
 			foreach (InkFile inkFile in newInkLibrary) {
 				inkFile.FindCompiledJSONAsset();
 			}
-			inkLibrarySO.inkLibrary = newInkLibrary;
+			InkLibrary.Instance.inkLibrary = newInkLibrary;
 		}
 
 		public static List<InkFile> GetMasterInkFiles () {
 			List<InkFile> masterInkFiles = new List<InkFile>();
-			if(inkLibrary == null) return masterInkFiles;
-			foreach (InkFile inkFile in inkLibrary) {
+			if(InkLibrary.Instance.inkLibrary == null) return masterInkFiles;
+			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
 				if(inkFile.master == null) {
 					masterInkFiles.Add(inkFile);
 				}
@@ -101,13 +106,28 @@ namespace Ink.UnityIntegration {
 		}
 
 		/// <summary>
+		/// Gets the ink file from the .ink file reference.
+		/// </summary>
+		/// <returns>The ink file with path.</returns>
+		/// <param name="path">Path.</param>
+		public static InkFile GetInkFileWithFile (DefaultAsset file) {
+			if(InkLibrary.Instance.inkLibrary == null) return null;
+			foreach(InkFile inkFile in InkLibrary.Instance.inkLibrary) {
+				if(inkFile.inkFile == file) {
+					return inkFile;
+				}
+			}
+			return null;
+		}
+
+		/// <summary>
 		/// Gets the ink file with path relative to Assets folder, for example: "Assets/Ink/myStory.ink".
 		/// </summary>
 		/// <returns>The ink file with path.</returns>
 		/// <param name="path">Path.</param>
 		public static InkFile GetInkFileWithPath (string path) {
-			if(inkLibrary == null) return null;
-			foreach(InkFile inkFile in inkLibrary) {
+			if(InkLibrary.Instance.inkLibrary == null) return null;
+			foreach(InkFile inkFile in InkLibrary.Instance.inkLibrary) {
 				if(inkFile.filePath == path) {
 					return inkFile;
 				}
@@ -121,8 +141,8 @@ namespace Ink.UnityIntegration {
 		/// <returns>The ink file with path.</returns>
 		/// <param name="path">Path.</param>
 		public static InkFile GetInkFileWithAbsolutePath (string absolutePath) {
-			if(inkLibrary == null) return null;
-			foreach(InkFile inkFile in inkLibrary) {
+			if(InkLibrary.Instance.inkLibrary == null) return null;
+			foreach(InkFile inkFile in InkLibrary.Instance.inkLibrary) {
 				if(inkFile.absoluteFilePath == absolutePath) {
 					return inkFile;
 				}

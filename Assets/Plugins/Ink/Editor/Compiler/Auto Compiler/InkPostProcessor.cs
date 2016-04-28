@@ -46,9 +46,11 @@ namespace Ink.UnityIntegration {
 			List<string> inkAssetsToCompile = new List<string>();
 			foreach (var importedAssetPath in importedInkAssets) {
 				InkFile file = InkLibrary.GetInkFileWithPath(importedAssetPath);
-				if(file.master != null && !inkAssetsToCompile.Contains(file.master.absoluteFilePath))
-					inkAssetsToCompile.Add(file.master.absoluteFilePath);
-				else if (file.master == null && !inkAssetsToCompile.Contains(file.absoluteFilePath))
+				if(file.master != null) {
+					InkFile master = InkLibrary.GetInkFileWithFile((DefaultAsset)file.master);
+					if(!inkAssetsToCompile.Contains(master.absoluteFilePath))
+						inkAssetsToCompile.Add(master.absoluteFilePath);
+				} else if (file.master == null && !inkAssetsToCompile.Contains(file.absoluteFilePath))
 					inkAssetsToCompile.Add(file.absoluteFilePath);
 			}
 

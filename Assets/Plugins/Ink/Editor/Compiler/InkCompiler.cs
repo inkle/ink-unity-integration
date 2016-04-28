@@ -141,7 +141,6 @@ namespace Ink.UnityIntegration {
 						inkFile.errors.Add(message);
 						Debug.LogError("INK "+errorType+": "+message + pathAndLineNumberString);
 						foundError = true;
-						inkFile.lastCompileFailed = true;
 					} else if (errorType == "WARNING") {
 						inkFile.warnings.Add(message);
 						Debug.LogWarning("INK "+errorType+": "+message + pathAndLineNumberString);

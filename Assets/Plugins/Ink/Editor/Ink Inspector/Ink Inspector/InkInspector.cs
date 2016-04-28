@@ -32,10 +32,10 @@ namespace Ink.UnityIntegration {
 			inkFile = InkLibrary.GetInkFileWithPath(assetPath);
 			if(inkFile == null) 
 				return;
-			InkFile masterInkFile = inkFile;
-			if(inkFile.master != null) {
-				masterInkFile = inkFile.master;
-			}
+//			InkFile masterInkFile = inkFile;
+//			if(inkFile.master != null) {
+//				masterInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)inkFile.master);
+//			}
 
 			if(inkFile.includes != null) {
 				CreateIncludeList();
@@ -63,10 +63,14 @@ namespace Ink.UnityIntegration {
 		}
 
 		void CreateIncludeList () {
-			List<Object> includeTextAssets = new List<Object>();
-			foreach(var include in inkFile.includes) {
-				includeTextAssets.Add(include.inkFile);
-			}
+			List<Object> includeTextAssets = inkFile.includes;
+//			foreach(Object include in inkFile.includes) {
+//				InkFile inkFile = InkLibrary.GetInk();
+//				includeTextAssets.Add(inkFile.includes);	
+//			}
+//			foreach(InkFile include in inkFile.includes) {
+//				includeTextAssets.Add(include.inkFile);
+//			}
 			includesFileList = new ReorderableList(includeTextAssets, typeof(Object), false, false, false, false);
 			includesFileList.elementHeight = 16;
 			includesFileList.drawHeaderCallback = (Rect rect) => {  
@@ -112,8 +116,8 @@ namespace Ink.UnityIntegration {
 			if(inkFile.master == null) {
 				DrawMasterFileHeader();
 			} else {
-				masterInkFile = inkFile.master;
-				DrawSubFileHeader();
+				masterInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)inkFile.master);
+				DrawSubFileHeader(masterInkFile);
 			}
 
 			if(inkFile.errors.Count > 0) {
@@ -128,8 +132,9 @@ namespace Ink.UnityIntegration {
 			}
 
 			DrawEditAndCompileDates(masterInkFile);
+			if(!editedAfterLastCompile)
+				DrawCompileButton(masterInkFile);
 			DrawIncludedFiles();
-			DrawCompileButton(masterInkFile);
 			DrawTODOList();
 			DrawFileContents ();
 
@@ -159,14 +164,17 @@ namespace Ink.UnityIntegration {
 //				}
 		}
 
-		void DrawSubFileHeader() {
+		void DrawSubFileHeader(InkFile masterInkFile) {
 			EditorGUILayout.LabelField("Sub File", EditorStyles.boldLabel);
 			EditorGUI.BeginDisabledGroup(true);
-			EditorGUILayout.ObjectField("Master Ink File", inkFile.master.inkFile, typeof(Object), false);
+			EditorGUILayout.ObjectField("Master Ink File", masterInkFile.inkFile, typeof(Object), false);
 			EditorGUI.EndDisabledGroup();
 		}
 
+
+		bool editedAfterLastCompile = false;
 		void DrawEditAndCompileDates (InkFile masterInkFile) {
+			editedAfterLastCompile = false;
 			string editAndCompileDateString = "";
 			DateTime lastEditDate = File.GetLastWriteTime(inkFile.absoluteFilePath);
 			editAndCompileDateString += "Last edit date "+lastEditDate.ToString();
@@ -174,6 +182,7 @@ namespace Ink.UnityIntegration {
 				DateTime lastCompileDate = File.GetLastWriteTime(Path.Combine(Application.dataPath, AssetDatabase.GetAssetPath(masterInkFile.jsonAsset).Substring(7)));
 				editAndCompileDateString += "\nLast compile date "+lastCompileDate.ToString();
 				if(lastEditDate > lastCompileDate) {
+					editedAfterLastCompile = true;
 					EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.Warning);
 					if(GUILayout.Button("Recompile")) {
 						InkCompiler.CompileInk(masterInkFile);
@@ -194,8 +203,11 @@ namespace Ink.UnityIntegration {
 
 		void DrawCompileButton (InkFile masterInkFile) {
 			bool drawButton = false;
-			if(masterInkFile.lastCompileFailed) {
+			if(masterInkFile.errors.Count > 0) {
 				EditorGUILayout.HelpBox("Last compiled failed", MessageType.Error);
+				drawButton = true;
+			} else if(masterInkFile.jsonAsset == null) {
+				EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
 				drawButton = true;
 			} else if(masterInkFile.jsonAsset == null) {
 				EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
