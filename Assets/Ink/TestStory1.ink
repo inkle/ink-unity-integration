@@ -4,3 +4,4 @@ INCLUDE TestStory2.ink
 *   ... but I said nothing[] and <> 
 - we passed the day in silence.
 - -> END
+VAR tensionqwr = 0asd

@@ -25,7 +25,7 @@ namespace Ink.UnityIntegration {
 		}
 		public const string defaultSettingsPath = "Assets/Plugins/Ink/Editor/Ink Library/InkLibrary.asset";
 
-		public InkFile[] inkLibrary;
+		public List<InkFile> inkLibrary;
 
 		private static InkLibrary FindOrCreateLibrary () {
 			InkLibrary tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(defaultSettingsPath);
@@ -33,7 +33,7 @@ namespace Ink.UnityIntegration {
 				string[] GUIDs = AssetDatabase.FindAssets("t:"+typeof(InkLibrary).Name);
 				if(GUIDs.Length > 0) {
 					string path = AssetDatabase.GUIDToAssetPath(GUIDs[0]);
-
+					tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(path);
 					if(GUIDs.Length > 1) {
 						for(int i = 1; i < GUIDs.Length; i++) {
 							AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(GUIDs[i]));
@@ -45,6 +45,7 @@ namespace Ink.UnityIntegration {
 			}
 			if(tmpSettings == null) {
 				tmpSettings = CreateInkLibrary ();
+				Debug.LogWarning("No ink library was found. Created new at "+defaultSettingsPath);
 			}
 			return tmpSettings;
 		}
@@ -67,15 +68,15 @@ namespace Ink.UnityIntegration {
 				inkFilePaths [i] = inkFilePaths [i].Replace('\\', '/');
 			}
 
-			InkFile[] newInkLibrary = new InkFile[inkFilePaths.Length];
+			List<InkFile> newInkLibrary = new List<InkFile>(inkFilePaths.Length);
 			for (int i = 0; i < inkFilePaths.Length; i++) {
 				InkFile inkFile = GetInkFileWithAbsolutePath(inkFilePaths [i]);
-				if(inkFile == null)
-					inkFile = new InkFile (inkFilePaths [i]);
+				if(inkFile == null) 
+					inkFile = new InkFile(AssetDatabase.LoadAssetAtPath<DefaultAsset>(inkFilePaths [i].Substring(Application.dataPath.Length-6)));
 				else {
 					inkFile.Refresh();
 				}
-				newInkLibrary [i] = inkFile;
+				newInkLibrary.Add(inkFile);
 			}
 			foreach (InkFile inkFile in newInkLibrary) {
 				if(inkFile.includes.Count > 0) {
@@ -92,6 +93,9 @@ namespace Ink.UnityIntegration {
 				inkFile.FindCompiledJSONAsset();
 			}
 			InkLibrary.Instance.inkLibrary = newInkLibrary;
+
+			EditorUtility.SetDirty(InkLibrary.Instance);
+			AssetDatabase.SaveAssets();
 		}
 
 		public static List<InkFile> GetMasterInkFiles () {

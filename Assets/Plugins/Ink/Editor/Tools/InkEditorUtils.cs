@@ -10,14 +10,16 @@ using Debug = UnityEngine.Debug;
 using Ink.Runtime;
 
 namespace Ink.UnityIntegration {
+
 	public static class InkEditorUtils {
 		public const string inkFileExtension = ".ink";
+		private const string defaultFileContents = "Hello world!\n\t*\tHello back!\n\tNice to hear from you!";
 
-		[MenuItem("Ink/Create .Ink", false, -2)]
-		public static void CreateFile() {
+		[MenuItem("Assets/Create/Ink", false, 100)]
+		public static void CreateNewInkFile() {
 			string fileName = "New Ink File.ink";
 			string filePath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(GetSelectedPathOrFallback(), fileName));
-			System.IO.File.WriteAllText(filePath, "");
+			System.IO.File.WriteAllText(filePath, defaultFileContents);
 			AssetDatabase.ImportAsset(filePath);
 			var asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(filePath);
 			EditorGUIUtility.PingObject(asset);
@@ -37,12 +39,12 @@ namespace Ink.UnityIntegration {
 	     }
 
 
-		[MenuItem("Ink/Help/About")]
+		[MenuItem("Help/Ink/About")]
 		public static void OpenAbout() {
 			Application.OpenURL("https://github.com/inkle/ink#ink");
 		}
 
-		[MenuItem("Ink/Help/API Documentation...")]
+		[MenuItem("Help/Ink/API Documentation...")]
 		public static void OpenWritingDocumentation() {
 			Application.OpenURL("https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md");
 		}

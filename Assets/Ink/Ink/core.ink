@@ -15,6 +15,7 @@ INCLUDE archaeology2/generic/genericchamber.ink
 
 -> randomise ->
 
+
 // character/relationship variables
 VAR tension = INITIAL_SWING
 VAR honour = INITIAL_SWING

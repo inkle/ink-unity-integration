@@ -23,6 +23,12 @@ namespace Ink.UnityIntegration {
 		public delegate void OnCompileInkEvent (string inkAbsoluteFilePath, TextAsset compiledJSONTextAsset);
 		public static event OnCompileInkEvent OnCompileInk;
 
+		class PendingInkFileProperties {
+			public string inkAbsoluteFilePath;
+			public string jsonAbsoluteFilePath;
+			public string output;
+		}
+
 		static InkCompiler () {
 			filesCompiling.Clear();
 			inkJSONAssetsToLoad.Clear();
@@ -36,7 +42,7 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		[MenuItem("Ink/Recompile Ink")]
+		[MenuItem("Assets/Recompile Ink", false, 60)]
 		public static void RecompileAll() {
 			InkLibrary.Refresh();
 			List<InkFile> masterInkFiles = InkLibrary.GetMasterInkFiles ();
@@ -52,6 +58,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		public static void CompileInk (string absoluteFilePath) {
+			absoluteFilePath = Path.GetFullPath(absoluteFilePath);
 			string inklecatePath = GetInklecateFilePath();
 			if(inklecatePath == null) {
 				UnityEngine.Debug.LogWarning("Inklecate (the ink compiler) not found in assets. This will prevent automatic building of JSON TextAsset files from ink story files.");
@@ -97,10 +104,17 @@ namespace Ink.UnityIntegration {
 		static void OnCompileProcessComplete(object sender, System.EventArgs e) {
 			Process process = (Process)sender;
 			string absoluteFolderPath = process.StartInfo.WorkingDirectory;
+
+//			PendingInkFileProperties x = new PendingInkFileProperties();
+//			x.inkAbsoluteFilePath = process.StartInfo.EnvironmentVariables["inkAbsoluteFilePath"];
+//			x.jsonAbsoluteFilePath = process.StartInfo.EnvironmentVariables["jsonAbsoluteFilePath"];
+//			x.output = process.StandardOutput.ReadToEnd();
 			
 			if( _errorRegex == null ) {
 				_errorRegex = new Regex(@"(?<errorType>ERROR|WARNING|TODO|RUNTIME ERROR):(?:\s(?:'(?<filename>[^']*)'\s)?line (?<lineNo>\d+):)?(?<message>.*)");
 			}
+			Debug.Log("BUG"); 
+
 
 			InkFile inkFile = InkLibrary.GetInkFileWithAbsolutePath(process.StartInfo.EnvironmentVariables["inkAbsoluteFilePath"]);
 			inkFile.errors.Clear();
@@ -138,14 +152,15 @@ namespace Ink.UnityIntegration {
 					string pathAndLineNumberString = "\n"+Path.Combine(absoluteFolderPath, filename)+"("+lineNo+")";
 
 					if(errorType == "ERROR") {
-						inkFile.errors.Add(message);
+
+						inkFile.errors.Add(new InkFile.InkFileLog(inkFile.inkFile, message, lineNo));
 						Debug.LogError("INK "+errorType+": "+message + pathAndLineNumberString);
 						foundError = true;
 					} else if (errorType == "WARNING") {
-						inkFile.warnings.Add(message);
+						inkFile.warnings.Add(new InkFile.InkFileLog(inkFile.inkFile, message, lineNo));
 						Debug.LogWarning("INK "+errorType+": "+message + pathAndLineNumberString);
 					} else if (errorType == "TODO") {
-						inkFile.todos.Add(message);
+						inkFile.todos.Add(new InkFile.InkFileLog(inkFile.inkFile, message, lineNo));
 						Debug.Log("INK "+errorType+": "+message + pathAndLineNumberString);
 					}
 				}
@@ -177,6 +192,11 @@ namespace Ink.UnityIntegration {
 				string localJSONAssetPath = inkJSONAssetsToLoad [i].Value.Substring (Application.dataPath.Length - 6);
 				AssetDatabase.ImportAsset (localJSONAssetPath);
 				TextAsset jsonTextAsset = AssetDatabase.LoadAssetAtPath<TextAsset> (localJSONAssetPath);
+				// Failed to get this working.
+//				string localInkAssetPath = inkJSONAssetsToLoad [i].Key.Substring (Application.dataPath.Length - 6);
+//				DefaultAsset inkAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset> (localInkAssetPath);
+//				AssetDatabase.AddObjectToAsset(jsonTextAsset, inkAsset);
+				InkLibrary.Refresh();
 				if (OnCompileInk != null) {
 					OnCompileInk (inkJSONAssetsToLoad [i].Key, jsonTextAsset);
 				}
@@ -209,7 +229,7 @@ namespace Ink.UnityIntegration {
 			if(inklecateDirectories.Length == 0) {
 				return null;
 			} else {
-				return inklecateDirectories[0];
+				return Path.GetFullPath(inklecateDirectories[0]);
 			}
 		}
 

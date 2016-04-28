@@ -49,7 +49,7 @@ namespace Ink.UnityIntegration {
 		private Exception errors;
 		bool storyStateValid = false;
 
-		[MenuItem("Ink/Ink Player", false, 0)]
+		[MenuItem("Window/Ink Player %#i", false, 2300)]
 		public static InkPlayerWindow GetWindow () {
 			return GetWindow<InkPlayerWindow>("Ink Player", true);
 		}

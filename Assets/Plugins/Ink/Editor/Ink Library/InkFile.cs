@@ -20,10 +20,22 @@ namespace Ink.UnityIntegration {
 		private const string includeKey = "INCLUDE ";
 
 		// The full file path
-		public string absoluteFilePath;
-		public string absoluteFolderPath;
+		public string absoluteFilePath {
+			get {
+				return Path.Combine(Application.dataPath, filePath.Substring(7));
+			}
+		}
+		public string absoluteFolderPath {
+			get {
+				return Path.GetDirectoryName(absoluteFilePath);
+			}
+		}
 		// The file path relative to the Assets folder
-		public string filePath;
+		public string filePath {
+			get {
+				return AssetDatabase.GetAssetPath(inkFile);
+			}
+		}
 
 		// The content of the .ink file
 		public string fileContents;
@@ -35,20 +47,51 @@ namespace Ink.UnityIntegration {
 		public Object master;
 
 		// The files included by this file (UnityEngine.DefaultAsset)
-		public List<Object> includes;
+		public List<Object> includes = new List<Object>();
 
 		// The compiled json file. Use this to start a story.
 		public TextAsset jsonAsset;
 
-		public List<string> errors = new List<string>();
-		public List<string> warnings = new List<string>();
-		public List<string> todos = new List<string>();
 
-		public InkFile (string absoluteFilePath) {
-			this.absoluteFilePath = absoluteFilePath;
-			absoluteFolderPath = Path.GetDirectoryName(absoluteFilePath);
-			filePath = absoluteFilePath.Substring(Application.dataPath.Length-6);
-			inkFile = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(filePath);
+		public List<InkFileLog> errors = new List<InkFileLog>();
+		public bool hasErrors {
+			get {
+				return errors.Count > 0;
+			}
+		}
+
+		public List<InkFileLog> warnings = new List<InkFileLog>();
+		public bool hasWarnings {
+			get {
+				return warnings.Count > 0;
+			}
+		}
+
+		public List<InkFileLog> todos = new List<InkFileLog>();
+		public bool hasTodos {
+			get {
+				return todos.Count > 0;
+			}
+		}
+//		public int lastCompileDateTime;
+
+		[System.Serializable]
+		public class InkFileLog {
+			public Object file;
+			public string content;
+			public int lineNumber;
+
+			public InkFileLog (Object file, string content, int lineNumber = -1) {
+				this.file = file;
+				this.content = content;
+				this.lineNumber = lineNumber;
+			}
+		}
+
+		public InkFile (DefaultAsset inkFile) {
+			Debug.Assert(inkFile != null);
+			this.inkFile = inkFile;
+//			this.filePath = AssetDatabase.GetAssetPath(inkFile);
 			Refresh();
 		}
 
