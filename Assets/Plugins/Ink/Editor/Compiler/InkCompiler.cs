@@ -12,7 +12,7 @@ using Debug = UnityEngine.Debug;
 namespace Ink.UnityIntegration {
 	[InitializeOnLoad]
 	public static class InkCompiler {
-		private const float timeout = 5;
+		private const float timeout = 10;
 
 		public static bool compiling {
 			get {
@@ -192,18 +192,16 @@ namespace Ink.UnityIntegration {
 				}
 			}
 			InkLibrary.Refresh();
-			foreach (var compilingFile in InkLibrary.Instance.compilingFiles) {
-				if(!compilingFile.inkFile.hasErrors) {
-					if (OnCompileInk != null) {
-						OnCompileInk (compilingFile.inkFile);
-					}
-				}
-			}
 			InkLibrary.Instance.compilingFiles.Clear();
 
 			EditorUtility.ClearProgressBar();
 			if(EditorApplication.isPlayingOrWillChangePlaymode) {
 				Debug.LogWarning("Ink just finished recompiling while in play mode. Your runtime story may not be up to date.");
+			}
+			foreach (var compilingFile in InkLibrary.Instance.compilingFiles) {
+				if (OnCompileInk != null) {
+					OnCompileInk (compilingFile.inkFile);
+				}
 			}
 		}
 

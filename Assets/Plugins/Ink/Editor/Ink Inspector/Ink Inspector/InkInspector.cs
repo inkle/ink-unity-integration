@@ -27,7 +27,6 @@ namespace Ink.UnityIntegration {
 		}
 
 		public override void OnEnable () {
-//			InkLibrary.Refresh();
 			string assetPath = AssetDatabase.GetAssetPath(target);
 			inkFile = InkLibrary.GetInkFileWithPath(assetPath);
 			if(inkFile == null) 
