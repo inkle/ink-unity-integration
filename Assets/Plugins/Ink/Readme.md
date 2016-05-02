@@ -4,7 +4,7 @@ This Unity package allows you to integrate inkle's [ink narrative scripting lang
 
 Features:
 
- - **Running ink in game**: Allows usage of JSON-compiled ink files in Unity via the included `ink-engine.dll` (and Json.Net dependency).
+ - **Running ink in game**: Allows usage of JSON-compiled ink files in Unity via the included `InkRuntime` source files (and Json.Net dependency in DLLs).
 
  - **Auto Compilation**: Instantly creates and updates a JSON story file when a `.ink` is updated.
  	
