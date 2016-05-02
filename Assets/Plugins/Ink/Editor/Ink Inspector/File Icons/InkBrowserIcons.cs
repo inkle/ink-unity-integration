@@ -15,6 +15,7 @@ namespace Ink.UnityIntegration {
 		public static Texture2D inkFileIcon;
 		public static Texture2D errorIcon;
 		public static Texture2D warningIcon;
+		public static Texture2D childIcon;
 
 	    static InkBrowserIcons() {
 			EditorUtility.ClearProgressBar();
@@ -26,6 +27,7 @@ namespace Ink.UnityIntegration {
 	    	}
 			errorIcon = Resources.Load<Texture2D>("InkErrorIcon");
 			warningIcon = Resources.Load<Texture2D>("InkWarningIcon");
+			childIcon = Resources.Load<Texture2D>("InkChildIcon");
 
 			if(inkFileIcon != null)
 				EditorApplication.projectWindowItemOnGUI += OnDrawProjectWindowItem;
@@ -58,6 +60,9 @@ namespace Ink.UnityIntegration {
 						GUI.DrawTexture(miniRect, errorIcon);
 					} else if(inkFile.hasWarnings) {
 						GUI.DrawTexture(miniRect, warningIcon);
+					}
+					if(!inkFile.isMaster) {
+						GUI.DrawTexture(new Rect(rect.x, rect.y, childIcon.width, childIcon.height), childIcon);
 					}
 				}
 			}

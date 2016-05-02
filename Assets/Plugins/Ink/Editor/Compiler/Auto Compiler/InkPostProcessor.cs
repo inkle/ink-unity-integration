@@ -23,18 +23,26 @@ namespace Ink.UnityIntegration {
 				OnMoveAssets(movedAssets, movedFromAssetPaths);
 			}
 			if(importedAssets.Length > 0) {
-				importedAssets = importedAssets.Except(movedAssets).ToArray();
+//				Debug.Log(importedAssets.Length);
+//				importedAssets = importedAssets.Except(movedAssets).ToArray();
+//				Debug.Log(importedAssets.Length);
 				OnImportAssets(importedAssets);
 			}
 		}
 
 		static void OnDeleteAssets (string[] deletedAssets) {
+			bool deletedInk = false;
 			foreach (var deletedAssetPath in deletedAssets) {
-				if(Path.GetExtension(deletedAssetPath) != InkEditorUtils.inkFileExtension) 
-					continue;
-				InkFile inkFile = InkLibrary.GetInkFileWithAbsolutePath(deletedAssetPath);
-				bool tue = InkLibrary.Instance.inkLibrary.Remove(inkFile);
-				Debug.Log("Deleted Asset: " + inkFile+" "+tue);
+				if(Path.GetExtension(deletedAssetPath) == InkEditorUtils.inkFileExtension) {
+					deletedInk = true;
+					break;
+				}
+			}
+			if(!deletedInk)
+				return;
+			for (int i = InkLibrary.Instance.inkLibrary.Count - 1; i >= 0; i--) {
+				if(InkLibrary.Instance.inkLibrary [i].inkAsset == null)
+					InkLibrary.Instance.inkLibrary.RemoveAt(i);
 			}
 		}
 
@@ -42,21 +50,15 @@ namespace Ink.UnityIntegration {
 			for (var i = 0; i < movedAssets.Length; i++) {
 				if(Path.GetExtension(movedAssets[i]) != InkEditorUtils.inkFileExtension) 
 					continue;
-				Debug.Log(movedAssets[i]);
-				InkFile inkFile = InkLibrary.GetInkFileWithAbsolutePath(movedAssets[i]);
-//				if(inkFile != null) 
-				Debug.Log(inkFile);
-//				Debug.Log(movedFromAssetPaths[i]+" "+inkFile);
-//				inkFile.SetAbsoluteFilePath(movedAssets[i]);
-//				Debug.Log("Moved Asset: " + movedAssets[i] + " from: " + movedFromAssetPaths[i]+" "+inkFile);
+				InkFile inkFile = InkLibrary.GetInkFileWithPath(movedAssets[i]);
+				if(inkFile != null) {
+					string jsonAssetPath = AssetDatabase.GetAssetPath(inkFile.jsonAsset);
+					AssetDatabase.RenameAsset(jsonAssetPath, Path.GetFileNameWithoutExtension(Path.GetFileName(movedAssets[i])));
+				}
 			}
 		}
 
 		static void OnImportAssets (string[] importedAssets) {
-			foreach (var importedAssetPath in importedAssets) {
-				Debug.Log("Imported Asset: "+importedAssetPath);
-			}
-
 			List<string> importedInkAssets = new List<string>();
 			string inklecateFileLocation = null;
 			foreach (var importedAssetPath in importedAssets) {
@@ -65,7 +67,7 @@ namespace Ink.UnityIntegration {
 				else if (Path.GetFileName(importedAssetPath) == "inklecate" && Path.GetExtension(importedAssetPath) == "")
 					inklecateFileLocation = importedAssetPath;
 			}
-			
+
 			if(importedInkAssets.Count > 0)
 				PostprocessInkFiles(importedInkAssets);
 			if(inklecateFileLocation != null)
@@ -83,7 +85,9 @@ namespace Ink.UnityIntegration {
 
 		static void PostprocessInkFiles (List<string> importedInkAssets) {
 			Debug.ClearDeveloperConsole();
-			Debug.Log("POSTPROCESS INK");
+//			foreach (var importedAssetPath in importedInkAssets) {
+//				Debug.Log("Imported Ink: "+importedAssetPath);
+//			}
 			InkLibrary.Refresh();
 //			foreach (var importedAssetPath in importedInkAssets) {
 //				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
@@ -95,12 +99,10 @@ namespace Ink.UnityIntegration {
 			List<InkFile> inkFilesToCompile = new List<InkFile>();
 			foreach (var importedAssetPath in importedInkAssets) {
 				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
-				if(inkFile.master == null) {
-					if(!inkFilesToCompile.Contains(inkFile.masterInkFile))
-						inkFilesToCompile.Add(inkFile.masterInkFile);
-				} else {
-					if(!inkFilesToCompile.Contains(inkFile))
-						inkFilesToCompile.Add(inkFile);
+				if(inkFile.isMaster && !inkFilesToCompile.Contains(inkFile) && (InkLibrary.Instance.compileAutomatically || inkFile.compileAutomatically)) {
+					inkFilesToCompile.Add(inkFile);
+				} else if(!inkFile.isMaster && !inkFilesToCompile.Contains(inkFile.masterInkFile) && (InkLibrary.Instance.compileAutomatically || inkFile.masterInkFile.compileAutomatically)) {
+					inkFilesToCompile.Add(inkFile.masterInkFile);
 				}
 			}
 

@@ -16,12 +16,15 @@ namespace Ink.UnityIntegration {
 	// Helper class for ink files that maintains INCLUDE connections between ink files
 	[System.Serializable]
 	public sealed class InkFile {
-		
 		private const string includeKey = "INCLUDE ";
+
+		public bool compileAutomatically = false;
 
 		// The full file path
 		public string absoluteFilePath {
 			get {
+				if(inkAsset == null) 
+					return null;
 				return Path.Combine(Application.dataPath, filePath.Substring(7));
 			}
 		}
@@ -40,19 +43,29 @@ namespace Ink.UnityIntegration {
 		// The content of the .ink file
 		public string fileContents;
 
-		// A reference to the ink file (UnityEngine.DefaultAsset)
-		public Object inkAsset;
+		// A reference to the ink file
+		public DefaultAsset inkAsset;
 
-		// If file that contains this file as an include, if one exists. (UnityEngine.DefaultAsset)
-		public Object master;
+		// If file that contains this file as an include, if one exists.
+		public DefaultAsset master;
 		public InkFile masterInkFile {
 			get {
-				return InkLibrary.GetInkFileWithFile((DefaultAsset)master);
+				if(master == null)
+					return null;
+				else
+					return InkLibrary.GetInkFileWithFile(master);
 			}
 		}
 
-		// The files included by this file (UnityEngine.DefaultAsset)
-		public List<Object> includes = new List<Object>();
+		// The files included by this file
+		public List<DefaultAsset> includes = new List<DefaultAsset>();
+
+		// Is this ink file a master file, or is it included by another file?
+		public bool isMaster {
+			get {
+				return master == null;
+			}
+		}
 
 		// The compiled json file. Use this to start a story.
 		public TextAsset jsonAsset;
@@ -83,12 +96,10 @@ namespace Ink.UnityIntegration {
 
 		[System.Serializable]
 		public class InkFileLog {
-			public Object file;
 			public string content;
 			public int lineNumber;
 
-			public InkFileLog (Object file, string content, int lineNumber = -1) {
-				this.file = file;
+			public InkFileLog (string content, int lineNumber = -1) {
 				this.content = content;
 				this.lineNumber = lineNumber;
 			}
@@ -97,7 +108,6 @@ namespace Ink.UnityIntegration {
 		public InkFile (DefaultAsset inkFile) {
 			Debug.Assert(inkFile != null);
 			this.inkAsset = inkFile;
-//			this.filePath = AssetDatabase.GetAssetPath(inkFile);
 			Refresh();
 		}
 
@@ -110,13 +120,18 @@ namespace Ink.UnityIntegration {
 			List<string> includedFilePaths = GetIncludedFilePaths();
 			includes.Clear();
 			foreach(string includePath in includedFilePaths) {
-				includes.Add(AssetDatabase.LoadAssetAtPath<DefaultAsset>(includePath.Substring(Application.dataPath.Length-6)));
+				string localIncludePath = includePath.Substring(Application.dataPath.Length-6);
+				DefaultAsset includedInkFile = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
+				if(includedInkFile == null)
+					Debug.LogError("Expected Ink file at "+localIncludePath+" but file was not found.");
+				else 
+					includes.Add(includedInkFile);
 			}
 		}
 		
 		private List<string> GetIncludedFilePaths() {
 			if (String.IsNullOrEmpty(includeKey))
-				throw new ArgumentException("the string to find may not be empty", "value");
+				throw new ArgumentException("the string to find may not be empty", includeKey);
 			List<string> includePaths = new List<string>();
 			for (int index = 0;;) {
 				index = fileContents.IndexOf(includeKey, index);
@@ -127,7 +142,7 @@ namespace Ink.UnityIntegration {
 				if(lastIndex == -1) {
 					index += includeKey.Length;
 				} else {
-					includePaths.Add(Path.Combine(absoluteFolderPath, fileContents.Substring(index + includeKey.Length, lastIndex - (index+ + includeKey.Length))));
+					includePaths.Add(Path.Combine(absoluteFolderPath, fileContents.Substring(index + includeKey.Length, lastIndex - (index + includeKey.Length))));
 					index = lastIndex;
 				}
 			}

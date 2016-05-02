@@ -25,8 +25,9 @@ namespace Ink.UnityIntegration {
 		}
 		public const string defaultSettingsPath = "Assets/Plugins/Ink/Editor/Ink Library/InkLibrary.asset";
 
+		public bool compileAutomatically = true;
 		public List<InkFile> inkLibrary;
-		public Dictionary<InkFile, InkCompiler.PendingInkFileProperties> compilingFiles = new Dictionary<InkFile, InkCompiler.PendingInkFileProperties>();
+		public List<InkCompiler.PendingInkFileProperties> compilingFiles = new List<InkCompiler.PendingInkFileProperties>();
 
 		private static InkLibrary FindOrCreateLibrary () {
 			InkLibrary tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(defaultSettingsPath);
@@ -79,8 +80,10 @@ namespace Ink.UnityIntegration {
 				}
 				newInkLibrary.Add(inkFile);
 			}
+
 			foreach (InkFile inkFile in newInkLibrary) {
 				if(inkFile.includes.Count > 0) {
+					inkFile.master = null;
 					foreach (InkFile otherInkFile in newInkLibrary) {
 						if(inkFile == otherInkFile) 
 							continue;

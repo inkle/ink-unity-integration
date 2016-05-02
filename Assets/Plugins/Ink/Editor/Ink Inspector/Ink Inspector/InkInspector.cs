@@ -53,17 +53,32 @@ namespace Ink.UnityIntegration {
 		}
 
 		void CreateIncludeList () {
-			List<Object> includeTextAssets = inkFile.includes;
-			includesFileList = new ReorderableList(includeTextAssets, typeof(Object), false, false, false, false);
+			List<DefaultAsset> includeTextAssets = inkFile.includes;
+			includesFileList = new ReorderableList(includeTextAssets, typeof(DefaultAsset), false, false, false, false);
 			includesFileList.elementHeight = 16;
 			includesFileList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "Included Files");
 			};
 			includesFileList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
+				DefaultAsset childAssetFile = ((List<DefaultAsset>)includesFileList.list)[index];
+				InkFile childInkFile = InkLibrary.GetInkFileWithFile(childAssetFile);
+				Rect iconRect = new Rect(rect.x, rect.y, 0, rect.height);
+				if(childInkFile.hasErrors || childInkFile.hasWarnings) {
+					iconRect.width = 20;
+				}
+				Rect objectFieldRect = new Rect(iconRect.xMax, rect.y, rect.width - iconRect.width - 80, rect.height);
+				Rect selectRect = new Rect(objectFieldRect.xMax, rect.y, 80, rect.height);
+				if(childInkFile.hasErrors) {
+					EditorGUI.LabelField(iconRect, new GUIContent(InkBrowserIcons.errorIcon));
+				} else if(childInkFile.hasWarnings) {
+					EditorGUI.LabelField(iconRect, new GUIContent(InkBrowserIcons.warningIcon));
+				}
 				EditorGUI.BeginDisabledGroup(true);
-//				new GUIContent(InkBrowserIcons.inkFileIcon), 
-				EditorGUI.ObjectField(rect, ((List<Object>)includesFileList.list)[index], typeof(Object), false);
+				EditorGUI.ObjectField(objectFieldRect, childAssetFile, typeof(Object), false);
 				EditorGUI.EndDisabledGroup();
+				if(GUI.Button(selectRect, "Select")) {
+					Selection.activeObject = childAssetFile;
+				}
 			};
 		}
 
@@ -77,12 +92,12 @@ namespace Ink.UnityIntegration {
 				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
 				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
 				InkFile.InkFileLog log = ((List<InkFile.InkFileLog>)errorList.list)[index];
-				InkFile logInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)log.file);
+//				InkFile logInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)log.file);
 				string label = log.content;
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
 				if(GUI.Button(buttonRect, openLabel)) {
-					UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(logInkFile.filePath, log.lineNumber);
+					UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(inkFile.filePath, log.lineNumber);
 //					AssetDatabase.OpenAsset(masterInkFile.inkFile, lineNumber);
 				}
 			};
@@ -98,12 +113,12 @@ namespace Ink.UnityIntegration {
 				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
 				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
 				InkFile.InkFileLog log = ((List<InkFile.InkFileLog>)warningList.list)[index];
-				InkFile logInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)log.file);
+//				InkFile logInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)log.file);
 				string label = log.content;
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
 				if(GUI.Button(buttonRect, openLabel)) {
-					UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(logInkFile.filePath, log.lineNumber);
+					UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(inkFile.filePath, log.lineNumber);
 //					AssetDatabase.OpenAsset(masterInkFile.inkFile, lineNumber);
 				}
 			};
@@ -119,12 +134,12 @@ namespace Ink.UnityIntegration {
 				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
 				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
 				InkFile.InkFileLog log = ((List<InkFile.InkFileLog>)todosList.list)[index];
-				InkFile logInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)log.file);
+//				InkFile logInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)log.file);
 				string label = log.content;
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
 				if(GUI.Button(buttonRect, openLabel)) {
-					UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(logInkFile.filePath, log.lineNumber);
+					UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(inkFile.filePath, log.lineNumber);
 //					AssetDatabase.OpenAsset(masterInkFile.inkFile, lineNumber);
 				}
 			};
@@ -157,6 +172,8 @@ namespace Ink.UnityIntegration {
 
 		void DrawMasterFileHeader () {
 			EditorGUILayout.LabelField("Master File", EditorStyles.boldLabel);
+			if(!InkLibrary.Instance.compileAutomatically)
+				inkFile.compileAutomatically = EditorGUILayout.Toggle("Compile Automatially", inkFile.compileAutomatically);
 			EditorGUI.BeginDisabledGroup(true);
 			EditorGUILayout.ObjectField("JSON Asset", inkFile.jsonAsset, typeof(TextAsset), false);
 			EditorGUI.EndDisabledGroup();
@@ -181,15 +198,15 @@ namespace Ink.UnityIntegration {
 		void DrawSubFileHeader(InkFile masterInkFile) {
 			EditorGUILayout.LabelField("Sub File", EditorStyles.boldLabel);
 			EditorGUILayout.BeginHorizontal();
-			EditorGUI.BeginDisabledGroup(true);
 			if(masterInkFile.hasErrors) {
 				GUILayout.Label(new GUIContent(InkBrowserIcons.errorIcon), GUILayout.Width(20));
 			} else if(masterInkFile.hasWarnings) {
 				GUILayout.Label(new GUIContent(InkBrowserIcons.warningIcon), GUILayout.Width(20));
 			}
+			EditorGUI.BeginDisabledGroup(true);
 			EditorGUILayout.ObjectField("Master Ink File", masterInkFile.inkAsset, typeof(Object), false);
 			EditorGUI.EndDisabledGroup();
-			if(GUILayout.Button("Select", GUILayout.Width(60))) {
+			if(GUILayout.Button("Select", GUILayout.Width(80))) {
 				Selection.activeObject = masterInkFile.inkAsset;
 			}
 			EditorGUILayout.EndHorizontal();
