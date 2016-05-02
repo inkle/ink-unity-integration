@@ -277,9 +277,6 @@ namespace Ink.UnityIntegration {
 			string inklecateName = "inklecate_mac";
 			#endif
 
-//			string defaultInklecateFilePath = Path.Combine(Application.dataPath, "Plugins/Ink/DLL/"+inklecateName);
-//			if(File.Exists(defaultInklecateFilePath))
-//				return defaultInklecateFilePath;
 			string[] inklecateDirectories = Directory.GetFiles(Application.dataPath, inklecateName, SearchOption.AllDirectories);
 			if(inklecateDirectories.Length == 0) {
 				return null;
