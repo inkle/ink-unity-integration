@@ -1,4 +1,4 @@
-// INCLUDE TestStory.ink
+INCLUDE TestStory.ink
 
 
 - I looked at Monsieur Fogg 

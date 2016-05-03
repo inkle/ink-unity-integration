@@ -1,4 +1,4 @@
-INCLUDE TEST/TestStory1.ink
+INCLUDE TestStory1.ink
 
 - I looked at Monsieur Fogg 
 *   ... and I could contain myself no longer.

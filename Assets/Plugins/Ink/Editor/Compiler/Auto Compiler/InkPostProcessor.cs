@@ -87,7 +87,6 @@ namespace Ink.UnityIntegration {
 //			foreach (var importedAssetPath in importedInkAssets) {
 //				Debug.Log("Imported Ink: "+importedAssetPath);
 //			}
-//			InkLibrary.Refresh();
 			CreateOrReadUpdatedInkFiles (importedInkAssets);
 			foreach (var inkAssetToCompile in GetUniqueMasterInkFilesToCompile (importedInkAssets)) {
 				InkCompiler.CompileInk(inkAssetToCompile);
@@ -103,7 +102,6 @@ namespace Ink.UnityIntegration {
 					InkLibrary.Instance.inkLibrary.Add(inkFile);
 				}
 				inkFile.fileContents = File.OpenText(inkFile.absoluteFilePath).ReadToEnd();
-				inkFile.GetIncludedFilePaths();
 				inkFile.GetIncludedFiles();
 			}
 			// Now we've updated all the includes for the ink library we can create master/child connections between them.

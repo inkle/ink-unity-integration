@@ -84,6 +84,7 @@ namespace Ink.UnityIntegration {
 		/// Can be called manually, but incurs a performance cost.
 		/// </summary>
 		public static void Refresh () {
+			Debug.Log("Refreshing Ink Library");
 			string[] inkFilePaths = GetAllInkFilePaths();
 
 			List<InkFile> newInkLibrary = new List<InkFile>(inkFilePaths.Length);
@@ -96,16 +97,13 @@ namespace Ink.UnityIntegration {
 				newInkLibrary.Add(inkFile);
 			}
 
-			Debug.Log("READING LIBRARY");
-			foreach (InkFile inkFile in newInkLibrary) {
-				// Can be slow - optimise this. Only call when needed.
-				inkFile.fileContents = File.OpenText(inkFile.absoluteFilePath).ReadToEnd();
-				inkFile.GetIncludedFilePaths();
-				inkFile.GetIncludedFiles();
-			}
 
 			InkLibrary.Instance.inkLibrary = newInkLibrary;
 
+			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
+				inkFile.fileContents = File.OpenText(inkFile.absoluteFilePath).ReadToEnd();
+				inkFile.GetIncludedFiles();
+			}
 			RebuildMasterFiles();
 			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
 				inkFile.FindCompiledJSONAsset();
@@ -119,10 +117,11 @@ namespace Ink.UnityIntegration {
 		/// Rebuilds which files are master files.
 		/// </summary>
 		public static void RebuildMasterFiles () {
+			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary)
+				inkFile.master = null;
 			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
 				if(inkFile.includes.Count == 0) 
 					continue;
-				inkFile.master = null;
 				foreach (InkFile otherInkFile in InkLibrary.Instance.inkLibrary) {
 					if(inkFile == otherInkFile) 
 						continue;

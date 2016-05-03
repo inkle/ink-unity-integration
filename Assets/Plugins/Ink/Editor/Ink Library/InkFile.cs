@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using Debug = UnityEngine.Debug;
 using System.Collections;
@@ -60,7 +61,6 @@ namespace Ink.UnityIntegration {
 		}
 
 		// The files included by this file
-		public string[] includedFilePaths = null;
 		public List<DefaultAsset> includes = new List<DefaultAsset>();
 
 		// Is this ink file a master file, or is it included by another file?
@@ -116,56 +116,110 @@ namespace Ink.UnityIntegration {
 		public InkFile (DefaultAsset inkFile) {
 			Debug.Assert(inkFile != null);
 			this.inkAsset = inkFile;
-//			fileContents = File.OpenText(absoluteFilePath).ReadToEnd();
-//			GetIncludedFiles();
 		}
 
 		public void GetIncludedFiles () {
+			InkIncludeParser includeParser = new InkIncludeParser(fileContents);
 			includes.Clear();
-			if(includedFilePaths == null) 
-				return;
-			foreach(string includePath in includedFilePaths) {
-//				string localIncludePath = includePath.Substring(Application.dataPath.Length-6);
-				DefaultAsset includedInkFileJSONAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(includePath);
+			foreach(string includePath in includeParser.includeFilenames) {
+				string localIncludePath = Path.Combine(Path.GetDirectoryName(filePath), includePath);
+				DefaultAsset includedInkFileJSONAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
 				InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileJSONAsset);
 				if(includedInkFile == null)
-					Debug.LogError("Expected Ink file at "+includePath+" but file was not found.");
+					Debug.LogError("Expected Ink file at "+localIncludePath+" but file was not found.");
 				else if (includedInkFile.includes.Contains(inkAsset)) {
-					includedInkFile.includes.Remove(inkAsset);
-					includedInkFile.circularIncludeReferences.Add(inkAsset);
-					circularIncludeReferences.Add(includedInkFile.inkAsset);
+//					includedInkFile.includes.Remove(inkAsset);
+//					includedInkFile.circularIncludeReferences.Add(inkAsset);
+//					circularIncludeReferences.Add(includedInkFile.inkAsset);
 					Debug.LogError("Circular INCLUDE reference between "+filePath+" and "+includedInkFile.filePath+". Neither files will be compiled until this is resolved.");
 				} else
 					includes.Add(includedInkFileJSONAsset);
-			}
-		}
-		
-		public void GetIncludedFilePaths() {
-			includedFilePaths = null;
-			string inklecatePath = InkEditorUtils.GetInklecateFilePath();
-			if(inklecatePath == null) {
-				UnityEngine.Debug.LogWarning("Inklecate (the ink compiler) not found in assets. This will prevent automatic building of JSON TextAsset files from ink story files.");
-				return;
-			}
-			string inkArguments = "-e "+"\""+Path.GetFileName(filePath) +"\"";
-			Process process = new Process();
-			process.StartInfo.WorkingDirectory = absoluteFolderPath;
-			process.StartInfo.FileName = inklecatePath;
-			process.StartInfo.Arguments = inkArguments;
-			process.StartInfo.RedirectStandardError = true;
-			process.StartInfo.RedirectStandardOutput = true;
-			process.StartInfo.UseShellExecute = false;
-			process.EnableRaisingEvents = true;
-			process.Start();
-			process.WaitForExit();
-			includedFilePaths = process.StandardOutput.ReadToEnd().Split(new string[]{"\n"}, StringSplitOptions.RemoveEmptyEntries);
-			for (int i = 0; i < includedFilePaths.Length; i++) {
-				includedFilePaths [i] = Path.Combine(Path.GetDirectoryName(filePath), includedFilePaths [i]);
 			}
 		}
 
 		public void FindCompiledJSONAsset () {
 			jsonAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))+".json");
 		}
+
+		public class InkIncludeParser {
+	        public InkIncludeParser (string inkContents)
+	        {
+	            _text = inkContents;
+	        }
+	        void Process()
+	        {
+	            _text = EliminateComments (_text);
+	            FindIncludes (_text);
+	        }
+	        string EliminateComments(string inkStr)
+	        {
+	            var sb = new StringBuilder ();
+	            int idx = 0;
+	            while(idx < inkStr.Length) {
+	                var commentStarterIdx = inkStr.IndexOf ('/', idx);
+	                // Final string?
+	                if (commentStarterIdx == -1 || commentStarterIdx >= inkStr.Length-2 ) {
+	                    sb.Append (inkStr.Substring (idx, inkStr.Length - idx));
+	                    break;
+	                }
+	                sb.Append (inkStr.Substring (idx, commentStarterIdx - idx));
+	                var commentStarter = inkStr.Substring (commentStarterIdx, 2);
+	                if (commentStarter == "//" || commentStarter == "/*") {
+	                    int endOfCommentIdx = -1;
+	                    // Single line comments
+	                    if (commentStarter == "//") {
+	                        endOfCommentIdx = inkStr.IndexOf ('\n', commentStarterIdx);
+	                        if (endOfCommentIdx == -1)
+	                            endOfCommentIdx = inkStr.Length;
+	                        else if (inkStr [endOfCommentIdx - 1] == '\r')
+	                            endOfCommentIdx = endOfCommentIdx - 1;
+	                    } 
+	                    // Block comments
+	                    else if (commentStarter == "/*") {
+	                        endOfCommentIdx = inkStr.IndexOf ("*/", idx);
+	                        if (endOfCommentIdx == -1)
+	                            endOfCommentIdx = inkStr.Length;
+	                        else
+	                            endOfCommentIdx += 2;
+	                        // If there are *any* newlines, we should add one in here,
+	                        // so that lines are spit up correctly
+	                        if (inkStr.IndexOf ('\n', commentStarterIdx, endOfCommentIdx - commentStarterIdx) != -1)
+	                            sb.Append ("\n");
+	                    }
+	                    // Skip over comment
+	                    if (endOfCommentIdx > -1)
+	                        idx = endOfCommentIdx;
+	                } 
+	                // Normal slash we need, not a comment
+	                else {
+	                    sb.Append ("/");
+	                    idx = commentStarterIdx + 1;
+	                }
+	            }
+	            return sb.ToString ();
+	        }
+	        void FindIncludes(string str)
+	        {
+	            _includeFilenames = new List<string> ();
+	            var includeRegex = new Regex (@"^\s*INCLUDE\s+(.+)$", RegexOptions.Multiline);
+	            MatchCollection matches = includeRegex.Matches(str);
+	            foreach (Match match in matches)
+	            {
+	                var capture = match.Groups [1].Captures [0];
+	                _includeFilenames.Add (capture.Value);
+	            }
+	        }
+	            
+	        public List<string> includeFilenames {
+	            get {
+	                if (_includeFilenames == null) {
+	                    Process ();
+	                }
+	                return _includeFilenames;
+	            }
+	        }
+	        List<string> _includeFilenames;
+	        string _text;
+	    }
 	}
 }
