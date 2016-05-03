@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Debug = UnityEngine.Debug;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using System.Linq;
 using System.Reflection;
@@ -121,8 +122,10 @@ namespace Ink.UnityIntegration {
 		}
 
 		public void GetIncludedFiles () {
-			List<string> includedFilePaths = GetIncludedFilePaths();
+			string[] includedFilePaths = GetIncludedFilePaths();
 			includes.Clear();
+			if(includedFilePaths == null) 
+				return;
 			foreach(string includePath in includedFilePaths) {
 				string localIncludePath = includePath.Substring(Application.dataPath.Length-6);
 				DefaultAsset includedInkFileJSONAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
@@ -139,29 +142,28 @@ namespace Ink.UnityIntegration {
 			}
 		}
 		
-		private List<string> GetIncludedFilePaths() {
-			if (String.IsNullOrEmpty(includeKey))
-				throw new ArgumentException("the string to find may not be empty", includeKey);
-			List<string> includePaths = new List<string>();
-	        Regex includeRegex = new Regex(@"^" + InkFile.includeKey + @"(.+?)\r?$", RegexOptions.Multiline);
-	        MatchCollection matches = includeRegex.Matches(fileContents);
-
-	        foreach(Match match in matches) {
-	            string path = match.Groups[1].Value;
-//				bool commentedOut = false;
-//				int index1 = value.LastIndexOf('\n');
-//				int lineStartIndex = fileContents.IndexOf()
-//				match.Groups[1].Index
-//				if(commentedOut) 
-//					continue;
-	            int invalidIndex = match.Groups[1].Value.IndexOfAny(Path.GetInvalidPathChars());
-	            if (invalidIndex >= 0) {
-	                Debug.LogError("Ignoring INCLUDE path '" + path + "' because it contains invalid character: '" + path[invalidIndex] + "'");
-	            } else {
-					includePaths.Add(Path.Combine(absoluteFolderPath, path));
-	            }
-	        }
-			return includePaths;
+		private string[] GetIncludedFilePaths() {
+			string inklecatePath = InkEditorUtils.GetInklecateFilePath();
+			if(inklecatePath == null) {
+				UnityEngine.Debug.LogWarning("Inklecate (the ink compiler) not found in assets. This will prevent automatic building of JSON TextAsset files from ink story files.");
+				return null;
+			}
+			string inkArguments = "-e "+"\""+Path.GetFileName(filePath) +"\"";
+			Process process = new Process();
+			process.StartInfo.WorkingDirectory = absoluteFolderPath;
+			process.StartInfo.FileName = inklecatePath;
+			process.StartInfo.Arguments = inkArguments;
+			process.StartInfo.RedirectStandardError = true;
+			process.StartInfo.RedirectStandardOutput = true;
+			process.StartInfo.UseShellExecute = false;
+			process.EnableRaisingEvents = true;
+			process.Start();
+			process.WaitForExit();
+			string[] splitOutput = process.StandardOutput.ReadToEnd().Split(new string[]{"\n"}, StringSplitOptions.RemoveEmptyEntries);
+			for (int i = 0; i < splitOutput.Length; i++) {
+				splitOutput [i] = Path.Combine(absoluteFolderPath, splitOutput [i]);
+			}
+			return splitOutput;
 		}
 
 		public void FindCompiledJSONAsset () {

@@ -94,7 +94,7 @@ namespace Ink.UnityIntegration {
 				return;
 			}
 
-			string inklecatePath = GetInklecateFilePath();
+			string inklecatePath = InkEditorUtils.GetInklecateFilePath();
 			if(inklecatePath == null) {
 				UnityEngine.Debug.LogWarning("Inklecate (the ink compiler) not found in assets. This will prevent automatic building of JSON TextAsset files from ink story files.");
 				return;
@@ -265,28 +265,6 @@ namespace Ink.UnityIntegration {
 						Debug.Log("INK "+errorType+": "+message + pathAndLineNumberString);
 					}
 				}
-			}
-		}
-
-		private static string GetInklecateFilePath () {
-			#if UNITY_EDITOR_WIN
-			string inklecateName = "inklecate_win.exe";
-			#endif
-
-			// Unfortunately inklecate's implementation uses newer features of C# that aren't
-			// available in the version of mono that ships with Unity, so we can't make use of
-			// it. This means that we need to compile the mono runtime directly into it, inflating
-			// the size of the executable quite dramatically :-( Hopefully we can improve that
-			// when Unity ships with a newer version.
-			#if UNITY_EDITOR_OSX
-			string inklecateName = "inklecate_mac";
-			#endif
-
-			string[] inklecateDirectories = Directory.GetFiles(Application.dataPath, inklecateName, SearchOption.AllDirectories);
-			if(inklecateDirectories.Length == 0) {
-				return null;
-			} else {
-				return Path.GetFullPath(inklecateDirectories[0]);
 			}
 		}
 

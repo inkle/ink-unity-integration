@@ -80,6 +80,7 @@ namespace Ink.UnityIntegration {
 				newInkLibrary.Add(inkFile);
 			}
 
+			Debug.Log("READING LIBRARY");
 			foreach (InkFile inkFile in newInkLibrary) {
 				// Can be slow - optimise this. Only call when needed.
 				inkFile.fileContents = File.OpenText(inkFile.absoluteFilePath).ReadToEnd();
