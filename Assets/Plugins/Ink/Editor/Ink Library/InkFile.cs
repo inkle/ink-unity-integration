@@ -61,6 +61,8 @@ namespace Ink.UnityIntegration {
 		}
 
 		// The files included by this file
+		// We cache the paths of the files to be included for performance, giving us more freedom to refresh the actual includes list without needing to parse all the text.
+		public List<string> includePaths = new List<string>();
 		public List<DefaultAsset> includes = new List<DefaultAsset>();
 
 		// Is this ink file a master file, or is it included by another file?
@@ -118,10 +120,15 @@ namespace Ink.UnityIntegration {
 			this.inkAsset = inkFile;
 		}
 
-		public void GetIncludedFiles () {
+		public void ParseContent () {
+			fileContents = File.OpenText(absoluteFilePath).ReadToEnd();
 			InkIncludeParser includeParser = new InkIncludeParser(fileContents);
+			includePaths = includeParser.includeFilenames;
+		}
+
+		public void FindIncludedFiles () {
 			includes.Clear();
-			foreach(string includePath in includeParser.includeFilenames) {
+			foreach(string includePath in includePaths) {
 				string localIncludePath = Path.Combine(Path.GetDirectoryName(filePath), includePath);
 				DefaultAsset includedInkFileJSONAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
 				InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileJSONAsset);
