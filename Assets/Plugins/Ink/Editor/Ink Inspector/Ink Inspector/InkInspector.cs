@@ -18,6 +18,7 @@ namespace Ink.UnityIntegration {
 		private ReorderableList errorList;
 		private ReorderableList warningList;
 		private ReorderableList todosList;
+		private ReorderableList circularIncludeReferencesList;
 
 		public override bool IsValid(string assetPath) {
 			if(Path.GetExtension(assetPath) == InkEditorUtils.inkFileExtension) {
@@ -32,9 +33,10 @@ namespace Ink.UnityIntegration {
 			if(inkFile == null) 
 				return;
 
-			if(inkFile.includes != null) {
+			if(inkFile.includes.Count > 0) {
 				CreateIncludeList();
 			}
+			CreateCircularIncludeReferencesList();
 			CreateErrorList();
 			CreateWarningList();
 			CreateTodoList();
@@ -81,6 +83,21 @@ namespace Ink.UnityIntegration {
 			};
 		}
 
+		void CreateCircularIncludeReferencesList () {
+			circularIncludeReferencesList = new ReorderableList(inkFile.circularIncludeReferences, typeof(DefaultAsset), false, false, false, false);
+			circularIncludeReferencesList.elementHeight = 16;
+			circularIncludeReferencesList.drawHeaderCallback = (Rect rect) => {  
+				EditorGUI.LabelField(rect, new GUIContent(InkBrowserIcons.errorIcon), new GUIContent("Circular include references"));
+			};
+			circularIncludeReferencesList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
+				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
+				DefaultAsset _inkFile = ((List<DefaultAsset>)circularIncludeReferencesList.list)[index];
+				EditorGUI.BeginDisabledGroup(true);
+				EditorGUI.ObjectField(labelRect, _inkFile, typeof(DefaultAsset), false);
+				EditorGUI.EndDisabledGroup();
+			};
+		}
+
 		void CreateErrorList () {
 			errorList = new ReorderableList(inkFile.errors, typeof(string), false, false, false, false);
 			errorList.elementHeight = 18;
@@ -91,7 +108,6 @@ namespace Ink.UnityIntegration {
 				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
 				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
 				InkFile.InkFileLog log = ((List<InkFile.InkFileLog>)errorList.list)[index];
-//				InkFile logInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)log.file);
 				string label = log.content;
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
@@ -112,7 +128,6 @@ namespace Ink.UnityIntegration {
 				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
 				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
 				InkFile.InkFileLog log = ((List<InkFile.InkFileLog>)warningList.list)[index];
-//				InkFile logInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)log.file);
 				string label = log.content;
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
@@ -133,7 +148,6 @@ namespace Ink.UnityIntegration {
 				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
 				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
 				InkFile.InkFileLog log = ((List<InkFile.InkFileLog>)todosList.list)[index];
-//				InkFile logInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)log.file);
 				string label = log.content;
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
@@ -150,7 +164,7 @@ namespace Ink.UnityIntegration {
 				return;
 
 			InkFile masterInkFile = inkFile;
-			if(inkFile.master == null) {
+			if(inkFile.isMaster) {
 				DrawMasterFileHeader();
 			} else {
 				masterInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)inkFile.master);
@@ -158,9 +172,11 @@ namespace Ink.UnityIntegration {
 			}
 
 			DrawEditAndCompileDates(masterInkFile);
-			if(inkFile.master == null && !editedAfterLastCompile)
+			if(inkFile.isMaster && !editedAfterLastCompile)
 				DrawCompileButton(masterInkFile);
 			DrawIncludedFiles();
+
+			DrawCircularIncludeReferences();
 			DrawErrors();
 			DrawWarnings();
 			DrawTODOList();
@@ -218,7 +234,7 @@ namespace Ink.UnityIntegration {
 			string editAndCompileDateString = "";
 			DateTime lastEditDate = File.GetLastWriteTime(inkFile.absoluteFilePath);
 			editAndCompileDateString += "Last edit date "+lastEditDate.ToString();
-			if(inkFile.master == null && inkFile.jsonAsset != null) {
+			if(inkFile.isMaster && inkFile.jsonAsset != null) {
 				DateTime lastCompileDate = File.GetLastWriteTime(Path.Combine(Application.dataPath, AssetDatabase.GetAssetPath(masterInkFile.jsonAsset).Substring(7)));
 				editAndCompileDateString += "\nLast compile date "+lastCompileDate.ToString();
 				if(lastEditDate > lastCompileDate) {
@@ -258,6 +274,13 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
+
+		void DrawCircularIncludeReferences () {
+			if(circularIncludeReferencesList != null && circularIncludeReferencesList.count > 0) {
+//				EditorGUILayout.HelpBox("Files contain circular INCLUDE references. This must be fixed before files can be compiled.", MessageType.Error);
+				circularIncludeReferencesList.DoLayoutList();
+			}
+		}
 
 		void DrawErrors () {
 			if(errorList != null && errorList.count > 0) {

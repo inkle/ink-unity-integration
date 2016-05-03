@@ -95,6 +95,13 @@ namespace Ink.UnityIntegration {
 
 		public int lastCompileDateTime;
 
+		public List<DefaultAsset> circularIncludeReferences = new List<DefaultAsset>();
+		public bool hasCircularIncludeReferences {
+			get {
+				return circularIncludeReferences.Count > 0;
+			}
+		}
+
 		[System.Serializable]
 		public class InkFileLog {
 			public string content;
@@ -109,8 +116,8 @@ namespace Ink.UnityIntegration {
 		public InkFile (DefaultAsset inkFile) {
 			Debug.Assert(inkFile != null);
 			this.inkAsset = inkFile;
-			fileContents = File.OpenText(absoluteFilePath).ReadToEnd();
-			GetIncludedFiles();
+//			fileContents = File.OpenText(absoluteFilePath).ReadToEnd();
+//			GetIncludedFiles();
 		}
 
 		public void GetIncludedFiles () {
@@ -124,6 +131,8 @@ namespace Ink.UnityIntegration {
 					Debug.LogError("Expected Ink file at "+localIncludePath+" but file was not found.");
 				else if (includedInkFile.includes.Contains(inkAsset)) {
 					includedInkFile.includes.Remove(inkAsset);
+					includedInkFile.circularIncludeReferences.Add(inkAsset);
+					circularIncludeReferences.Add(includedInkFile.inkAsset);
 					Debug.LogError("Circular INCLUDE reference between "+filePath+" and "+includedInkFile.filePath+". Neither files will be compiled until this is resolved.");
 				} else
 					includes.Add(includedInkFileJSONAsset);
@@ -135,16 +144,21 @@ namespace Ink.UnityIntegration {
 				throw new ArgumentException("the string to find may not be empty", includeKey);
 			List<string> includePaths = new List<string>();
 	        Regex includeRegex = new Regex(@"^" + InkFile.includeKey + @"(.+?)\r?$", RegexOptions.Multiline);
-	        MatchCollection matches = includeRegex.Matches(this.fileContents);
+	        MatchCollection matches = includeRegex.Matches(fileContents);
 
 	        foreach(Match match in matches) {
 	            string path = match.Groups[1].Value;
+//				bool commentedOut = false;
+//				int index1 = value.LastIndexOf('\n');
+//				int lineStartIndex = fileContents.IndexOf()
+//				match.Groups[1].Index
+//				if(commentedOut) 
+//					continue;
 	            int invalidIndex = match.Groups[1].Value.IndexOfAny(Path.GetInvalidPathChars());
 	            if (invalidIndex >= 0) {
 	                Debug.LogError("Ignoring INCLUDE path '" + path + "' because it contains invalid character: '" + path[invalidIndex] + "'");
 	            } else {
 					includePaths.Add(Path.Combine(absoluteFolderPath, path));
-					Debug.Log(path);
 	            }
 	        }
 			return includePaths;

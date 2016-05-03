@@ -80,9 +80,11 @@ namespace Ink.UnityIntegration {
 		}
 
 		public static void CompileInk (InkFile inkFile) {
-			Debug.Log("Compile "+inkFile.filePath+" "+inkFile.isMaster);
 			if(inkFile == null) {
-				Debug.LogError("Tried to compile ink file, but input was null.");
+				Debug.LogError("Tried to compile ink file "+inkFile.filePath+", but input was null.");
+				return;
+			} else if(inkFile.circularIncludeReferences.Count > 0) {
+				Debug.LogError("Tried to compile ink file "+inkFile.filePath+", but file is part of a circular include reference. This must be resolved before compiling.");
 				return;
 			}
 			if(!inkFile.isMaster)
@@ -91,7 +93,7 @@ namespace Ink.UnityIntegration {
 				UnityEngine.Debug.LogWarning("Tried compiling ink file, but file is already compiling. "+inkFile.filePath);
 				return;
 			}
-//			absoluteFilePath = Path.GetFullPath(absoluteFilePath);
+
 			string inklecatePath = GetInklecateFilePath();
 			if(inklecatePath == null) {
 				UnityEngine.Debug.LogWarning("Inklecate (the ink compiler) not found in assets. This will prevent automatic building of JSON TextAsset files from ink story files.");
@@ -103,7 +105,6 @@ namespace Ink.UnityIntegration {
 			string outputPath = Path.Combine(inkFile.absoluteFolderPath, Path.GetFileNameWithoutExtension(Path.GetFileName(inkFile.filePath)))+".json";
 			string inkArguments = "-c -o "+"\""+outputPath +"\" \""+inputPath+"\"";
 
-//			filesCompiling.Add(inputPath);
 			PendingInkFileProperties pendingFile = new PendingInkFileProperties();
 			pendingFile.inkFile = InkLibrary.GetInkFileWithAbsolutePath(inputPath);
 			pendingFile.inkAbsoluteFilePath = inputPath;

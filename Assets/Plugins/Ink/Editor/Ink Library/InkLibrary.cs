@@ -75,12 +75,15 @@ namespace Ink.UnityIntegration {
 				InkFile inkFile = GetInkFileWithAbsolutePath(inkFilePaths [i]);
 				if(inkFile == null) 
 					inkFile = new InkFile(AssetDatabase.LoadAssetAtPath<DefaultAsset>(inkFilePaths [i].Substring(Application.dataPath.Length-6)));
-				else {
-					// Can be slow - optimise this. Only call when needed.
-					inkFile.fileContents = File.OpenText(inkFile.absoluteFilePath).ReadToEnd();
-					inkFile.GetIncludedFiles();
-				}
+				else
+					inkFile.circularIncludeReferences.Clear();
 				newInkLibrary.Add(inkFile);
+			}
+
+			foreach (InkFile inkFile in newInkLibrary) {
+				// Can be slow - optimise this. Only call when needed.
+				inkFile.fileContents = File.OpenText(inkFile.absoluteFilePath).ReadToEnd();
+				inkFile.GetIncludedFiles();
 			}
 
 			foreach (InkFile inkFile in newInkLibrary) {
@@ -108,7 +111,7 @@ namespace Ink.UnityIntegration {
 			List<InkFile> masterInkFiles = new List<InkFile>();
 			if(InkLibrary.Instance.inkLibrary == null) return masterInkFiles;
 			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
-				if(inkFile.master == null) {
+				if(inkFile.isMaster) {
 					masterInkFiles.Add(inkFile);
 				}
 			}
