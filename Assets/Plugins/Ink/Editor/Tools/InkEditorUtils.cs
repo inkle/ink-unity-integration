@@ -4,26 +4,49 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Diagnostics;
 using UnityEditorInternal;
 using Debug = UnityEngine.Debug;
 using Ink.Runtime;
+using UnityEditor.ProjectWindowCallback;
 
 namespace Ink.UnityIntegration {
 
+	class CreateInkAssetAction : EndNameEditAction {
+		public override void Action(int instanceId, string pathName, string resourceFile) {
+			UnityEngine.Object asset = CreateScriptAssetFromTemplate(pathName, resourceFile);
+			ProjectWindowUtil.ShowCreatedAsset(asset);
+		}
+		
+		internal static UnityEngine.Object CreateScriptAssetFromTemplate(string pathName, string resourceFile) {
+			string fullPath = Path.GetFullPath(pathName);
+			StreamReader streamReader = new StreamReader(resourceFile);
+			string text = streamReader.ReadToEnd();
+			streamReader.Close();
+			UTF8Encoding encoding = new UTF8Encoding(true, false);
+			bool append = false;
+			StreamWriter streamWriter = new StreamWriter(fullPath, append, encoding);
+			streamWriter.Write(text);
+			streamWriter.Close();
+			AssetDatabase.ImportAsset(pathName);
+			return AssetDatabase.LoadAssetAtPath(pathName, typeof(DefaultAsset));
+		}
+	}
+
 	public static class InkEditorUtils {
 		public const string inkFileExtension = ".ink";
-		private const string defaultFileContents = "Hello world!\n\t*\tHello back!\n\tNice to hear from you!";
+		private const string templateFileLocation = "Assets/Plugins/Ink/Template/Template.txt";
 
 		[MenuItem("Assets/Create/Ink", false, 100)]
-		public static void CreateNewInkFile() {
-			string fileName = "New Ink File.ink";
+		public static void CreateNewInkFile () {
+			string fileName = "New Ink.ink";
 			string filePath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(GetSelectedPathOrFallback(), fileName));
-			System.IO.File.WriteAllText(filePath, defaultFileContents);
-			AssetDatabase.ImportAsset(filePath);
-			var asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(filePath);
-			EditorGUIUtility.PingObject(asset);
-//			ProjectWindowUtil.StartNameEditingIfProjectWindowExists(asset.GetInstanceID(), null, filePath, null, null);
+			CreateNewInkFile(filePath);
+		}
+
+		public static void CreateNewInkFile (string filePath) {
+			ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<CreateInkAssetAction>(), filePath, InkBrowserIcons.inkFileIcon, templateFileLocation);
 		}
 
 		private static string GetSelectedPathOrFallback() {
@@ -38,6 +61,7 @@ namespace Ink.UnityIntegration {
 	         return path;
 	     }
 
+		
 
 		[MenuItem("Help/Ink/About")]
 		public static void OpenAbout() {
