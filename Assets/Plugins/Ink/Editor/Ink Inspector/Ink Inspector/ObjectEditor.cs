@@ -15,6 +15,7 @@ namespace Ink.UnityIntegration {
 		private void OnEnable () {
 			objectInspector = FindObjectInspector ();
 			if(objectInspector != null) {
+				objectInspector.editor = this;
 				objectInspector.serializedObject = serializedObject;
 				objectInspector.target = target;
 				objectInspector.OnEnable();

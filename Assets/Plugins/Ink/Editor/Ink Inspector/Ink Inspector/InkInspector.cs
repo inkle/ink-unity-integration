@@ -159,6 +159,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		public override void OnInspectorGUI () {
+			editor.Repaint();
 			serializedObject.Update();
 			if(inkFile == null) 
 				return;

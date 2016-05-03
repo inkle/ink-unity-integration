@@ -51,7 +51,7 @@ namespace Ink.UnityIntegration {
 			if(GUI.changed && target != null) {         
 				EditorUtility.SetDirty(target);
 			}
-			list.DoLayoutList();
+//			list.DoLayoutList();
 			serializedObject.ApplyModifiedProperties();
 	    }
 	}
