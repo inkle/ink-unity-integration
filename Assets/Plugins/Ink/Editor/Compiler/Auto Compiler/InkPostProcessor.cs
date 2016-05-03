@@ -20,12 +20,9 @@ namespace Ink.UnityIntegration {
 				OnDeleteAssets(deletedAssets);
 			}
 			if(movedAssets.Length > 0) {
-				OnMoveAssets(movedAssets, movedFromAssetPaths);
+				OnMoveAssets(movedAssets.Except(importedAssets).ToArray());
 			}
 			if(importedAssets.Length > 0) {
-//				Debug.Log(importedAssets.Length);
-//				importedAssets = importedAssets.Except(movedAssets).ToArray();
-//				Debug.Log(importedAssets.Length);
 				OnImportAssets(importedAssets);
 			}
 		}
@@ -40,12 +37,17 @@ namespace Ink.UnityIntegration {
 			}
 			if(!deletedInk)
 				return;
+
+//			bool alsoDeleteJSON = false;
+//			alsoDeleteJSON = EditorUtility.DisplayDialog("Deleting .ink file", "Also delete the JSON file associated with the deleted .ink file?", "Yes", "No"));
 			List<InkFile> masterFilesAffected = new List<InkFile>();
 			for (int i = InkLibrary.Instance.inkLibrary.Count - 1; i >= 0; i--) {
 				if(InkLibrary.Instance.inkLibrary [i].inkAsset == null) {
 					if(!InkLibrary.Instance.inkLibrary[i].isMaster && InkLibrary.Instance.inkLibrary[i].master != null && !masterFilesAffected.Contains(InkLibrary.Instance.inkLibrary[i].masterInkFile)) {
 						masterFilesAffected.Add(InkLibrary.Instance.inkLibrary[i].masterInkFile);
 					}
+//					if(alsoDeleteJSON)
+						AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(InkLibrary.Instance.inkLibrary[i].jsonAsset));
 					InkLibrary.Instance.inkLibrary.RemoveAt(i);
 				}
 			}
@@ -58,14 +60,15 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		private static void OnMoveAssets (string[] movedAssets, string[] movedFromAssetPaths) {
+		private static void OnMoveAssets (string[] movedAssets) {
 			for (var i = 0; i < movedAssets.Length; i++) {
 				if(Path.GetExtension(movedAssets[i]) != InkEditorUtils.inkFileExtension) 
 					continue;
 				InkFile inkFile = InkLibrary.GetInkFileWithPath(movedAssets[i]);
 				if(inkFile != null) {
 					string jsonAssetPath = AssetDatabase.GetAssetPath(inkFile.jsonAsset);
-					AssetDatabase.RenameAsset(jsonAssetPath, Path.GetFileNameWithoutExtension(Path.GetFileName(movedAssets[i])));
+					string newPath = Path.Combine(Path.GetDirectoryName(movedAssets[i]), Path.GetFileNameWithoutExtension(Path.GetFileName(movedAssets[i])))+".json";
+					AssetDatabase.MoveAsset(jsonAssetPath, newPath);
 				}
 			}
 		}
