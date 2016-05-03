@@ -90,10 +90,9 @@ namespace Ink.UnityIntegration {
 				EditorGUI.LabelField(rect, new GUIContent(InkBrowserIcons.errorIcon), new GUIContent("Circular include references"));
 			};
 			circularIncludeReferencesList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
-				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
-				DefaultAsset _inkFile = ((List<DefaultAsset>)circularIncludeReferencesList.list)[index];
+				DefaultAsset includedInkFile = ((List<DefaultAsset>)circularIncludeReferencesList.list)[index];
 				EditorGUI.BeginDisabledGroup(true);
-				EditorGUI.ObjectField(labelRect, _inkFile, typeof(DefaultAsset), false);
+				EditorGUI.ObjectField(rect, includedInkFile, typeof(DefaultAsset), false);
 				EditorGUI.EndDisabledGroup();
 			};
 		}
