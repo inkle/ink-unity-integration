@@ -15,6 +15,17 @@ using Ink.Runtime;
 /// </summary>
 namespace Ink.UnityIntegration {
 	public class InkLibrary : ScriptableObject {
+		public static bool created {
+			get {
+				InkLibrary tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(defaultSettingsPath);
+				if(tmpSettings != null) 
+					return true;
+				string[] GUIDs = AssetDatabase.FindAssets("t:"+typeof(InkLibrary).Name);
+				if(GUIDs.Length > 0)
+					return true;
+				return false;
+			}
+		}
 		private static InkLibrary _Instance;
 		public static InkLibrary Instance {
 			get {
@@ -26,8 +37,8 @@ namespace Ink.UnityIntegration {
 		public const string defaultSettingsPath = "Assets/Plugins/Ink/Editor/Ink Library/InkLibrary.asset";
 
 		public bool compileAutomatically = true;
-		public List<InkFile> inkLibrary;
-		public List<InkCompiler.PendingInkFileProperties> compilingFiles = new List<InkCompiler.PendingInkFileProperties>();
+		public List<InkFile> inkLibrary = new List<InkFile>();
+		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
 
 		private static InkLibrary FindOrCreateLibrary () {
 			InkLibrary tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(defaultSettingsPath);
@@ -47,6 +58,7 @@ namespace Ink.UnityIntegration {
 			}
 			if(tmpSettings == null) {
 				tmpSettings = CreateInkLibrary ();
+				InkLibrary.Refresh();
 				Debug.LogWarning("No ink library was found. Created new at "+defaultSettingsPath);
 			}
 			return tmpSettings;
@@ -60,15 +72,19 @@ namespace Ink.UnityIntegration {
 			return asset;
 		}
 
+		public static string[] GetAllInkFilePaths () {
+			string[] inkFilePaths = Directory.GetFiles(Application.dataPath, "*.ink", SearchOption.AllDirectories);
+			for (int i = 0; i < inkFilePaths.Length; i++) {
+				inkFilePaths [i] = inkFilePaths [i].Replace('\\', '/');
+			}
+			return inkFilePaths;
+		}
 		/// <summary>
 		/// Updates the ink library. Executed whenever an ink file is changed by InkToJSONPostProcessor
 		/// Can be called manually, but incurs a performance cost.
 		/// </summary>
 		public static void Refresh () {
-			string[] inkFilePaths = Directory.GetFiles(Application.dataPath, "*.ink", SearchOption.AllDirectories);
-			for (int i = 0; i < inkFilePaths.Length; i++) {
-				inkFilePaths [i] = inkFilePaths [i].Replace('\\', '/');
-			}
+			string[] inkFilePaths = GetAllInkFilePaths();
 
 			List<InkFile> newInkLibrary = new List<InkFile>(inkFilePaths.Length);
 			for (int i = 0; i < inkFilePaths.Length; i++) {
@@ -84,30 +100,38 @@ namespace Ink.UnityIntegration {
 			foreach (InkFile inkFile in newInkLibrary) {
 				// Can be slow - optimise this. Only call when needed.
 				inkFile.fileContents = File.OpenText(inkFile.absoluteFilePath).ReadToEnd();
+				inkFile.GetIncludedFilePaths();
 				inkFile.GetIncludedFiles();
 			}
 
-			foreach (InkFile inkFile in newInkLibrary) {
-				if(inkFile.includes.Count > 0) {
-					inkFile.master = null;
-					foreach (InkFile otherInkFile in newInkLibrary) {
-						if(inkFile == otherInkFile) 
-							continue;
-						if(inkFile.includes.Contains(otherInkFile.inkAsset)) {
-							otherInkFile.master = inkFile.inkAsset;
-						}
-					}
-				}
-			}
-			foreach (InkFile inkFile in newInkLibrary) {
+			InkLibrary.Instance.inkLibrary = newInkLibrary;
+
+			RebuildMasterFiles();
+			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
 				inkFile.FindCompiledJSONAsset();
 			}
-			InkLibrary.Instance.inkLibrary = newInkLibrary;
 
 			EditorUtility.SetDirty(InkLibrary.Instance);
 			AssetDatabase.SaveAssets();
 		}
 
+		/// <summary>
+		/// Rebuilds which files are master files.
+		/// </summary>
+		public static void RebuildMasterFiles () {
+			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
+				if(inkFile.includes.Count == 0) 
+					continue;
+				inkFile.master = null;
+				foreach (InkFile otherInkFile in InkLibrary.Instance.inkLibrary) {
+					if(inkFile == otherInkFile) 
+						continue;
+					if(inkFile.includes.Contains(otherInkFile.inkAsset)) {
+						otherInkFile.master = inkFile.inkAsset;
+					}
+				}
+			}
+		}
 		public static List<InkFile> GetMasterInkFiles () {
 			List<InkFile> masterInkFiles = new List<InkFile>();
 			if(InkLibrary.Instance.inkLibrary == null) return masterInkFiles;
@@ -160,6 +184,32 @@ namespace Ink.UnityIntegration {
 				if(inkFile.absoluteFilePath == absolutePath) {
 					return inkFile;
 				}
+			}
+			return null;
+		}
+
+		public static List<InkCompiler.CompilationStackItem> FilesInCompilingStackInState (InkCompiler.CompilationStackItem.State state) {
+			List<InkCompiler.CompilationStackItem> items = new List<InkCompiler.CompilationStackItem>();
+			foreach(var x in InkLibrary.Instance.compilationStack) {
+				if(x.state == state) 
+					items.Add(x);
+			}
+			return items;
+		}
+
+		public static InkCompiler.CompilationStackItem GetCompilationStackItem (string inkAbsoluteFilePath) {
+			foreach(var x in InkLibrary.Instance.compilationStack) {
+				if(x.inkAbsoluteFilePath == inkAbsoluteFilePath) 
+					return x;
+			}
+			Debug.LogError("Fatal Error compiling Ink! No file found! Please report this as a bug. "+inkAbsoluteFilePath);
+			return null;
+		}
+
+		public static InkCompiler.CompilationStackItem GetCompilationStackItem (InkFile inkFile) {
+			foreach(var x in InkLibrary.Instance.compilationStack) {
+				if(x.inkFile == inkFile) 
+					return x;
 			}
 			return null;
 		}

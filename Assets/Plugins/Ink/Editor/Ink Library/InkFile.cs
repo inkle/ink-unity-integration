@@ -60,6 +60,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		// The files included by this file
+		public string[] includedFilePaths = null;
 		public List<DefaultAsset> includes = new List<DefaultAsset>();
 
 		// Is this ink file a master file, or is it included by another file?
@@ -94,8 +95,6 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		public int lastCompileDateTime;
-
 		public List<DefaultAsset> circularIncludeReferences = new List<DefaultAsset>();
 		public bool hasCircularIncludeReferences {
 			get {
@@ -122,16 +121,15 @@ namespace Ink.UnityIntegration {
 		}
 
 		public void GetIncludedFiles () {
-			string[] includedFilePaths = GetIncludedFilePaths();
 			includes.Clear();
 			if(includedFilePaths == null) 
 				return;
 			foreach(string includePath in includedFilePaths) {
-				string localIncludePath = includePath.Substring(Application.dataPath.Length-6);
-				DefaultAsset includedInkFileJSONAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
+//				string localIncludePath = includePath.Substring(Application.dataPath.Length-6);
+				DefaultAsset includedInkFileJSONAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(includePath);
 				InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileJSONAsset);
 				if(includedInkFile == null)
-					Debug.LogError("Expected Ink file at "+localIncludePath+" but file was not found.");
+					Debug.LogError("Expected Ink file at "+includePath+" but file was not found.");
 				else if (includedInkFile.includes.Contains(inkAsset)) {
 					includedInkFile.includes.Remove(inkAsset);
 					includedInkFile.circularIncludeReferences.Add(inkAsset);
@@ -142,11 +140,12 @@ namespace Ink.UnityIntegration {
 			}
 		}
 		
-		private string[] GetIncludedFilePaths() {
+		public void GetIncludedFilePaths() {
+			includedFilePaths = null;
 			string inklecatePath = InkEditorUtils.GetInklecateFilePath();
 			if(inklecatePath == null) {
 				UnityEngine.Debug.LogWarning("Inklecate (the ink compiler) not found in assets. This will prevent automatic building of JSON TextAsset files from ink story files.");
-				return null;
+				return;
 			}
 			string inkArguments = "-e "+"\""+Path.GetFileName(filePath) +"\"";
 			Process process = new Process();
@@ -159,11 +158,10 @@ namespace Ink.UnityIntegration {
 			process.EnableRaisingEvents = true;
 			process.Start();
 			process.WaitForExit();
-			string[] splitOutput = process.StandardOutput.ReadToEnd().Split(new string[]{"\n"}, StringSplitOptions.RemoveEmptyEntries);
-			for (int i = 0; i < splitOutput.Length; i++) {
-				splitOutput [i] = Path.Combine(absoluteFolderPath, splitOutput [i]);
+			includedFilePaths = process.StandardOutput.ReadToEnd().Split(new string[]{"\n"}, StringSplitOptions.RemoveEmptyEntries);
+			for (int i = 0; i < includedFilePaths.Length; i++) {
+				includedFilePaths [i] = Path.Combine(Path.GetDirectoryName(filePath), includedFilePaths [i]);
 			}
-			return splitOutput;
 		}
 
 		public void FindCompiledJSONAsset () {

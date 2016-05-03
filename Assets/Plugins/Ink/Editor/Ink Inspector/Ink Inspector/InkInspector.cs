@@ -163,6 +163,10 @@ namespace Ink.UnityIntegration {
 			if(inkFile == null) 
 				return;
 
+			if(InkLibrary.GetCompilationStackItem(inkFile) != null) {
+				EditorGUILayout.HelpBox("File is compiling...", MessageType.Info);
+				return;
+			}
 			InkFile masterInkFile = inkFile;
 			if(inkFile.isMaster) {
 				DrawMasterFileHeader();

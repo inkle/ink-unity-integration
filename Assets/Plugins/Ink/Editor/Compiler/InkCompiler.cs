@@ -16,7 +16,7 @@ namespace Ink.UnityIntegration {
 
 		public static bool compiling {
 			get {
-				return InkLibrary.Instance.compilingFiles.Count > 0;
+				return InkLibrary.Instance.compilationStack.Count > 0;
 			}
 		}
 
@@ -24,7 +24,7 @@ namespace Ink.UnityIntegration {
 		public static event OnCompileInkEvent OnCompileInk;
 
 		[Serializable]
-		public class PendingInkFileProperties {
+		public class CompilationStackItem {
 			public enum State {
 				Idle,
 				Compiling,
@@ -38,7 +38,7 @@ namespace Ink.UnityIntegration {
 			public string output;
 			public float startTime;
 
-			public PendingInkFileProperties () {
+			public CompilationStackItem () {
 				startTime = (float)EditorApplication.timeSinceStartup;
 			}
 		}
@@ -49,17 +49,21 @@ namespace Ink.UnityIntegration {
 		}
 
 		private static void Update () {
-			for (int i = InkLibrary.Instance.compilingFiles.Count - 1; i >= 0; i--) {
-				var compilingFile = InkLibrary.Instance.compilingFiles [i];
+			if(!InkLibrary.created) 
+				return;
+
+			for (int i = InkLibrary.Instance.compilationStack.Count - 1; i >= 0; i--) {
+				var compilingFile = InkLibrary.Instance.compilationStack [i];
 				if (EditorApplication.timeSinceStartup-compilingFile.startTime > timeout) {
-					Debug.LogError("Ink Compiler timed out for "+InkLibrary.Instance.compilingFiles[i]);
-					InkLibrary.Instance.compilingFiles.RemoveAt(i);
+					Debug.LogError("Ink Compiler timed out for "+InkLibrary.Instance.compilationStack[i]);
+					InkLibrary.Instance.compilationStack.RemoveAt(i);
 					EditorUtility.ClearProgressBar();
 				}
 			}
-			if(InkLibrary.Instance.compilingFiles.Count > 0) {
-				string message = "Compiling .Ink File "+(InkLibrary.Instance.compilingFiles.Count-NumFilesInStackCompiling())+" of "+InkLibrary.Instance.compilingFiles.Count;
-				EditorUtility.DisplayProgressBar("Compiling Ink...", message, (InkLibrary.Instance.compilingFiles.Count-NumFilesInStackCompiling())/InkLibrary.Instance.compilingFiles.Count);
+			if(InkLibrary.Instance.compilationStack.Count > 0) {
+				int numCompiling = InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count;
+				string message = "Compiling .Ink File "+(InkLibrary.Instance.compilationStack.Count-numCompiling)+" of "+InkLibrary.Instance.compilationStack.Count;
+				EditorUtility.DisplayProgressBar("Compiling Ink...", message, (InkLibrary.Instance.compilationStack.Count-numCompiling)/InkLibrary.Instance.compilationStack.Count);
 			}
 		}
 
@@ -89,7 +93,7 @@ namespace Ink.UnityIntegration {
 			}
 			if(!inkFile.isMaster)
 				Debug.LogWarning("Compiling InkFile which is an include. Any file created is likely to be invalid. Did you mean to call CompileInk on inkFile.master?");
-			if(GetCompilingFileFromCompilingFiles(inkFile) != null) {
+			if(InkLibrary.GetCompilationStackItem(inkFile) != null) {
 				UnityEngine.Debug.LogWarning("Tried compiling ink file, but file is already compiling. "+inkFile.filePath);
 				return;
 			}
@@ -105,12 +109,12 @@ namespace Ink.UnityIntegration {
 			string outputPath = Path.Combine(inkFile.absoluteFolderPath, Path.GetFileNameWithoutExtension(Path.GetFileName(inkFile.filePath)))+".json";
 			string inkArguments = "-c -o "+"\""+outputPath +"\" \""+inputPath+"\"";
 
-			PendingInkFileProperties pendingFile = new PendingInkFileProperties();
+			CompilationStackItem pendingFile = new CompilationStackItem();
 			pendingFile.inkFile = InkLibrary.GetInkFileWithAbsolutePath(inputPath);
 			pendingFile.inkAbsoluteFilePath = inputPath;
 			pendingFile.jsonAbsoluteFilePath = outputPath;
-			pendingFile.state = PendingInkFileProperties.State.Compiling;
-			InkLibrary.Instance.compilingFiles.Add(pendingFile);
+			pendingFile.state = CompilationStackItem.State.Compiling;
+			InkLibrary.Instance.compilationStack.Add(pendingFile);
 
 			Process process = new Process();
 			process.StartInfo.WorkingDirectory = inkFile.absoluteFolderPath;
@@ -127,90 +131,56 @@ namespace Ink.UnityIntegration {
 
 		}
 
-		static bool AnyFilesInStackCompiling () {
-			foreach(var x in InkLibrary.Instance.compilingFiles) {
-				if(x.state == PendingInkFileProperties.State.Compiling) 
-					return true;
-			}
-			return false;
-		}
-
-		static int NumFilesInStackCompiling () {
-			int count = 0;
-			foreach(var x in InkLibrary.Instance.compilingFiles) {
-				if(x.state == PendingInkFileProperties.State.Compiling) 
-					count++;
-			}
-			return count;
-		}
-
-		static InkFile GetInkFileFromOutsideMainThreadFromAbsoluteFilePath (string inkAbsoluteFilePath) {
-			foreach(var x in InkLibrary.Instance.compilingFiles) {
-				if(x.inkAbsoluteFilePath == inkAbsoluteFilePath) 
-					return x.inkFile;
-			}
-			Debug.LogError("Fatal Error compiling Ink! No file found! Please report this as a bug. "+inkAbsoluteFilePath);
-			return null;
-		}
-
-		static PendingInkFileProperties GetCompilingFileFromCompilingFiles (InkFile inkFile) {
-			foreach(var x in InkLibrary.Instance.compilingFiles) {
-				if(x.inkFile == inkFile) 
-					return x;
-			}
-			return null;
-		}
-
 		static void OnProcessError (object sender, DataReceivedEventArgs e) {
 			Process process = (Process)sender;
 			Debug.LogError("Fatal Error compiling Ink! Ink failed to process. Please report this as a bug.");
 			InkFile inkFile = InkLibrary.GetInkFileWithAbsolutePath(process.StartInfo.EnvironmentVariables["inkAbsoluteFilePath"]);
 			Debug.LogError(inkFile);
-			PendingInkFileProperties compilingFile = GetCompilingFileFromCompilingFiles(inkFile);
-			InkLibrary.Instance.compilingFiles.Remove(compilingFile);
+			CompilationStackItem compilingFile = InkLibrary.GetCompilationStackItem(inkFile);
+			InkLibrary.Instance.compilationStack.Remove(compilingFile);
 		}
 
 		static void OnCompileProcessComplete(object sender, System.EventArgs e) {
 			Process process = (Process)sender;
 
-			InkFile inkFile = GetInkFileFromOutsideMainThreadFromAbsoluteFilePath(process.StartInfo.EnvironmentVariables["inkAbsoluteFilePath"]);
-			PendingInkFileProperties pendingFile = GetCompilingFileFromCompilingFiles(inkFile);
-			pendingFile.state = PendingInkFileProperties.State.Importing;
+			CompilationStackItem pendingFile = InkLibrary.GetCompilationStackItem(process.StartInfo.EnvironmentVariables["inkAbsoluteFilePath"]);
+			pendingFile.state = CompilationStackItem.State.Importing;
 			pendingFile.output = process.StandardOutput.ReadToEnd();
 
-			if(!AnyFilesInStackCompiling()) {
+			if(InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count == 0) {
 				// This event runs in another thread, preventing us from calling some UnityEditor functions directly. Instead, we delay till the next inspector update.
 				EditorApplication.delayCall += Delay;
 			}
 		}
 
 		private static void Delay () {
-			if(AnyFilesInStackCompiling()) {
+			if(InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count > 0) {
 				Debug.LogWarning("Delayed, but a file is now compiling! You can ignore this warning.");
 				return;
 			}
-			foreach (var compilingFile in InkLibrary.Instance.compilingFiles) {
+			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
 				SetOutputLog(compilingFile);
 				if(!compilingFile.inkFile.hasErrors) {
 					string localJSONAssetPath = compilingFile.jsonAbsoluteFilePath.Substring (Application.dataPath.Length - 6);
 					AssetDatabase.ImportAsset (localJSONAssetPath);
+					compilingFile.inkFile.jsonAsset = AssetDatabase.LoadAssetAtPath<TextAsset> (localJSONAssetPath);
 				}
 			}
-			InkLibrary.Refresh();
-			InkLibrary.Instance.compilingFiles.Clear();
+//			InkLibrary.Refresh();
+			InkLibrary.Instance.compilationStack.Clear();
 
 			EditorUtility.ClearProgressBar();
 			if(EditorApplication.isPlayingOrWillChangePlaymode) {
 				Debug.LogWarning("Ink just finished recompiling while in play mode. Your runtime story may not be up to date.");
 			}
-			foreach (var compilingFile in InkLibrary.Instance.compilingFiles) {
+			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
 				if (OnCompileInk != null) {
 					OnCompileInk (compilingFile.inkFile);
 				}
 			}
 		}
 
-		private static void SetOutputLog (PendingInkFileProperties pendingFile) {
+		private static void SetOutputLog (CompilationStackItem pendingFile) {
 			pendingFile.inkFile.errors.Clear();
 			pendingFile.inkFile.warnings.Clear();
 			pendingFile.inkFile.todos.Clear();

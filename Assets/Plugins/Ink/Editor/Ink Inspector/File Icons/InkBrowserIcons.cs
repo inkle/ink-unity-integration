@@ -33,6 +33,8 @@ namespace Ink.UnityIntegration {
 	    }
 
 	    static void OnDrawProjectWindowItem(string guid, Rect rect) {
+	    	if(!InkLibrary.created)
+	    		return;
 	        var path = AssetDatabase.GUIDToAssetPath(guid);
 
 			if (Path.GetExtension(path) == InkEditorUtils.inkFileExtension) {

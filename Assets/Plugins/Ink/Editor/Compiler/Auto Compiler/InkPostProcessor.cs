@@ -15,7 +15,7 @@ namespace Ink.UnityIntegration {
 	class InkPostProcessor : AssetPostprocessor {
 
 		// Recompiles any ink files as a result of an ink file (re)import
-		static void OnPostprocessAllAssets (string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths) {
+		private static void OnPostprocessAllAssets (string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths) {
 			if(deletedAssets.Length > 0) {
 				OnDeleteAssets(deletedAssets);
 			}
@@ -30,7 +30,7 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		static void OnDeleteAssets (string[] deletedAssets) {
+		private static void OnDeleteAssets (string[] deletedAssets) {
 			bool deletedInk = false;
 			foreach (var deletedAssetPath in deletedAssets) {
 				if(Path.GetExtension(deletedAssetPath) == InkEditorUtils.inkFileExtension) {
@@ -46,7 +46,7 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		static void OnMoveAssets (string[] movedAssets, string[] movedFromAssetPaths) {
+		private static void OnMoveAssets (string[] movedAssets, string[] movedFromAssetPaths) {
 			for (var i = 0; i < movedAssets.Length; i++) {
 				if(Path.GetExtension(movedAssets[i]) != InkEditorUtils.inkFileExtension) 
 					continue;
@@ -58,7 +58,7 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		static void OnImportAssets (string[] importedAssets) {
+		private static void OnImportAssets (string[] importedAssets) {
 			List<string> importedInkAssets = new List<string>();
 			string inklecateFileLocation = null;
 			foreach (var importedAssetPath in importedAssets) {
@@ -78,37 +78,49 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		static void PostprocessInklecate (string inklecateFileLocation) {
+		private static void PostprocessInklecate (string inklecateFileLocation) {
 			Debug.Log("Inklecate updated. Recompiling all Ink files...");
 			InkCompiler.RecompileAll();
 		}
 
-		static void PostprocessInkFiles (List<string> importedInkAssets) {
-			Debug.ClearDeveloperConsole();
+		private static void PostprocessInkFiles (List<string> importedInkAssets) {
 //			foreach (var importedAssetPath in importedInkAssets) {
 //				Debug.Log("Imported Ink: "+importedAssetPath);
 //			}
-			InkLibrary.Refresh();
-//			foreach (var importedAssetPath in importedInkAssets) {
-//				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
-//				if(inkFile == null) {
-////					InkLibrary.Instance.inkLibrary.Add(new InkFile(AssetDatabase.));
-////					inkFile = new InkFile(AssetDatabase.LoadAssetAtPath<DefaultAsset>(importedAssetPath);
-//				}
-//			}
-			List<InkFile> inkFilesToCompile = new List<InkFile>();
-			foreach (var importedAssetPath in importedInkAssets) {
-				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
-				if(inkFile.isMaster && !inkFilesToCompile.Contains(inkFile) && (InkLibrary.Instance.compileAutomatically || inkFile.compileAutomatically)) {
-					inkFilesToCompile.Add(inkFile);
-				} else if(!inkFile.isMaster && !inkFilesToCompile.Contains(inkFile.masterInkFile) && (InkLibrary.Instance.compileAutomatically || inkFile.masterInkFile.compileAutomatically)) {
-					inkFilesToCompile.Add(inkFile.masterInkFile);
-				}
-			}
-
-			foreach (var inkAssetToCompile in inkFilesToCompile) {
+//			InkLibrary.Refresh();
+			CreateOrReadUpdatedInkFiles (importedInkAssets);
+			foreach (var inkAssetToCompile in GetUniqueMasterInkFilesToCompile (importedInkAssets)) {
 				InkCompiler.CompileInk(inkAssetToCompile);
 			}
+		}
+
+		private static void CreateOrReadUpdatedInkFiles (List<string> importedInkAssets) {
+			foreach (var importedAssetPath in importedInkAssets) {
+				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
+				if(inkFile == null) {
+					DefaultAsset asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(importedAssetPath);
+					inkFile = new InkFile(asset);
+					InkLibrary.Instance.inkLibrary.Add(inkFile);
+				}
+				inkFile.fileContents = File.OpenText(inkFile.absoluteFilePath).ReadToEnd();
+				inkFile.GetIncludedFilePaths();
+				inkFile.GetIncludedFiles();
+			}
+			// Now we've updated all the includes for the ink library we can create master/child connections between them.
+			InkLibrary.RebuildMasterFiles();
+		}
+
+		private static List<InkFile> GetUniqueMasterInkFilesToCompile (List<string> importedInkAssets) {
+			List<InkFile> masterInkFiles = new List<InkFile>();
+			foreach (var importedAssetPath in importedInkAssets) {
+				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
+				if(inkFile.isMaster && !masterInkFiles.Contains(inkFile) && (InkLibrary.Instance.compileAutomatically || inkFile.compileAutomatically)) {
+					masterInkFiles.Add(inkFile);
+				} else if(!inkFile.isMaster && !masterInkFiles.Contains(inkFile.masterInkFile) && (InkLibrary.Instance.compileAutomatically || inkFile.masterInkFile.compileAutomatically)) {
+					masterInkFiles.Add(inkFile.masterInkFile);
+				}
+			}
+			return masterInkFiles;
 		}
 	}
 }
