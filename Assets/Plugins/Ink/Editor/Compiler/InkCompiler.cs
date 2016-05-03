@@ -185,6 +185,10 @@ namespace Ink.UnityIntegration {
 			pendingFile.inkFile.warnings.Clear();
 			pendingFile.inkFile.todos.Clear();
 			foreach(var child in pendingFile.inkFile.includes) {
+				if(child == null) {
+					Debug.LogError("Error compiling ink: Ink file include in "+pendingFile.inkFile.filePath+" is null.");
+					continue;
+				}
 				InkFile childInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)child);
 				childInkFile.errors.Clear();
 				childInkFile.warnings.Clear();
