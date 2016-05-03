@@ -40,6 +40,11 @@ namespace Ink.UnityIntegration {
 		public List<InkFile> inkLibrary = new List<InkFile>();
 		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
 
+		[MenuItem("Edit/Project Settings/Ink", false, 500)]
+		public static void SelectFromProjectSettings() {
+			Selection.activeObject = Instance;
+		}
+
 		private static InkLibrary FindOrCreateLibrary () {
 			InkLibrary tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(defaultSettingsPath);
 			if(tmpSettings == null) {
@@ -101,10 +106,9 @@ namespace Ink.UnityIntegration {
 			InkLibrary.Instance.inkLibrary = newInkLibrary;
 
 			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
-				inkFile.fileContents = File.OpenText(inkFile.absoluteFilePath).ReadToEnd();
-				inkFile.GetIncludedFiles();
+				inkFile.ParseContent();
 			}
-			RebuildMasterFiles();
+			RebuildInkFileConnections();
 			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
 				inkFile.FindCompiledJSONAsset();
 			}
@@ -116,9 +120,13 @@ namespace Ink.UnityIntegration {
 		/// <summary>
 		/// Rebuilds which files are master files.
 		/// </summary>
-		public static void RebuildMasterFiles () {
-			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary)
+		public static void RebuildInkFileConnections () {
+			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
 				inkFile.master = null;
+				inkFile.FindIncludedFiles();
+			}
+			// We now set the master file for ink files. As a file can be in an include hierarchy, we need to do this in two passes.
+			// First, we set the master file to the file that includes an ink file.
 			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
 				if(inkFile.includes.Count == 0) 
 					continue;
@@ -128,6 +136,26 @@ namespace Ink.UnityIntegration {
 					if(inkFile.includes.Contains(otherInkFile.inkAsset)) {
 						otherInkFile.master = inkFile.inkAsset;
 					}
+				}
+			}
+			// Next, we create a list of all the files owned by the actual master file, which we obtain by travelling up the tree from each file.
+			Dictionary<InkFile, List<InkFile>> masterChildRelationships = new Dictionary<InkFile, List<InkFile>>();
+			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
+				if(inkFile.isMaster) 
+					continue;
+				InkFile master = inkFile.masterInkFile;
+				while (!master.isMaster) {
+					master = master.masterInkFile;
+				}
+				if(!masterChildRelationships.ContainsKey(master)) {
+					masterChildRelationships.Add(master, new List<InkFile>());
+				}
+				masterChildRelationships[master].Add(inkFile);
+			}
+			// Finally, we set the master file of the children to the true master file
+			foreach (var inkFileRelationship in masterChildRelationships) {
+				foreach(InkFile childInkFile in inkFileRelationship.Value) {
+					childInkFile.master = inkFileRelationship.Key.inkAsset;
 				}
 			}
 		}
