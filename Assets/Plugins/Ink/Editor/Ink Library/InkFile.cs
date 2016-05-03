@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using Debug = UnityEngine.Debug;
 using System.Collections;
 using System.Collections.Generic;
@@ -108,10 +109,6 @@ namespace Ink.UnityIntegration {
 		public InkFile (DefaultAsset inkFile) {
 			Debug.Assert(inkFile != null);
 			this.inkAsset = inkFile;
-			Refresh();
-		}
-
-		public void Refresh () {
 			fileContents = File.OpenText(absoluteFilePath).ReadToEnd();
 			GetIncludedFiles();
 		}
@@ -121,11 +118,15 @@ namespace Ink.UnityIntegration {
 			includes.Clear();
 			foreach(string includePath in includedFilePaths) {
 				string localIncludePath = includePath.Substring(Application.dataPath.Length-6);
-				DefaultAsset includedInkFile = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
+				DefaultAsset includedInkFileJSONAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
+				InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileJSONAsset);
 				if(includedInkFile == null)
 					Debug.LogError("Expected Ink file at "+localIncludePath+" but file was not found.");
-				else 
-					includes.Add(includedInkFile);
+				else if (includedInkFile.includes.Contains(inkAsset)) {
+					includedInkFile.includes.Remove(inkAsset);
+					Debug.LogError("Circular INCLUDE reference between "+filePath+" and "+includedInkFile.filePath+". Neither files will be compiled until this is resolved.");
+				} else
+					includes.Add(includedInkFileJSONAsset);
 			}
 		}
 		
@@ -133,19 +134,20 @@ namespace Ink.UnityIntegration {
 			if (String.IsNullOrEmpty(includeKey))
 				throw new ArgumentException("the string to find may not be empty", includeKey);
 			List<string> includePaths = new List<string>();
-			for (int index = 0;;) {
-				index = fileContents.IndexOf(includeKey, index);
-				if (index == -1)
-					return includePaths;
-				
-				int lastIndex = fileContents.IndexOf("\n", index);
-				if(lastIndex == -1) {
-					index += includeKey.Length;
-				} else {
-					includePaths.Add(Path.Combine(absoluteFolderPath, fileContents.Substring(index + includeKey.Length, lastIndex - (index + includeKey.Length))));
-					index = lastIndex;
-				}
-			}
+	        Regex includeRegex = new Regex(@"^" + InkFile.includeKey + @"(.+?)\r?$", RegexOptions.Multiline);
+	        MatchCollection matches = includeRegex.Matches(this.fileContents);
+
+	        foreach(Match match in matches) {
+	            string path = match.Groups[1].Value;
+	            int invalidIndex = match.Groups[1].Value.IndexOfAny(Path.GetInvalidPathChars());
+	            if (invalidIndex >= 0) {
+	                Debug.LogError("Ignoring INCLUDE path '" + path + "' because it contains invalid character: '" + path[invalidIndex] + "'");
+	            } else {
+					includePaths.Add(Path.Combine(absoluteFolderPath, path));
+					Debug.Log(path);
+	            }
+	        }
+			return includePaths;
 		}
 
 		public void FindCompiledJSONAsset () {

@@ -18,7 +18,6 @@ namespace Ink.UnityIntegration {
 		public static Texture2D childIcon;
 
 	    static InkBrowserIcons() {
-			EditorUtility.ClearProgressBar();
 			float unityVersion = float.Parse(Application.unityVersion.Substring (0, 3));
 			if(Application.platform == RuntimePlatform.OSXEditor && unityVersion >= 5.4f) {
 				inkFileIcon = Resources.Load<Texture2D>("InkFileIcon-retina");

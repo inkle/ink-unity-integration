@@ -57,8 +57,10 @@ namespace Ink.UnityIntegration {
 					EditorUtility.ClearProgressBar();
 				}
 			}
-			if(InkLibrary.Instance.compilingFiles.Count > 0)
-				EditorUtility.DisplayProgressBar("Compiling Ink...", "Compiling "+InkLibrary.Instance.compilingFiles.Count+" .Ink Files", NumFilesInStackCompiling()/InkLibrary.Instance.compilingFiles.Count);
+			if(InkLibrary.Instance.compilingFiles.Count > 0) {
+				string message = "Compiling .Ink File "+(InkLibrary.Instance.compilingFiles.Count-NumFilesInStackCompiling())+" of "+InkLibrary.Instance.compilingFiles.Count;
+				EditorUtility.DisplayProgressBar("Compiling Ink...", message, (InkLibrary.Instance.compilingFiles.Count-NumFilesInStackCompiling())/InkLibrary.Instance.compilingFiles.Count);
+			}
 		}
 
 		private static void OnPlayModeChange () {
@@ -78,11 +80,12 @@ namespace Ink.UnityIntegration {
 		}
 
 		public static void CompileInk (InkFile inkFile) {
+			Debug.Log("Compile "+inkFile.filePath+" "+inkFile.isMaster);
 			if(inkFile == null) {
 				Debug.LogError("Tried to compile ink file, but input was null.");
 				return;
 			}
-			if(inkFile.master != null)
+			if(!inkFile.isMaster)
 				Debug.LogWarning("Compiling InkFile which is an include. Any file created is likely to be invalid. Did you mean to call CompileInk on inkFile.master?");
 			if(GetCompilingFileFromCompilingFiles(inkFile) != null) {
 				UnityEngine.Debug.LogWarning("Tried compiling ink file, but file is already compiling. "+inkFile.filePath);
@@ -120,6 +123,7 @@ namespace Ink.UnityIntegration {
 			process.Exited += OnCompileProcessComplete;
 			process.ErrorDataReceived += OnProcessError;
 			process.Start();
+
 		}
 
 		static bool AnyFilesInStackCompiling () {

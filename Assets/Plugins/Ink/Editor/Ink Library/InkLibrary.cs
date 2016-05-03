@@ -76,7 +76,9 @@ namespace Ink.UnityIntegration {
 				if(inkFile == null) 
 					inkFile = new InkFile(AssetDatabase.LoadAssetAtPath<DefaultAsset>(inkFilePaths [i].Substring(Application.dataPath.Length-6)));
 				else {
-					inkFile.Refresh();
+					// Can be slow - optimise this. Only call when needed.
+					inkFile.fileContents = File.OpenText(inkFile.absoluteFilePath).ReadToEnd();
+					inkFile.GetIncludedFiles();
 				}
 				newInkLibrary.Add(inkFile);
 			}
