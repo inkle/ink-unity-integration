@@ -40,9 +40,21 @@ namespace Ink.UnityIntegration {
 			}
 			if(!deletedInk)
 				return;
+			List<InkFile> masterFilesAffected = new List<InkFile>();
 			for (int i = InkLibrary.Instance.inkLibrary.Count - 1; i >= 0; i--) {
-				if(InkLibrary.Instance.inkLibrary [i].inkAsset == null)
+				if(InkLibrary.Instance.inkLibrary [i].inkAsset == null) {
+					if(!InkLibrary.Instance.inkLibrary[i].isMaster && InkLibrary.Instance.inkLibrary[i].master != null && !masterFilesAffected.Contains(InkLibrary.Instance.inkLibrary[i].masterInkFile)) {
+						masterFilesAffected.Add(InkLibrary.Instance.inkLibrary[i].masterInkFile);
+					}
 					InkLibrary.Instance.inkLibrary.RemoveAt(i);
+				}
+			}
+			// After deleting files, we might have broken some include references, so we rebuild them. There's probably a faster way to do this, or we could probably just remove any null references, but this is a bit more robust.
+			foreach(InkFile inkFile in InkLibrary.Instance.inkLibrary) {
+				inkFile.FindIncludedFiles();
+			}
+			foreach(InkFile masterFile in masterFilesAffected) {
+				InkCompiler.CompileInk(masterFile);
 			}
 		}
 
@@ -101,11 +113,10 @@ namespace Ink.UnityIntegration {
 					inkFile = new InkFile(asset);
 					InkLibrary.Instance.inkLibrary.Add(inkFile);
 				}
-				inkFile.fileContents = File.OpenText(inkFile.absoluteFilePath).ReadToEnd();
-				inkFile.GetIncludedFiles();
+				inkFile.ParseContent();
 			}
-			// Now we've updated all the includes for the ink library we can create master/child connections between them.
-			InkLibrary.RebuildMasterFiles();
+			// Now we've updated all the include paths for the ink library we can create master/child references between them.
+			InkLibrary.RebuildInkFileConnections();
 		}
 
 		private static List<InkFile> GetUniqueMasterInkFilesToCompile (List<string> importedInkAssets) {
