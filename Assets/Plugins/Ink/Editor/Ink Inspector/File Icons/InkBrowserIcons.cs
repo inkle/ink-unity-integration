@@ -18,6 +18,11 @@ namespace Ink.UnityIntegration {
 		public static Texture2D childIcon;
 
 	    static InkBrowserIcons() {
+			LoadIcons();
+			EditorApplication.projectWindowItemOnGUI += OnDrawProjectWindowItem;
+	    }
+
+	    static void LoadIcons () {
 			float unityVersion = float.Parse(Application.unityVersion.Substring (0, 3));
 			if(Application.platform == RuntimePlatform.OSXEditor && unityVersion >= 5.4f) {
 				inkFileIcon = Resources.Load<Texture2D>("InkFileIcon-retina");
@@ -27,9 +32,6 @@ namespace Ink.UnityIntegration {
 			errorIcon = Resources.Load<Texture2D>("InkErrorIcon");
 			warningIcon = Resources.Load<Texture2D>("InkWarningIcon");
 			childIcon = Resources.Load<Texture2D>("InkChildIcon");
-
-			if(inkFileIcon != null)
-				EditorApplication.projectWindowItemOnGUI += OnDrawProjectWindowItem;
 	    }
 
 	    static void OnDrawProjectWindowItem(string guid, Rect rect) {
