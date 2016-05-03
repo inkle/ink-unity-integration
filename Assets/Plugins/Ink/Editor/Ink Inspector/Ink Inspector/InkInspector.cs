@@ -56,19 +56,19 @@ namespace Ink.UnityIntegration {
 		void CreateIncludeList () {
 			List<DefaultAsset> includeTextAssets = inkFile.includes;
 			includesFileList = new ReorderableList(includeTextAssets, typeof(DefaultAsset), false, false, false, false);
-			includesFileList.elementHeight = 16;
+//			includesFileList.elementHeight = 16;
 			includesFileList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "Included Files");
 			};
 			includesFileList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
 				DefaultAsset childAssetFile = ((List<DefaultAsset>)includesFileList.list)[index];
 				InkFile childInkFile = InkLibrary.GetInkFileWithFile(childAssetFile);
-				Rect iconRect = new Rect(rect.x, rect.y, 0, rect.height);
+				Rect iconRect = new Rect(rect.x, rect.y, 0, 16);
 				if(childInkFile.hasErrors || childInkFile.hasWarnings) {
 					iconRect.width = 20;
 				}
-				Rect objectFieldRect = new Rect(iconRect.xMax, rect.y, rect.width - iconRect.width - 80, rect.height);
-				Rect selectRect = new Rect(objectFieldRect.xMax, rect.y, 80, rect.height);
+				Rect objectFieldRect = new Rect(iconRect.xMax, rect.y, rect.width - iconRect.width - 80, 16);
+				Rect selectRect = new Rect(objectFieldRect.xMax, rect.y, 80, 16);
 				if(childInkFile.hasErrors) {
 					EditorGUI.LabelField(iconRect, new GUIContent(InkBrowserIcons.errorIcon));
 				} else if(childInkFile.hasWarnings) {

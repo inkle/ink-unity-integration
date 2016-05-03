@@ -53,18 +53,20 @@ namespace Ink.UnityIntegration {
 				if (rect.width > largeIconSize) {
 					var offset = (rect.width - largeIconSize) * 0.5f;
 					var position = new Rect(rect.x + offset, rect.y + offset, largeIconSize, largeIconSize);
-					GUI.DrawTexture(position, inkFileIcon);
+					if(inkFileIcon != null)
+						GUI.DrawTexture(position, inkFileIcon);
 				}
 				else {
-					GUI.DrawTexture(rect, inkFileIcon);
+					if(inkFileIcon != null)
+						GUI.DrawTexture(rect, inkFileIcon);
 
 					Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
-					if(inkFile.hasErrors || inkFile.hasCircularIncludeReferences) {
+					if((inkFile.hasErrors || inkFile.hasCircularIncludeReferences) && errorIcon != null) {
 						GUI.DrawTexture(miniRect, errorIcon);
-					} else if(inkFile.hasWarnings) {
+					} else if(inkFile.hasWarnings && warningIcon != null) {
 						GUI.DrawTexture(miniRect, warningIcon);
 					}
-					if(!inkFile.isMaster) {
+					if(!inkFile.isMaster && childIcon != null) {
 						GUI.DrawTexture(new Rect(rect.x, rect.y, childIcon.width, childIcon.height), childIcon);
 					}
 				}
