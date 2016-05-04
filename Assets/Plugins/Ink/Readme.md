@@ -20,17 +20,9 @@ Features:
 
 For more information on **ink**, see [the documentation in the main ink repo](https://github.com/inkle/ink). For convenience, the package also creates an (**Ink > Help**) menu option.
 
-## Customisation
-
-This package is structured modularly. The folders correllating to the features described below can all be safely deleted if their functionality is not required.
-
-The only files required to play ink in your game is ink-engine and Newtonsoft.Json in the DLL folder.
-
-The inklecate DLLs used to compile ink are quite large files. You may safely delete the DLLs not corresponding to your current OS, or both of them if not using the compiler.
-
 ## Using ink in game your game. 
 
-The **ink player** is the core feature of this package; the minimal requirements to actually run a compiled JSON story file are the `ink-engine.dll` and `Newtonsoft.Json.dll` libraries.
+The **ink player** is the core feature of this package; the minimal requirements to actually run a compiled JSON story file are files in the `InkRuntime` folder and `Newtonsoft.Json.dll` library.
 
 ## Ink Player
 
@@ -50,9 +42,9 @@ Ink files must be compiled to JSON before they can be used in-game.
 	
 This package provides tools to automate this process when a .ink file is edited. 
 
-**Disabling auto-compilation**: You might want to have manual control over ink compilation. If this is the case, you can safely delete the InkPostProcessor class.
+**Disabling auto-compilation**: This option exists via **Edit > Project Settings > Ink**
 
-**Manual compilation**: If you have disabled auto-compilation, you can manually compile ink using the **Ink > Compile All** menu item, via the inspector of an ink file, or using the functions in the InkCompiler class.
+**Manual compilation**: If you have disabled auto-compilation, you can manually compile ink via the inspector of an ink file, using the functions in the InkCompiler class, or rebuild all the ink files using the **Assets > Recompile Ink** menu item (this can be a bit slow for larger projects)
 
 ## Inspector Tools
 
@@ -62,9 +54,13 @@ This package also replaces the icon for ink files to make them easier to spot, a
 
 ## Updating Ink manually
 
-The ink git repo is updated far more frequently than this asset store package. 
+The ink git repo is updated far more frequently than the asset store package. 
 
 If you're interested in keeping up-to-date with cutting edge features, you can download the [latest releases from the GitHub repo](https://github.com/inkle/ink/releases).
+
+## Customisation
+
+The inklecate DLLs used to compile ink are quite large files. You may safely delete the DLLs not corresponding to your current OS, or both of them if not using the compiler.
 
 ## FAQ
 
