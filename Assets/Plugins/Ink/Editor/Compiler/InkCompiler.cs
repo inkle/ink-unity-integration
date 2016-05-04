@@ -87,9 +87,6 @@ namespace Ink.UnityIntegration {
 			if(inkFile == null) {
 				Debug.LogError("Tried to compile ink file "+inkFile.filePath+", but input was null.");
 				return;
-			} else if(inkFile.circularIncludeReferences.Count > 0) {
-				Debug.LogError("Tried to compile ink file "+inkFile.filePath+", but file is part of a circular include reference. This must be resolved before compiling.");
-				return;
 			}
 			if(!inkFile.isMaster)
 				Debug.LogWarning("Compiling InkFile which is an include. Any file created is likely to be invalid. Did you mean to call CompileInk on inkFile.master?");

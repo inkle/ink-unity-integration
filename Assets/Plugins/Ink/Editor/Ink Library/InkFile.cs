@@ -97,13 +97,6 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		public List<DefaultAsset> circularIncludeReferences = new List<DefaultAsset>();
-		public bool hasCircularIncludeReferences {
-			get {
-				return circularIncludeReferences.Count > 0;
-			}
-		}
-
 		[System.Serializable]
 		public class InkFileLog {
 			public string content;
@@ -135,10 +128,7 @@ namespace Ink.UnityIntegration {
 				if(includedInkFile == null)
 					Debug.LogError("Expected Ink file at "+localIncludePath+" but file was not found.");
 				else if (includedInkFile.includes.Contains(inkAsset)) {
-//					includedInkFile.includes.Remove(inkAsset);
-//					includedInkFile.circularIncludeReferences.Add(inkAsset);
-//					circularIncludeReferences.Add(includedInkFile.inkAsset);
-					Debug.LogError("Circular INCLUDE reference between "+filePath+" and "+includedInkFile.filePath+". Neither files will be compiled until this is resolved.");
+					Debug.LogError("Circular INCLUDE reference between "+filePath+" and "+includedInkFile.filePath+".");
 				} else
 					includes.Add(includedInkFileJSONAsset);
 			}

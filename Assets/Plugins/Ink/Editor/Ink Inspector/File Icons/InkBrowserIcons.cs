@@ -61,7 +61,7 @@ namespace Ink.UnityIntegration {
 						GUI.DrawTexture(rect, inkFileIcon);
 
 					Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
-					if((inkFile.hasErrors || inkFile.hasCircularIncludeReferences) && errorIcon != null) {
+					if(inkFile.hasErrors && errorIcon != null) {
 						GUI.DrawTexture(miniRect, errorIcon);
 					} else if(inkFile.hasWarnings && warningIcon != null) {
 						GUI.DrawTexture(miniRect, warningIcon);

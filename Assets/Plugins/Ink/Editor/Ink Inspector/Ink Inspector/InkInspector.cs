@@ -18,7 +18,6 @@ namespace Ink.UnityIntegration {
 		private ReorderableList errorList;
 		private ReorderableList warningList;
 		private ReorderableList todosList;
-		private ReorderableList circularIncludeReferencesList;
 
 		public override bool IsValid(string assetPath) {
 			if(Path.GetExtension(assetPath) == InkEditorUtils.inkFileExtension) {
@@ -36,7 +35,6 @@ namespace Ink.UnityIntegration {
 			if(inkFile.includes.Count > 0) {
 				CreateIncludeList();
 			}
-			CreateCircularIncludeReferencesList();
 			CreateErrorList();
 			CreateWarningList();
 			CreateTodoList();
@@ -80,20 +78,6 @@ namespace Ink.UnityIntegration {
 				if(GUI.Button(selectRect, "Select")) {
 					Selection.activeObject = childAssetFile;
 				}
-			};
-		}
-
-		void CreateCircularIncludeReferencesList () {
-			circularIncludeReferencesList = new ReorderableList(inkFile.circularIncludeReferences, typeof(DefaultAsset), false, false, false, false);
-			circularIncludeReferencesList.elementHeight = 16;
-			circularIncludeReferencesList.drawHeaderCallback = (Rect rect) => {  
-				EditorGUI.LabelField(rect, new GUIContent(InkBrowserIcons.errorIcon), new GUIContent("Circular include references"));
-			};
-			circularIncludeReferencesList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
-				DefaultAsset includedInkFile = ((List<DefaultAsset>)circularIncludeReferencesList.list)[index];
-				EditorGUI.BeginDisabledGroup(true);
-				EditorGUI.ObjectField(rect, includedInkFile, typeof(DefaultAsset), false);
-				EditorGUI.EndDisabledGroup();
 			};
 		}
 
@@ -180,7 +164,6 @@ namespace Ink.UnityIntegration {
 				DrawCompileButton(masterInkFile);
 			DrawIncludedFiles();
 
-			DrawCircularIncludeReferences();
 			DrawErrors();
 			DrawWarnings();
 			DrawTODOList();
@@ -275,14 +258,6 @@ namespace Ink.UnityIntegration {
 			}
 			if(drawButton && GUILayout.Button("Compile")) {
 				InkCompiler.CompileInk(masterInkFile);
-			}
-		}
-
-
-		void DrawCircularIncludeReferences () {
-			if(circularIncludeReferencesList != null && circularIncludeReferencesList.count > 0) {
-//				EditorGUILayout.HelpBox("Files contain circular INCLUDE references. This must be fixed before files can be compiled.", MessageType.Error);
-				circularIncludeReferencesList.DoLayoutList();
 			}
 		}
 

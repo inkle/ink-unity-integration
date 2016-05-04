@@ -97,11 +97,8 @@ namespace Ink.UnityIntegration {
 				InkFile inkFile = GetInkFileWithAbsolutePath(inkFilePaths [i]);
 				if(inkFile == null) 
 					inkFile = new InkFile(AssetDatabase.LoadAssetAtPath<DefaultAsset>(inkFilePaths [i].Substring(Application.dataPath.Length-6)));
-				else
-					inkFile.circularIncludeReferences.Clear();
 				newInkLibrary.Add(inkFile);
 			}
-
 
 			InkLibrary.Instance.inkLibrary = newInkLibrary;
 
