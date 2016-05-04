@@ -37,6 +37,8 @@ namespace Ink.UnityIntegration {
 		public const string defaultSettingsPath = "Assets/Plugins/Ink/Editor/Ink Library/InkLibrary.asset";
 
 		public bool compileAutomatically = true;
+		public bool handleJSONFilesAutomatically = true;
+
 		public List<InkFile> inkLibrary = new List<InkFile>();
 		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
 
@@ -130,6 +132,7 @@ namespace Ink.UnityIntegration {
 		/// </summary>
 		public static void RebuildInkFileConnections () {
 			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
+				inkFile.parent = null;
 				inkFile.master = null;
 				inkFile.FindIncludedFiles();
 			}
@@ -142,28 +145,32 @@ namespace Ink.UnityIntegration {
 					if(inkFile == otherInkFile) 
 						continue;
 					if(inkFile.includes.Contains(otherInkFile.inkAsset)) {
-						otherInkFile.master = inkFile.inkAsset;
+						otherInkFile.parent = inkFile.inkAsset;
 					}
 				}
 			}
-			// Next, we create a list of all the files owned by the actual master file, which we obtain by travelling up the tree from each file.
+			// Next, we create a list of all the files owned by the actual master file, which we obtain by travelling up the parent tree from each file.
 			Dictionary<InkFile, List<InkFile>> masterChildRelationships = new Dictionary<InkFile, List<InkFile>>();
 			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
-				if(inkFile.isMaster) 
+				if(inkFile.parent == null) 
 					continue;
-				InkFile master = inkFile.masterInkFile;
-				while (!master.isMaster) {
-					master = master.masterInkFile;
+				InkFile parent = inkFile.parentInkFile;
+				while (parent.parent != null) {
+					parent = parent.parentInkFile;
 				}
-				if(!masterChildRelationships.ContainsKey(master)) {
-					masterChildRelationships.Add(master, new List<InkFile>());
+				if(!masterChildRelationships.ContainsKey(parent)) {
+					masterChildRelationships.Add(parent, new List<InkFile>());
 				}
-				masterChildRelationships[master].Add(inkFile);
+				masterChildRelationships[parent].Add(inkFile);
 			}
-			// Finally, we set the master file of the children to the true master file
+			// Finally, we set the master file of the children
 			foreach (var inkFileRelationship in masterChildRelationships) {
 				foreach(InkFile childInkFile in inkFileRelationship.Value) {
 					childInkFile.master = inkFileRelationship.Key.inkAsset;
+					if(InkLibrary.Instance.handleJSONFilesAutomatically && childInkFile.jsonAsset != null) {
+						AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(childInkFile.jsonAsset));
+						childInkFile.jsonAsset = null;
+					}
 				}
 			}
 		}

@@ -47,7 +47,7 @@ namespace Ink.UnityIntegration {
 					if(!InkLibrary.Instance.inkLibrary[i].isMaster && InkLibrary.Instance.inkLibrary[i].master != null && !masterFilesAffected.Contains(InkLibrary.Instance.inkLibrary[i].masterInkFile)) {
 						masterFilesAffected.Add(InkLibrary.Instance.inkLibrary[i].masterInkFile);
 					}
-//					if(alsoDeleteJSON)
+					if(InkLibrary.Instance.handleJSONFilesAutomatically)
 						AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(InkLibrary.Instance.inkLibrary[i].jsonAsset));
 					InkLibrary.Instance.inkLibrary.RemoveAt(i);
 				}
@@ -62,6 +62,8 @@ namespace Ink.UnityIntegration {
 		}
 
 		private static void OnMoveAssets (string[] movedAssets) {
+			if (!InkLibrary.Instance.handleJSONFilesAutomatically) 
+				return;
 			for (var i = 0; i < movedAssets.Length; i++) {
 				if(Path.GetExtension(movedAssets[i]) != InkEditorUtils.inkFileExtension) 
 					continue;

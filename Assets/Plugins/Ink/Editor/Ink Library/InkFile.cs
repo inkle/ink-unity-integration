@@ -50,6 +50,22 @@ namespace Ink.UnityIntegration {
 		public DefaultAsset inkAsset;
 
 		// If file that contains this file as an include, if one exists.
+		public DefaultAsset parent;
+		public InkFile parentInkFile {
+			get {
+				if(parent == null)
+					return null;
+				else
+					return InkLibrary.GetInkFileWithFile(parent);
+			}
+		}
+		// Is this ink file a parent file?
+		public bool isParent {
+			get {
+				return includes.Count > 0;
+			}
+		}
+
 		public DefaultAsset master;
 		public InkFile masterInkFile {
 			get {
@@ -59,18 +75,18 @@ namespace Ink.UnityIntegration {
 					return InkLibrary.GetInkFileWithFile(master);
 			}
 		}
-
-		// The files included by this file
-		// We cache the paths of the files to be included for performance, giving us more freedom to refresh the actual includes list without needing to parse all the text.
-		public List<string> includePaths = new List<string>();
-		public List<DefaultAsset> includes = new List<DefaultAsset>();
-
-		// Is this ink file a master file, or is it included by another file?
+		// Is this ink file a master file?
 		public bool isMaster {
 			get {
 				return master == null;
 			}
 		}
+		
+
+		// The files included by this file
+		// We cache the paths of the files to be included for performance, giving us more freedom to refresh the actual includes list without needing to parse all the text.
+		public List<string> includePaths = new List<string>();
+		public List<DefaultAsset> includes = new List<DefaultAsset>();
 
 		// The compiled json file. Use this to start a story.
 		public TextAsset jsonAsset;
