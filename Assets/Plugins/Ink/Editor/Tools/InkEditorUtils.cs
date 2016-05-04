@@ -19,11 +19,16 @@ namespace Ink.UnityIntegration {
 			ProjectWindowUtil.ShowCreatedAsset(asset);
 		}
 		
-		internal static UnityEngine.Object CreateScriptAssetFromTemplate(string pathName, string resourceFile) {
+		internal static UnityEngine.Object CreateScriptAssetFromTemplate(string pathName, string templateFilePath) {
 			string fullPath = Path.GetFullPath(pathName);
-			StreamReader streamReader = new StreamReader(resourceFile);
-			string text = streamReader.ReadToEnd();
-			streamReader.Close();
+			string text = "";
+			if(File.Exists(templateFilePath)) {
+				StreamReader streamReader = new StreamReader(templateFilePath);
+				text = streamReader.ReadToEnd();
+				streamReader.Close();
+			} else {
+				Debug.LogWarning("Could not find .ink template file at expected path "+templateFilePath+". New file will be empty.");
+			}
 			UTF8Encoding encoding = new UTF8Encoding(true, false);
 			bool append = false;
 			StreamWriter streamWriter = new StreamWriter(fullPath, append, encoding);
