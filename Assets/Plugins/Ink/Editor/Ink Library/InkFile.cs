@@ -123,6 +123,7 @@ namespace Ink.UnityIntegration {
 			includes.Clear();
 			foreach(string includePath in includePaths) {
 				string localIncludePath = Path.Combine(Path.GetDirectoryName(filePath), includePath);
+				localIncludePath = localIncludePath.Replace ('\\', '/');
 				DefaultAsset includedInkFileJSONAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
 				InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileJSONAsset);
 				if(includedInkFile == null)
@@ -135,7 +136,9 @@ namespace Ink.UnityIntegration {
 		}
 
 		public void FindCompiledJSONAsset () {
-			jsonAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))+".json");
+			string jsonAssetPath = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))+".json";
+			jsonAssetPath = jsonAssetPath.Replace ('\\', '/');
+			jsonAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(jsonAssetPath);
 		}
 
 		public class InkIncludeParser {
