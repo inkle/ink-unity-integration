@@ -45,6 +45,17 @@ namespace Ink.UnityIntegration {
 			Selection.activeObject = Instance;
 		}
 
+		/// <summary>
+		/// Removes and null references in the library
+		/// </summary>
+		public static void Clean () {
+			for (int i = InkLibrary.Instance.inkLibrary.Count - 1; i >= 0; i--) {
+				InkFile inkFile = InkLibrary.Instance.inkLibrary[i];
+				if (inkFile.inkAsset == null)
+					InkLibrary.Instance.inkLibrary.RemoveAt(i);
+			}
+		}
+
 		private static InkLibrary FindOrCreateLibrary () {
 			InkLibrary tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(defaultSettingsPath);
 			if(tmpSettings == null) {
