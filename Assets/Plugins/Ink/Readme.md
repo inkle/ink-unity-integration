@@ -74,3 +74,9 @@ The inklecate DLLs used to compile ink are quite large files. You may safely del
         Unhandled Exception: System.TypeLoadException: Could not load type 'Newtonsoft.Json.Linq.JContainer' from assembly 'Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed'.`
  	
  	You need to change your API compatibility level from .NET 2.0 subset to .NET 2.0.
+
+* Other errors?
+	
+	*First off, recompile the ink library using **Assets > Recompile Ink**.
+
+	If that doesn't work, [report an issue via github](https://github.com/inkle/ink/issues) or [ask us and the comminity for help via hipchat](https://www.hipchat.com/gkq2pSLqU)
