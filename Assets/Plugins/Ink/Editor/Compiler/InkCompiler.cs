@@ -76,7 +76,7 @@ namespace Ink.UnityIntegration {
 
 		[MenuItem("Assets/Recompile Ink", false, 60)]
 		public static void RecompileAll() {
-			InkLibrary.Refresh();
+			InkLibrary.Rebuild();
 			List<InkFile> masterInkFiles = InkLibrary.GetMasterInkFiles ();
 			foreach(InkFile masterInkFile in masterInkFiles) {
 				CompileInk(masterInkFile);

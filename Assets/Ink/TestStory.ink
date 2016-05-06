@@ -1,5 +1,3 @@
-INCLUDE TestStory1.ink
-INCLUDE New Ink.ink
 - I looked at Monsieur Fogg 
 *   ... and I could contain myself no longer.
     'What is the purpose of our journey, Monsieur?'
@@ -18,4 +16,3 @@ INCLUDE New Ink.ink
     - -     After that, <>
 *   ... but I said nothing[] and <> 
 - we passed the day in silence.
-

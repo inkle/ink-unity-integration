@@ -76,8 +76,8 @@ namespace Ink.UnityIntegration {
 			}
 			if(tmpSettings == null) {
 				tmpSettings = CreateInkLibrary ();
-				InkLibrary.Refresh();
-				Debug.LogWarning("No ink library was found. Created new at "+defaultSettingsPath);
+				Debug.LogWarning("Created a new ink library at "+defaultSettingsPath+" because one was not found.");
+				InkLibrary.Rebuild();
 			}
 			return tmpSettings;
 		}
@@ -101,8 +101,8 @@ namespace Ink.UnityIntegration {
 		/// Updates the ink library. Executed whenever an ink file is changed by InkToJSONPostProcessor
 		/// Can be called manually, but incurs a performance cost.
 		/// </summary>
-		public static void Refresh () {
-			Debug.Log("Refreshing Ink Library");
+		public static void Rebuild () {
+			Debug.Log("Rebuilding Ink Library...");
 			string[] inkFilePaths = GetAllInkFilePaths();
 
 			List<InkFile> newInkLibrary = new List<InkFile>(inkFilePaths.Length);

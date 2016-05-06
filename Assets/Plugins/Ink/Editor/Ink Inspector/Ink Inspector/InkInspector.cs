@@ -27,6 +27,19 @@ namespace Ink.UnityIntegration {
 		}
 
 		public override void OnEnable () {
+			Rebuild();
+			InkCompiler.OnCompileInk += OnCompileInk;
+		}
+
+		public override void OnDisable () {
+			InkCompiler.OnCompileInk -= OnCompileInk;
+		}
+
+		void OnCompileInk (InkFile inkFile) {
+			Rebuild();
+		}
+
+		void Rebuild () {
 			string assetPath = AssetDatabase.GetAssetPath(target);
 			inkFile = InkLibrary.GetInkFileWithPath(assetPath);
 			if(inkFile == null) 
@@ -38,17 +51,6 @@ namespace Ink.UnityIntegration {
 			CreateErrorList();
 			CreateWarningList();
 			CreateTodoList();
-
-			InkCompiler.OnCompileInk += OnCompileInk;
-		}
-
-		public override void OnDisable () {
-			InkCompiler.OnCompileInk -= OnCompileInk;
-		}
-
-		void OnCompileInk (InkFile inkFile) {
-			InkCompiler.OnCompileInk -= OnCompileInk;
-			OnEnable();
 		}
 
 		void CreateIncludeList () {
@@ -144,8 +146,14 @@ namespace Ink.UnityIntegration {
 		public override void OnInspectorGUI () {
 			editor.Repaint();
 			serializedObject.Update();
-			if(inkFile == null) 
+			if(inkFile == null) {
+				EditorGUILayout.HelpBox("Ink File is not in library.", MessageType.Warning);
+				if(GUILayout.Button("Rebuild Library")) {
+					InkLibrary.Rebuild();
+					Rebuild();
+				}
 				return;
+			}
 
 			if(InkLibrary.GetCompilationStackItem(inkFile) != null) {
 				EditorGUILayout.HelpBox("File is compiling...", MessageType.Info);
