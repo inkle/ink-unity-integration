@@ -17,7 +17,7 @@ namespace Ink.UnityIntegration {
 	public class InkLibrary : ScriptableObject {
 		public static bool created {
 			get {
-				InkLibrary tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(defaultSettingsPath);
+				InkLibrary tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(defaultPath);
 				if(tmpSettings != null) 
 					return true;
 				string[] GUIDs = AssetDatabase.FindAssets("t:"+typeof(InkLibrary).Name);
@@ -34,13 +34,17 @@ namespace Ink.UnityIntegration {
 				return _Instance;
 			}
 		}
-		public const string defaultSettingsPath = "Assets/Plugins/Ink/Editor/Ink Library/InkLibrary.asset";
+		public const string defaultPath = "Assets/InkLibrary.asset";
 
 		public bool compileAutomatically = true;
 		public bool handleJSONFilesAutomatically = true;
 
 		public List<InkFile> inkLibrary = new List<InkFile>();
 		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
+
+		static InkLibrary () {
+			FindOrCreateLibrary();
+    	}
 
 		[MenuItem("Edit/Project Settings/Ink", false, 500)]
 		public static void SelectFromProjectSettings() {
@@ -59,7 +63,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		private static InkLibrary FindOrCreateLibrary () {
-			InkLibrary tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(defaultSettingsPath);
+			InkLibrary tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(defaultPath);
 			if(tmpSettings == null) {
 				string[] GUIDs = AssetDatabase.FindAssets("t:"+typeof(InkLibrary).Name);
 				if(GUIDs.Length > 0) {
@@ -72,11 +76,11 @@ namespace Ink.UnityIntegration {
 						Debug.LogWarning("More than one InkLibrary was found. Deleted excess libraries.");
 					}
 				}
-				// If we couldn't find the asset in the project, create a new one.
 			}
+			// If we couldn't find the asset in the project, create a new one.
 			if(tmpSettings == null) {
 				tmpSettings = CreateInkLibrary ();
-				Debug.LogWarning("Created a new ink library at "+defaultSettingsPath+" because one was not found.");
+				Debug.LogWarning("Created a new ink library at "+defaultPath+" because one was not found.");
 				InkLibrary.Rebuild();
 			}
 			return tmpSettings;
@@ -84,7 +88,7 @@ namespace Ink.UnityIntegration {
 		
 		private static InkLibrary CreateInkLibrary () {
 			var asset = ScriptableObject.CreateInstance<InkLibrary>();
-			AssetDatabase.CreateAsset (asset, defaultSettingsPath);
+			AssetDatabase.CreateAsset (asset, defaultPath);
 			AssetDatabase.SaveAssets ();
 			AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(asset));
 			return asset;
@@ -108,8 +112,10 @@ namespace Ink.UnityIntegration {
 			List<InkFile> newInkLibrary = new List<InkFile>(inkFilePaths.Length);
 			for (int i = 0; i < inkFilePaths.Length; i++) {
 				InkFile inkFile = GetInkFileWithAbsolutePath(inkFilePaths [i]);
-				if(inkFile == null) 
-					inkFile = new InkFile(AssetDatabase.LoadAssetAtPath<DefaultAsset>(inkFilePaths [i].Substring(Application.dataPath.Length-6)));
+				if(inkFile == null) {
+					DefaultAsset inkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(inkFilePaths [i].Substring(Application.dataPath.Length-6));
+					inkFile = new InkFile(inkFileAsset);
+				}
 				newInkLibrary.Add(inkFile);
 			}
 
