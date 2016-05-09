@@ -28,7 +28,9 @@ namespace Ink.UnityIntegration {
 			get {
 				if(inkAsset == null) 
 					return null;
-				return Path.Combine(Application.dataPath, filePath.Substring(7));
+				string path = Path.Combine(Application.dataPath, filePath.Substring(7));
+				path = path.Replace ('\\', '/');
+				return path;
 			}
 		}
 		public string absoluteFolderPath {
