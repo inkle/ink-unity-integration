@@ -25,7 +25,8 @@ namespace Ink.UnityIntegration {
 			if(importedAssets.Length > 0) {
 				OnImportAssets(importedAssets);
 			}
-			InkLibrary.Clean();
+			if(InkLibrary.created)
+				InkLibrary.Clean();
 		}
 
 		private static void OnDeleteAssets (string[] deletedAssets) {

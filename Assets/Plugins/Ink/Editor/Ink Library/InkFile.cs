@@ -140,14 +140,14 @@ namespace Ink.UnityIntegration {
 			foreach(string includePath in includePaths) {
 				string localIncludePath = Path.Combine(Path.GetDirectoryName(filePath), includePath);
 				localIncludePath = localIncludePath.Replace ('\\', '/');
-				DefaultAsset includedInkFileJSONAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
-				InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileJSONAsset);
-				if(includedInkFile == null)
+				DefaultAsset includedInkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
+				InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileAsset);
+				if(includedInkFile == null) {
 					Debug.LogError("Expected Ink file at "+localIncludePath+" but file was not found.");
-				else if (includedInkFile.includes.Contains(inkAsset)) {
+				} else if (includedInkFile.includes.Contains(inkAsset)) {
 					Debug.LogError("Circular INCLUDE reference between "+filePath+" and "+includedInkFile.filePath+".");
 				} else
-					includes.Add(includedInkFileJSONAsset);
+					includes.Add(includedInkFileAsset);
 			}
 		}
 

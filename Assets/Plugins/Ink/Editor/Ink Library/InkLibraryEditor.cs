@@ -46,6 +46,12 @@ namespace Ink.UnityIntegration {
 		}
 		
 		public override void OnInspectorGUI() {
+			if(PlayerSettings.apiCompatibilityLevel == ApiCompatibilityLevel.NET_2_0_Subset) {
+				EditorGUILayout.HelpBox("apiCompatibilityLevel is .Net 2.0 Subset. ", MessageType.Warning);
+				if (GUILayout.Button("Fix")) {
+					PlayerSettings.apiCompatibilityLevel = ApiCompatibilityLevel.NET_2_0;
+				}
+			}
 			base.OnInspectorGUI();
 			serializedObject.Update();
 			if(GUI.changed && target != null) {         

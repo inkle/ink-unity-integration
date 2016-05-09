@@ -42,10 +42,6 @@ namespace Ink.UnityIntegration {
 		public List<InkFile> inkLibrary = new List<InkFile>();
 		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
 
-		static InkLibrary () {
-			FindOrCreateLibrary();
-    	}
-
 		[MenuItem("Edit/Project Settings/Ink", false, 500)]
 		public static void SelectFromProjectSettings() {
 			Selection.activeObject = Instance;
@@ -80,7 +76,7 @@ namespace Ink.UnityIntegration {
 			// If we couldn't find the asset in the project, create a new one.
 			if(tmpSettings == null) {
 				tmpSettings = CreateInkLibrary ();
-				Debug.LogWarning("Created a new ink library at "+defaultPath+" because one was not found.");
+				Debug.Log("Created a new ink library at "+defaultPath+" because one was not found.");
 				InkLibrary.Rebuild();
 			}
 			return tmpSettings;
@@ -101,6 +97,7 @@ namespace Ink.UnityIntegration {
 			}
 			return inkFilePaths;
 		}
+
 		/// <summary>
 		/// Updates the ink library. Executed whenever an ink file is changed by InkToJSONPostProcessor
 		/// Can be called manually, but incurs a performance cost.
@@ -115,9 +112,14 @@ namespace Ink.UnityIntegration {
 				if(inkFile == null) {
 					string localAssetPath = inkFilePaths [i].Substring(Application.dataPath.Length-6);
 					DefaultAsset inkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localAssetPath);
+					// If the ink file can't be found, it might not yet have been imported. We try to manually import it to fix this.
 					if(inkFileAsset == null) {
-						Debug.LogError("Ink File Asset not found at "+localAssetPath+". This should never occur. Check the validity of the path string.");
-						continue;
+						AssetDatabase.ImportAsset(localAssetPath);
+						inkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localAssetPath);
+						if(inkFileAsset == null) {
+							Debug.LogWarning("Ink File Asset not found at "+localAssetPath+". This can occur if the .meta file has not yet been created. This issue should resolve itself, but if unexpected errors occur, rebuild Ink Library using  > Recompile Ink");
+							continue;
+						}
 					}
 					inkFile = new InkFile(inkFileAsset);
 				}
