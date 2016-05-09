@@ -113,7 +113,12 @@ namespace Ink.UnityIntegration {
 			for (int i = 0; i < inkFilePaths.Length; i++) {
 				InkFile inkFile = GetInkFileWithAbsolutePath(inkFilePaths [i]);
 				if(inkFile == null) {
-					DefaultAsset inkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(inkFilePaths [i].Substring(Application.dataPath.Length-6));
+					string localAssetPath = inkFilePaths [i].Substring(Application.dataPath.Length-6);
+					DefaultAsset inkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localAssetPath);
+					if(inkFileAsset == null) {
+						Debug.LogError("Ink File Asset not found at "+localAssetPath+". This should never occur. Check the validity of the path string.");
+						continue;
+					}
 					inkFile = new InkFile(inkFileAsset);
 				}
 				newInkLibrary.Add(inkFile);
