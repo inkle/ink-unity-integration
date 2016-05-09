@@ -102,8 +102,9 @@ namespace Ink.UnityIntegration {
 			}
 
 			string inputPath = Path.Combine(inkFile.absoluteFolderPath, Path.GetFileName(inkFile.filePath));
-
+			inputPath = inputPath.Replace ('\\', '/');
 			string outputPath = Path.Combine(inkFile.absoluteFolderPath, Path.GetFileNameWithoutExtension(Path.GetFileName(inkFile.filePath)))+".json";
+			outputPath = outputPath.Replace ('\\', '/');
 			string inkArguments = "-c -o "+"\""+outputPath +"\" \""+inputPath+"\"";
 
 			CompilationStackItem pendingFile = new CompilationStackItem();
@@ -220,6 +221,7 @@ namespace Ink.UnityIntegration {
 					
 
 					string logFilePath = Path.Combine(Path.GetDirectoryName(pendingFile.inkFile.filePath), filename);
+					logFilePath = logFilePath.Replace ('\\', '/');
 					InkFile inkFile = InkLibrary.GetInkFileWithPath(logFilePath);
 					if(inkFile == null)
 						inkFile = pendingFile.inkFile;
