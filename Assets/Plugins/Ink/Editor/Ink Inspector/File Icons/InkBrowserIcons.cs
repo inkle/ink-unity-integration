@@ -10,30 +10,66 @@ using UnityEngine;
 namespace Ink.UnityIntegration {
 	[InitializeOnLoad]
 	public class InkBrowserIcons {
+		private static bool isRetina {
+			get {
+				float unityVersion = float.Parse(Application.unityVersion.Substring (0, 3));
+				return Application.platform == RuntimePlatform.OSXEditor && unityVersion >= 5.4f;
+			}
+		}
 	    private const float largeIconSize = 64f;
 
-		public static Texture2D inkFileIcon;
-		public static Texture2D errorIcon;
-		public static Texture2D warningIcon;
-		public static Texture2D childIcon;
-		public static Texture2D unknownFileIcon;
+		private static Texture2D _inkFileIcon;
+		public static Texture2D inkFileIcon {
+			get {
+				if(_inkFileIcon == null) {
+					if(isRetina) {
+						_inkFileIcon = Resources.Load<Texture2D>("InkFileIcon-retina");
+					} else {
+						_inkFileIcon = Resources.Load<Texture2D>("InkFileIcon");
+					}
+				}
+				return _inkFileIcon;
+			}
+		}
+		private static Texture2D _errorIcon;
+		public static Texture2D errorIcon {
+			get {
+				if(_errorIcon == null) {
+					_errorIcon = Resources.Load<Texture2D>("InkErrorIcon");
+				}
+				return _errorIcon;
+			}
+		}
+		private static Texture2D _warningIcon;
+		public static Texture2D warningIcon {
+			get {
+				if(_warningIcon == null) {
+					_warningIcon = Resources.Load<Texture2D>("InkWarningIcon");
+				}
+				return _warningIcon;
+			}
+		}
+		private static Texture2D _childIcon;
+		public static Texture2D childIcon {
+			get {
+				if(_childIcon == null) {
+					_childIcon = Resources.Load<Texture2D>("InkChildIcon");
+				}
+				return _childIcon;
+			}
+		}
+		private static Texture2D _unknownFileIcon;
+		public static Texture2D unknownFileIcon {
+			get {
+				if(_unknownFileIcon == null) {
+					_unknownFileIcon = Resources.Load<Texture2D>("InkUnknownFileIcon");
+				}
+				return _unknownFileIcon;
+			}
+		}
 
 	    static InkBrowserIcons() {
-			LoadIcons();
 			EditorApplication.projectWindowItemOnGUI += OnDrawProjectWindowItem;
-	    }
-
-	    static void LoadIcons () {
-			float unityVersion = float.Parse(Application.unityVersion.Substring (0, 3));
-			if(Application.platform == RuntimePlatform.OSXEditor && unityVersion >= 5.4f) {
-				inkFileIcon = Resources.Load<Texture2D>("InkFileIcon-retina");
-	    	} else {
-				inkFileIcon = Resources.Load<Texture2D>("InkFileIcon");
-	    	}
-			errorIcon = Resources.Load<Texture2D>("InkErrorIcon");
-			warningIcon = Resources.Load<Texture2D>("InkWarningIcon");
-			childIcon = Resources.Load<Texture2D>("InkChildIcon");
-			unknownFileIcon = Resources.Load<Texture2D>("InkUnknownFileIcon");
 	    }
 
 	    static void OnDrawProjectWindowItem(string guid, Rect rect) {
