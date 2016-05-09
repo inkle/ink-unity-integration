@@ -62,7 +62,17 @@ namespace Ink.UnityIntegration {
 			};
 			includesFileList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
 				DefaultAsset childAssetFile = ((List<DefaultAsset>)includesFileList.list)[index];
+				if(childAssetFile == null) {
+					Debug.LogError("Ink file in include list is null. This should never occur. Use Assets > Recompile Ink to fix this issue.");
+					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File in include list is null. Use Assets > Recompile Ink to fix this issue."));
+					return;
+				}
 				InkFile childInkFile = InkLibrary.GetInkFileWithFile(childAssetFile);
+				if(childInkFile == null) {
+					Debug.LogError("Ink File for included file "+childAssetFile+" not found. This should never occur. Use Assets > Recompile Ink to fix this issue.");
+					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File for included file "+childAssetFile+" not found. Use Assets > Recompile Ink to fix this issue."));
+					return;
+				}
 				Rect iconRect = new Rect(rect.x, rect.y, 0, 16);
 				if(childInkFile.hasErrors || childInkFile.hasWarnings) {
 					iconRect.width = 20;
