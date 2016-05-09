@@ -55,9 +55,9 @@ namespace Ink.UnityIntegration {
 			for (int i = InkLibrary.Instance.compilationStack.Count - 1; i >= 0; i--) {
 				var compilingFile = InkLibrary.Instance.compilationStack [i];
 				if (EditorApplication.timeSinceStartup-compilingFile.startTime > timeout) {
-					Debug.LogError("Ink Compiler timed out for "+InkLibrary.Instance.compilationStack[i].inkFile.filePath);
 					InkLibrary.Instance.compilationStack.RemoveAt(i);
 					EditorUtility.ClearProgressBar();
+					Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+". Ink file: "+compilingFile);
 				}
 			}
 			if(InkLibrary.Instance.compilationStack.Count > 0) {
