@@ -44,8 +44,12 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		// The content of the .ink file
-		public string fileContents;
+		// The contents of the .ink file
+		public string fileContents {
+			get {
+				return File.OpenText(absoluteFilePath).ReadToEnd();
+			}
+		}
 
 		// A reference to the ink file
 		public DefaultAsset inkAsset;
@@ -131,7 +135,6 @@ namespace Ink.UnityIntegration {
 		}
 
 		public void ParseContent () {
-			fileContents = File.OpenText(absoluteFilePath).ReadToEnd();
 			InkIncludeParser includeParser = new InkIncludeParser(fileContents);
 			includePaths = includeParser.includeFilenames;
 		}
