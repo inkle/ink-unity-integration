@@ -161,5 +161,23 @@ namespace Ink.UnityIntegration {
 				return Path.GetFullPath(inklecateDirectories[0]);
 			}
 		}
+		
+		// Returns a sanitized version of the supplied string by:
+		//    - swapping MS Windows-style file separators with Unix/Mac style file separators.
+		//
+		// If null is provided, null is returned.
+		public static string SanitizePathString(string path) {
+			if (path == null) {
+				return null;
+			}
+			return path.Replace('\\', '/');
+		}
+		
+		// Combines two file paths and returns that path.  Unlike C#'s native Paths.Combine, regardless of operating 
+		// system this method will always return a path which uses forward slashes ('/' characters) exclusively to ensure
+		// equality checks on path strings return equalities as expected.
+		public static string CombinePaths(string firstPath, string secondPath) {
+			return SanitizePathString(Path.Combine(firstPath, secondPath));
+		}
 	}
 }
