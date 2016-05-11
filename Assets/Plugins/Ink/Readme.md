@@ -18,7 +18,7 @@ Features:
 * Download the [latest Unity package release](https://github.com/inkle/ink-unity-integration/releases), and add to your Unity project.
 * Select one of the sample `.ink` stories included in the package. In Unity's Inspector window, you should see a *Play* button. Click it to open the **ink player** window, useful for playing (previewing) ink stories.
 
-For more information on **ink**, see [the documentation in the main ink repo](https://github.com/inkle/ink). For convenience, the package also creates an (**Ink > Help**) menu option.
+For more information on **ink**, see [the documentation in the main ink repo](https://github.com/inkle/ink). For convenience, the package also creates (**Help > Ink**) menu options.
 
 ## Using ink in game your game. 
 
