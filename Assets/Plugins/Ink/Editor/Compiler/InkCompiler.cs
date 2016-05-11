@@ -101,11 +101,9 @@ namespace Ink.UnityIntegration {
 				return;
 			}
 
-			string inputPath = Path.Combine(inkFile.absoluteFolderPath, Path.GetFileName(inkFile.filePath));
-			inputPath = inputPath.Replace ('\\', '/');
-			string outputPath = Path.Combine(inkFile.absoluteFolderPath, Path.GetFileNameWithoutExtension(Path.GetFileName(inkFile.filePath)))+".json";
-			outputPath = outputPath.Replace ('\\', '/');
-			string inkArguments = "-c -o "+"\""+outputPath +"\" \""+inputPath+"\"";
+			string inputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileName(inkFile.filePath));
+			string outputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileNameWithoutExtension(Path.GetFileName(inkFile.filePath))) + ".json";
+			string inkArguments = "-c -o " + "\"" + outputPath + "\" \"" + inputPath + "\"";
 
 			CompilationStackItem pendingFile = new CompilationStackItem();
 			pendingFile.inkFile = InkLibrary.GetInkFileWithAbsolutePath(inputPath);
@@ -220,8 +218,7 @@ namespace Ink.UnityIntegration {
 						message = messageCapture.Value.Trim();
 					
 
-					string logFilePath = Path.Combine(Path.GetDirectoryName(pendingFile.inkFile.filePath), filename);
-					logFilePath = logFilePath.Replace ('\\', '/');
+					string logFilePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(pendingFile.inkFile.filePath), filename);
 					InkFile inkFile = InkLibrary.GetInkFileWithPath(logFilePath);
 					if(inkFile == null)
 						inkFile = pendingFile.inkFile;

@@ -240,7 +240,7 @@ namespace Ink.UnityIntegration {
 			DateTime lastEditDate = File.GetLastWriteTime(inkFile.absoluteFilePath);
 			editAndCompileDateString += "Last edit date "+lastEditDate.ToString();
 			if(inkFile.isMaster && inkFile.jsonAsset != null) {
-				DateTime lastCompileDate = File.GetLastWriteTime(Path.Combine(Application.dataPath, AssetDatabase.GetAssetPath(masterInkFile.jsonAsset).Substring(7)));
+				DateTime lastCompileDate = File.GetLastWriteTime(InkEditorUtils.CombinePaths(Application.dataPath, AssetDatabase.GetAssetPath(masterInkFile.jsonAsset).Substring(7)));
 				editAndCompileDateString += "\nLast compile date "+lastCompileDate.ToString();
 				if(lastEditDate > lastCompileDate) {
 					editedAfterLastCompile = true;

@@ -93,7 +93,7 @@ namespace Ink.UnityIntegration {
 		public static string[] GetAllInkFilePaths () {
 			string[] inkFilePaths = Directory.GetFiles(Application.dataPath, "*.ink", SearchOption.AllDirectories);
 			for (int i = 0; i < inkFilePaths.Length; i++) {
-				inkFilePaths [i] = inkFilePaths [i].Replace('\\', '/');
+				inkFilePaths [i] = InkEditorUtils.SanitizePathString(inkFilePaths [i]);
 			}
 			return inkFilePaths;
 		}
