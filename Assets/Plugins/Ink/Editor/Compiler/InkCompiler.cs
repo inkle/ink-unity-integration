@@ -100,6 +100,7 @@ namespace Ink.UnityIntegration {
 				UnityEngine.Debug.LogWarning("Inklecate (the ink compiler) not found in assets. This will prevent automatic building of JSON TextAsset files from ink story files.");
 				return;
 			}
+			SetInklecateFilePermissions(inklecatePath);
 
 			string inputPath = Path.Combine(inkFile.absoluteFolderPath, Path.GetFileName(inkFile.filePath));
 			inputPath = inputPath.Replace ('\\', '/');
@@ -242,5 +243,19 @@ namespace Ink.UnityIntegration {
 		}
 
 		private static Regex _errorRegex = new Regex(@"(?<errorType>ERROR|WARNING|TODO|RUNTIME ERROR):(?:\s(?:'(?<filename>[^']*)'\s)?line (?<lineNo>\d+):)?(?<message>.*)");
+
+		// The asset store version of this plugin removes execute permissions. We can't run unless they're restored.
+		private static void SetInklecateFilePermissions (string inklecatePath) {
+			Process process = new Process();
+			process.StartInfo.WorkingDirectory = Path.GetDirectoryName(inklecatePath);
+			process.StartInfo.FileName = "chmod";
+			process.StartInfo.Arguments = "+x "+ Path.GetFileName(inklecatePath);
+			process.StartInfo.RedirectStandardError = true;
+			process.StartInfo.RedirectStandardOutput = true;
+			process.StartInfo.UseShellExecute = false;
+			process.EnableRaisingEvents = true;
+			process.Start();
+			process.WaitForExit();
+		}
 	}
 }
