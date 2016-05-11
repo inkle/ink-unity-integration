@@ -28,20 +28,19 @@ namespace Ink.UnityIntegration {
 			get {
 				if(inkAsset == null) 
 					return null;
-				string path = Path.Combine(Application.dataPath, filePath.Substring(7));
-				path = path.Replace ('\\', '/');
-				return path;
+				
+				return InkEditorUtils.CombinePaths(Application.dataPath, filePath.Substring(7));
 			}
 		}
 		public string absoluteFolderPath {
 			get {
-				return Path.GetDirectoryName(absoluteFilePath);
+				return InkEditorUtils.SanitizePathString(Path.GetDirectoryName(absoluteFilePath));
 			}
 		}
 		// The file path relative to the Assets folder
 		public string filePath {
 			get {
-				return AssetDatabase.GetAssetPath(inkAsset);
+				return InkEditorUtils.SanitizePathString(AssetDatabase.GetAssetPath(inkAsset));
 			}
 		}
 
@@ -140,8 +139,7 @@ namespace Ink.UnityIntegration {
 		public void FindIncludedFiles () {
 			includes.Clear();
 			foreach(string includePath in includePaths) {
-				string localIncludePath = Path.Combine(Path.GetDirectoryName(filePath), includePath);
-				localIncludePath = localIncludePath.Replace ('\\', '/');
+				string localIncludePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(filePath), includePath);
 				DefaultAsset includedInkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
 				InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileAsset);
 				if(includedInkFile == null) {
@@ -154,8 +152,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		public void FindCompiledJSONAsset () {
-			string jsonAssetPath = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))+".json";
-			jsonAssetPath = jsonAssetPath.Replace ('\\', '/');
+			string jsonAssetPath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath)) + ".json";
 			jsonAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(jsonAssetPath);
 		}
 

@@ -71,7 +71,10 @@ namespace Ink.UnityIntegration {
 				InkFile inkFile = InkLibrary.GetInkFileWithPath(movedAssets[i]);
 				if(inkFile != null) {
 					string jsonAssetPath = AssetDatabase.GetAssetPath(inkFile.jsonAsset);
-					string newPath = Path.Combine(Path.GetDirectoryName(movedAssets[i]), Path.GetFileNameWithoutExtension(Path.GetFileName(movedAssets[i])))+".json";
+					
+					string movedAssetDir = Path.GetDirectoryName(movedAssets[i]);
+					string movedAssetFile = Path.GetFileName(movedAssets[i]);
+					string newPath = InkEditorUtils.CombinePaths(movedAssetDir, Path.GetFileNameWithoutExtension(movedAssetFile)) + ".json";
 					AssetDatabase.MoveAsset(jsonAssetPath, newPath);
 				}
 			}
