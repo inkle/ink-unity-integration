@@ -79,7 +79,8 @@ namespace Ink.UnityIntegration {
 			InkLibrary.Rebuild();
 			List<InkFile> masterInkFiles = InkLibrary.GetMasterInkFiles ();
 			foreach(InkFile masterInkFile in masterInkFiles) {
-				CompileInk(masterInkFile);
+				if(masterInkFile.compileAutomatically)
+					CompileInk(masterInkFile);
 			}
 		}
 
