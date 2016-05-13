@@ -58,6 +58,11 @@ The ink git repo is updated far more frequently than the asset store package.
 
 If you're interested in keeping up-to-date with cutting edge features, you can download the [latest releases from the GitHub repo](https://github.com/inkle/ink/releases).
 
+
+## Sublime Text Syntax Highlighting
+
+The Sublime3Syntax zip file in the Extras folder provides syntax highlighting for ink files in Sublime Text 3. Installation details can be found in the readme inside the zip file.
+
 ## Customisation
 
 The inklecate DLLs used to compile ink are quite large files. You may safely delete the DLLs not corresponding to your current OS, or both of them if not using the compiler.
