@@ -100,8 +100,10 @@ namespace Ink.UnityIntegration {
 				UnityEngine.Debug.LogWarning("Inklecate (the ink compiler) not found in assets. This will prevent automatic building of JSON TextAsset files from ink story files.");
 				return;
 			}
-			SetInklecateFilePermissions(inklecatePath);
-
+			if(Application.platform == RuntimePlatform.OSXEditor) {
+				SetInklecateFilePermissions(inklecatePath);
+			}
+			
 			string inputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileName(inkFile.filePath));
 			string outputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileNameWithoutExtension(Path.GetFileName(inkFile.filePath))) + ".json";
 			string inkArguments = "-c -o " + "\"" + outputPath + "\" \"" + inputPath + "\"";
