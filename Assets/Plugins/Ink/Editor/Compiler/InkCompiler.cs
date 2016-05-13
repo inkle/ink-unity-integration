@@ -79,7 +79,7 @@ namespace Ink.UnityIntegration {
 			InkLibrary.Rebuild();
 			List<InkFile> masterInkFiles = InkLibrary.GetMasterInkFiles ();
 			foreach(InkFile masterInkFile in masterInkFiles) {
-				if(masterInkFile.compileAutomatically)
+				if(InkLibrary.Instance.compileAutomatically || masterInkFile.compileAutomatically)
 					CompileInk(masterInkFile);
 			}
 		}
