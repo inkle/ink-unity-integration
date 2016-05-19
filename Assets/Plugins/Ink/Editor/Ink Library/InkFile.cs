@@ -142,7 +142,7 @@ namespace Ink.UnityIntegration {
 		public void FindIncludedFiles () {
 			includes.Clear();
 			foreach(string includePath in includePaths) {
-				string localIncludePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(filePath), includePath);
+				string localIncludePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(filePath), includePath.Trim('\r'));
 				DefaultAsset includedInkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
 				InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileAsset);
 				if(includedInkFile == null) {
