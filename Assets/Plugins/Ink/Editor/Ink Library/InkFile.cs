@@ -142,7 +142,7 @@ namespace Ink.UnityIntegration {
 		public void FindIncludedFiles () {
 			includes.Clear();
 			foreach(string includePath in includePaths) {
-				string localIncludePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(filePath), includePath.Trim('\r'));
+				string localIncludePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(filePath), includePath);
 				DefaultAsset includedInkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
 				InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileAsset);
 				if(includedInkFile == null) {
@@ -219,7 +219,7 @@ namespace Ink.UnityIntegration {
 	        void FindIncludes(string str)
 	        {
 	            _includeFilenames = new List<string> ();
-	            var includeRegex = new Regex (@"^\s*INCLUDE\s+([~\r]+)\r*$", RegexOptions.Multiline);
+	            var includeRegex = new Regex (@"^\s*INCLUDE\s+([^\r\n]+)\r*$", RegexOptions.Multiline);
 	            MatchCollection matches = includeRegex.Matches(str);
 	            foreach (Match match in matches)
 	            {
