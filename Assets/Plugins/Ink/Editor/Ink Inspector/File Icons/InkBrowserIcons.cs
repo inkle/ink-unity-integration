@@ -31,6 +31,15 @@ namespace Ink.UnityIntegration {
 				return _inkFileIcon;
 			}
 		}
+		private static Texture2D _inkFileIconLarge;
+		public static Texture2D inkFileIconLarge {
+			get {
+				if(_inkFileIconLarge == null) {
+					_inkFileIconLarge = Resources.Load<Texture2D>("InkFileIcon-large");
+				}
+				return _inkFileIconLarge;
+			}
+		}
 		private static Texture2D _errorIcon;
 		public static Texture2D errorIcon {
 			get {
@@ -49,6 +58,15 @@ namespace Ink.UnityIntegration {
 				return _warningIcon;
 			}
 		}
+		private static Texture2D _todoIcon;
+		public static Texture2D todoIcon {
+			get {
+				if(_todoIcon == null) {
+					_todoIcon = Resources.Load<Texture2D>("InkTodoIcon");
+				}
+				return _todoIcon;
+			}
+		}
 		private static Texture2D _childIcon;
 		public static Texture2D childIcon {
 			get {
@@ -56,6 +74,15 @@ namespace Ink.UnityIntegration {
 					_childIcon = Resources.Load<Texture2D>("InkChildIcon");
 				}
 				return _childIcon;
+			}
+		}
+		private static Texture2D _childIconLarge;
+		public static Texture2D childIconLarge {
+			get {
+				if(_childIconLarge == null) {
+					_childIconLarge = Resources.Load<Texture2D>("InkChildIcon-Large");
+				}
+				return _childIconLarge;
 			}
 		}
 		private static Texture2D _unknownFileIcon;
@@ -86,32 +113,58 @@ namespace Ink.UnityIntegration {
 				} else {
 					rect.height = rect.width;
 				}
-
-				if (rect.width > largeIconSize) {
-					var offset = (rect.width - largeIconSize) * 0.5f;
-					var position = new Rect(rect.x + offset, rect.y + offset, largeIconSize, largeIconSize);
-					if(inkFileIcon != null)
-						GUI.DrawTexture(position, inkFileIcon);
+				if (rect.width >= largeIconSize) {
+					DrawLarge(inkFile, rect);
+				} else {
+					DrawSmall(inkFile, rect);
 				}
-				else {
-					if(inkFileIcon != null)
-						GUI.DrawTexture(rect, inkFileIcon);
+			}
+	    }
 
-					if(inkFile == null) {
-						if(unknownFileIcon != null) {
-							GUI.DrawTexture(new Rect(rect.x, rect.y, unknownFileIcon.width, unknownFileIcon.height), unknownFileIcon);
-						}
-					} else {
-						Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
-						if(inkFile.hasErrors && errorIcon != null) {
-							GUI.DrawTexture(miniRect, errorIcon);
-						} else if(inkFile.hasWarnings && warningIcon != null) {
-							GUI.DrawTexture(miniRect, warningIcon);
-						}
-						if(!inkFile.isMaster && childIcon != null) {
-							GUI.DrawTexture(new Rect(rect.x, rect.y, childIcon.width, childIcon.height), childIcon);
-						}
-					}
+		static void DrawLarge (InkFile inkFile, Rect rect) {
+			var offset = (rect.width - largeIconSize) * 0.5f;
+			rect = new Rect(rect.x + offset, rect.y + offset, largeIconSize, largeIconSize);
+			if(inkFileIconLarge != null)
+				GUI.DrawTexture(rect, inkFileIconLarge);
+
+			Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
+			if(inkFile == null) {
+				if(unknownFileIcon != null) {
+					GUI.DrawTexture(miniRect, unknownFileIcon);
+				}
+			} else {
+				if(inkFile.hasErrors && errorIcon != null) {
+					GUI.DrawTexture(miniRect, errorIcon);
+				} else if(inkFile.hasWarnings && warningIcon != null) {
+					GUI.DrawTexture(miniRect, warningIcon);
+				} else if(inkFile.hasTodos && todoIcon != null) {
+					GUI.DrawTexture(miniRect, todoIcon);
+				}
+				if(!inkFile.isMaster && childIcon != null) {
+					GUI.DrawTexture(new Rect(rect.x, rect.y, rect.width * 0.5f, rect.height * 0.5f), childIconLarge);
+				}
+			}
+		}
+
+		static void DrawSmall (InkFile inkFile, Rect rect) {
+			if(inkFileIcon != null)
+				GUI.DrawTexture(rect, inkFileIcon);
+
+			if(inkFile == null) {
+				if(unknownFileIcon != null) {
+					GUI.DrawTexture(new Rect(rect.x, rect.y, unknownFileIcon.width, unknownFileIcon.height), unknownFileIcon);
+				}
+			} else {
+				Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
+				if(inkFile.hasErrors && errorIcon != null) {
+					GUI.DrawTexture(miniRect, errorIcon);
+				} else if(inkFile.hasWarnings && warningIcon != null) {
+					GUI.DrawTexture(miniRect, warningIcon);
+				} else if(inkFile.hasTodos && todoIcon != null) {
+					GUI.DrawTexture(miniRect, todoIcon);
+				}
+				if(!inkFile.isMaster && childIcon != null) {
+					GUI.DrawTexture(new Rect(rect.x, rect.y, childIcon.width, childIcon.height), childIcon);
 				}
 			}
 	    }

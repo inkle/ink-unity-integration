@@ -26,6 +26,40 @@ namespace Ink.UnityIntegration {
 			return false;
 		}
 
+		public override void OnHeaderGUI () {
+			GUILayout.BeginHorizontal();
+			GUILayout.Space(38f);
+			GUILayout.BeginVertical();
+			GUILayout.Space(19f);
+			GUILayout.BeginHorizontal();
+
+			GUILayoutUtility.GetRect(10f, 10f, 16f, 16f, EditorStyles.layerMaskField);
+			GUILayout.FlexibleSpace();
+
+			if (GUILayout.Button("Open", EditorStyles.miniButton)) {
+				AssetDatabase.OpenAsset(inkFile.inkAsset, 3);
+				GUIUtility.ExitGUI();
+			}
+
+			GUILayout.EndHorizontal();
+			GUILayout.EndVertical();
+			GUILayout.EndHorizontal();
+
+			Rect lastRect = GUILayoutUtility.GetLastRect();
+			Rect rect = new Rect(lastRect.x, lastRect.y, lastRect.width, lastRect.height);
+			Rect iconRect = new Rect(rect.x + 6f, rect.y + 6f, 32f, 32f);
+			GUI.DrawTexture(iconRect, InkBrowserIcons.inkFileIconLarge);
+			if(!inkFile.isMaster) {
+				Rect childIconRect = new Rect(iconRect.x, iconRect.y, 16f, 16f);
+				GUI.DrawTexture(childIconRect, InkBrowserIcons.childIconLarge, ScaleMode.ScaleToFit);
+			}
+
+			Rect titleRect = new Rect(rect.x + 44f, rect.y + 6f, rect.width - 44f - 38f - 4f, 16f);
+			titleRect.yMin -= 2f;
+			titleRect.yMax += 2f;
+			GUI.Label(titleRect, editor.target.name, EditorStyles.largeLabel);
+		}
+
 		public override void OnEnable () {
 			Rebuild();
 			InkCompiler.OnCompileInk += OnCompileInk;
