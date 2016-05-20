@@ -76,6 +76,15 @@ namespace Ink.UnityIntegration {
 				return _childIcon;
 			}
 		}
+		private static Texture2D _childIconLarge;
+		public static Texture2D childIconLarge {
+			get {
+				if(_childIconLarge == null) {
+					_childIconLarge = Resources.Load<Texture2D>("InkChildIcon-Large");
+				}
+				return _childIconLarge;
+			}
+		}
 		private static Texture2D _unknownFileIcon;
 		public static Texture2D unknownFileIcon {
 			get {
@@ -132,7 +141,7 @@ namespace Ink.UnityIntegration {
 					GUI.DrawTexture(miniRect, todoIcon);
 				}
 				if(!inkFile.isMaster && childIcon != null) {
-					GUI.DrawTexture(new Rect(rect.x, rect.y, childIcon.width, childIcon.height), childIcon);
+					GUI.DrawTexture(new Rect(rect.x, rect.y, rect.width * 0.5f, rect.height * 0.5f), childIconLarge);
 				}
 			}
 		}
