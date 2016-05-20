@@ -96,7 +96,15 @@ namespace Ink.UnityIntegration {
 		// The compiled json file. Use this to start a story.
 		public TextAsset jsonAsset;
 
+		// Fatal unhandled errors that should be reported as compiler bugs.
+		public List<string> compileErrors = new List<string>();
+		public bool hasCompileErrors {
+			get {
+				return errors.Count > 0;
+			}
+		}
 
+		// Fatal errors caused by errors in the user's ink script.
 		public List<InkFileLog> errors = new List<InkFileLog>();
 		public bool hasErrors {
 			get {

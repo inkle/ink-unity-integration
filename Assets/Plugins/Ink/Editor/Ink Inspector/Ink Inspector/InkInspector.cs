@@ -216,6 +216,7 @@ namespace Ink.UnityIntegration {
 				DrawCompileButton(masterInkFile);
 			DrawIncludedFiles();
 
+			DrawCompileErrors();
 			DrawErrors();
 			DrawWarnings();
 			DrawTODOList();
@@ -311,6 +312,25 @@ namespace Ink.UnityIntegration {
 			if(drawButton && GUILayout.Button("Compile")) {
 				InkCompiler.CompileInk(masterInkFile);
 			}
+		}
+
+		void DrawCompileErrors () {
+			if(inkFile.compileErrors.Count == 0) 
+				return;
+			EditorGUILayout.BeginVertical(GUI.skin.box);
+			EditorGUILayout.HelpBox("Compiler bug prevented compilation of JSON file. Please help us fix it by reporting this as a bug.", MessageType.Error);
+			EditorGUILayout.BeginHorizontal();
+			if(GUILayout.Button("Report via Github")) {
+				Application.OpenURL("https://github.com/inkle/ink-unity-integration/issues/new");
+			}
+			if(GUILayout.Button("Report via Email")) {
+				Application.OpenURL("mailto:tom.kail@inklestudios.com");
+			}
+			EditorGUILayout.EndHorizontal();
+			foreach(string compileError in inkFile.compileErrors) {
+				GUILayout.TextArea(compileError);
+			}
+			EditorGUILayout.EndVertical();
 		}
 
 		void DrawErrors () {
