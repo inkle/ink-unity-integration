@@ -227,7 +227,7 @@ namespace Ink.UnityIntegration {
 	        void FindIncludes(string str)
 	        {
 	            _includeFilenames = new List<string> ();
-	            var includeRegex = new Regex (@"^\s*INCLUDE\s+(.+)$", RegexOptions.Multiline);
+	            var includeRegex = new Regex (@"^\s*INCLUDE\s+([^\r\n]+)\r*$", RegexOptions.Multiline);
 	            MatchCollection matches = includeRegex.Matches(str);
 	            foreach (Match match in matches)
 	            {
