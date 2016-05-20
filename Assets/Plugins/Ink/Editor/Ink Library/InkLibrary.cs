@@ -138,6 +138,7 @@ namespace Ink.UnityIntegration {
 
 			EditorUtility.SetDirty(InkLibrary.Instance);
 			AssetDatabase.SaveAssets();
+			EditorApplication.RepaintProjectWindow();
 		}
 
 		/// <summary>
