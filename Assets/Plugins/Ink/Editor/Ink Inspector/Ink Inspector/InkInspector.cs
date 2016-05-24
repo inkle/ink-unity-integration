@@ -18,6 +18,7 @@ namespace Ink.UnityIntegration {
 		private ReorderableList errorList;
 		private ReorderableList warningList;
 		private ReorderableList todosList;
+		private string cachedFileContents;
 
 		public override bool IsValid(string assetPath) {
 			if(Path.GetExtension(assetPath) == InkEditorUtils.inkFileExtension) {
@@ -74,6 +75,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		void Rebuild () {
+			cachedFileContents = "";
 			string assetPath = AssetDatabase.GetAssetPath(target);
 			inkFile = InkLibrary.GetInkFileWithPath(assetPath);
 			if(inkFile == null) 
@@ -85,6 +87,7 @@ namespace Ink.UnityIntegration {
 			CreateErrorList();
 			CreateWarningList();
 			CreateTodoList();
+			cachedFileContents = inkFile.GetFileContents();
 		}
 
 		void CreateIncludeList () {
@@ -353,8 +356,8 @@ namespace Ink.UnityIntegration {
 
 		void DrawFileContents () {
 			int maxCharacters = 16000;
-			string trimmedStory = inkFile.fileContents.Substring(0, Mathf.Min(inkFile.fileContents.Length, maxCharacters));
-			if(inkFile.fileContents.Length >= maxCharacters)
+			string trimmedStory = cachedFileContents.Substring(0, Mathf.Min(cachedFileContents.Length, maxCharacters));
+			if(cachedFileContents.Length >= maxCharacters)
 				trimmedStory += "...\n\n<...etc...>";
 			float width = EditorGUIUtility.currentViewWidth-50;
 			float height = EditorStyles.wordWrappedLabel.CalcHeight(new GUIContent(trimmedStory), width);
