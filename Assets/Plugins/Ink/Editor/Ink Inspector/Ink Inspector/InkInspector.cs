@@ -302,11 +302,14 @@ namespace Ink.UnityIntegration {
 
 		void DrawCompileButton (InkFile masterInkFile) {
 			bool drawButton = false;
-			if(masterInkFile.hasErrors) {
+			if(masterInkFile.hasCompileErrors) {
 				EditorGUILayout.HelpBox("Last compiled failed", MessageType.Error);
 				drawButton = true;
+			} if(masterInkFile.hasErrors) {
+				EditorGUILayout.HelpBox("Last compiled had errors", MessageType.Error);
+				drawButton = true;
 			} else if(masterInkFile.hasWarnings) {
-				EditorGUILayout.HelpBox("Last compile had errors", MessageType.Warning);
+				EditorGUILayout.HelpBox("Last compile had warnings", MessageType.Warning);
 				drawButton = true;
 			} else if(masterInkFile.jsonAsset == null) {
 				EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
@@ -327,7 +330,7 @@ namespace Ink.UnityIntegration {
 				Application.OpenURL("https://github.com/inkle/ink-unity-integration/issues/new");
 			}
 			if(GUILayout.Button("Report via Email")) {
-				Application.OpenURL("mailto:tom.kail@inklestudios.com");
+				Application.OpenURL("mailto:info@inklestudios.com");
 			}
 			EditorGUILayout.EndHorizontal();
 			foreach(string compileError in inkFile.compileErrors) {
