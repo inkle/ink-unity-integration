@@ -37,10 +37,12 @@ namespace Ink.UnityIntegration {
 			GUILayoutUtility.GetRect(10f, 10f, 16f, 16f, EditorStyles.layerMaskField);
 			GUILayout.FlexibleSpace();
 
+			EditorGUI.BeginDisabledGroup(inkFile == null);
 			if (GUILayout.Button("Open", EditorStyles.miniButton)) {
 				AssetDatabase.OpenAsset(inkFile.inkAsset, 3);
 				GUIUtility.ExitGUI();
 			}
+			EditorGUI.EndDisabledGroup();
 
 			GUILayout.EndHorizontal();
 			GUILayout.EndVertical();
@@ -50,8 +52,10 @@ namespace Ink.UnityIntegration {
 			Rect rect = new Rect(lastRect.x, lastRect.y, lastRect.width, lastRect.height);
 			Rect iconRect = new Rect(rect.x + 6f, rect.y + 6f, 32f, 32f);
 			GUI.DrawTexture(iconRect, InkBrowserIcons.inkFileIconLarge);
-			if(!inkFile.isMaster) {
-				Rect childIconRect = new Rect(iconRect.x, iconRect.y, 16f, 16f);
+			Rect childIconRect = new Rect(iconRect.x, iconRect.y, 16f, 16f);
+			if(inkFile == null) {
+				GUI.DrawTexture(childIconRect, InkBrowserIcons.unknownFileIcon, ScaleMode.ScaleToFit);
+			} else if(!inkFile.isMaster) {
 				GUI.DrawTexture(childIconRect, InkBrowserIcons.childIconLarge, ScaleMode.ScaleToFit);
 			}
 
