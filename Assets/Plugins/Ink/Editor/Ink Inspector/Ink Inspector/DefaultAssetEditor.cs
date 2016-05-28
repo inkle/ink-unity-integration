@@ -7,44 +7,44 @@ using System.Collections.Generic;
 using System.Reflection;
 
 namespace Ink.UnityIntegration {
-	[CustomEditor(typeof(UnityEngine.Object), true)]
-	public class ObjectEditor : Editor {
+	[CustomEditor(typeof(DefaultAsset), true)]
+	public class DefaultAssetEditor : Editor {
 
-		private ObjectInspector objectInspector;
+		private DefaultAssetInspector inspector;
 
 		private void OnEnable () {
-			objectInspector = FindObjectInspector ();
-			if(objectInspector != null) {
-				objectInspector.editor = this;
-				objectInspector.serializedObject = serializedObject;
-				objectInspector.target = target;
-				objectInspector.OnEnable();
+			inspector = FindObjectInspector ();
+			if(inspector != null) {
+				inspector.editor = this;
+				inspector.serializedObject = serializedObject;
+				inspector.target = target;
+				inspector.OnEnable();
 			}
 		}
 
 		private void OnDisable () {
-			if(objectInspector != null)
-				objectInspector.OnDisable();
+			if(inspector != null)
+				inspector.OnDisable();
 		}
 
 		protected override void OnHeaderGUI () {
-			if(objectInspector != null) {
-				objectInspector.OnHeaderGUI();
+			if(inspector != null) {
+				inspector.OnHeaderGUI();
 			}
 			else if (target.GetType() != typeof(UnityEditor.DefaultAsset))
 				base.OnHeaderGUI();
 		}
 
 		public override void OnInspectorGUI () {
-			if(objectInspector != null) {
+			if(inspector != null) {
 				GUI.enabled = true;
-				objectInspector.OnInspectorGUI();
+				inspector.OnInspectorGUI();
 			}
 			else if (target.GetType() != typeof(UnityEditor.DefaultAsset))
 				base.OnInspectorGUI();
 		}
 
-		private ObjectInspector FindObjectInspector () {
+		private DefaultAssetInspector FindObjectInspector () {
 			List<string> assembliesToCheck = new List<string>{"Assembly-CSharp-Editor", "Assembly-CSharp-Editor-firstpass", "Assembly-UnityScript-Editor", "Assembly-UnityScript-Editor-firstpass"};
 			string assetPath = AssetDatabase.GetAssetPath(target);
 			Assembly[] referencedAssemblies = System.AppDomain.CurrentDomain.GetAssemblies();
@@ -52,9 +52,9 @@ namespace Ink.UnityIntegration {
 				if(!assembliesToCheck.Contains(referencedAssemblies[i].GetName().Name))
 					continue;
 				foreach(var type in referencedAssemblies[i].GetTypes()) {
-					if(!type.IsSubclassOf(typeof(ObjectInspector))) 
+					if(!type.IsSubclassOf(typeof(DefaultAssetInspector))) 
 						continue;
-					ObjectInspector objectInspector = (ObjectInspector)Activator.CreateInstance(type);
+					DefaultAssetInspector objectInspector = (DefaultAssetInspector)Activator.CreateInstance(type);
 					if(objectInspector.IsValid(assetPath)) {
 						objectInspector.target = target;
 						return objectInspector;

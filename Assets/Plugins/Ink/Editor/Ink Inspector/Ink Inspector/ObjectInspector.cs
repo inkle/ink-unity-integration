@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEditor;
 
 namespace Ink.UnityIntegration {
-	public abstract class ObjectInspector {
+	public abstract class DefaultAssetInspector {
 		// Reference to the actual editor we draw to
 		public Editor editor;
 		// Shortcut to the target object

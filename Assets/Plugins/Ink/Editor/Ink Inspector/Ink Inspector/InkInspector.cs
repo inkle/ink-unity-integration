@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 using Object = UnityEngine.Object;
 
 namespace Ink.UnityIntegration {
-	public class InkInspector : ObjectInspector {
+	public class InkInspector : DefaultAssetInspector {
 
 		private InkFile inkFile;
 		private ReorderableList includesFileList;
