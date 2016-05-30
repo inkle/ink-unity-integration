@@ -163,29 +163,58 @@ namespace Ink.UnityIntegration {
 				Debug.LogWarning("Delayed, but a file is now compiling! You can ignore this warning.");
 				return;
 			}
+			bool errorsFound = false;
+			string listOfFiles = "\nFiles compiled:";
 			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
+				listOfFiles += "\n";
+				listOfFiles += compilingFile.inkFile.filePath;
 				if(compilingFile.errorOutput != "") {
+					listOfFiles += " (With unhandled error)";
 					Debug.LogError("Unhandled error occurred compiling Ink file "+compilingFile.inkFile+"! Please report following error as a bug:\n"+compilingFile.errorOutput);
 					compilingFile.inkFile.compileErrors.Clear();
 					compilingFile.inkFile.compileErrors.Add(compilingFile.errorOutput);
+					errorsFound = true;
 				} else {
 					SetOutputLog(compilingFile);
-					if(!compilingFile.inkFile.hasErrors) {
+					bool errorsInEntireStory = false;
+					bool warningsInEntireStory = false;
+					foreach(var inkFile in compilingFile.inkFile.inkFilesInIncludeHierarchy) {
+						if(inkFile.hasErrors) {
+							errorsInEntireStory = true;
+						}
+						if(inkFile.hasWarnings) {
+							warningsInEntireStory = true;
+						}
+					}
+					if(errorsInEntireStory) {
+						listOfFiles += " (With error)";
+						errorsFound = true;
+					} else {
 						string localJSONAssetPath = compilingFile.jsonAbsoluteFilePath.Substring (Application.dataPath.Length - 6);
 						AssetDatabase.ImportAsset (localJSONAssetPath);
 						compilingFile.inkFile.jsonAsset = AssetDatabase.LoadAssetAtPath<TextAsset> (localJSONAssetPath);
 					}
+					if(warningsInEntireStory) {
+						listOfFiles += " (With warning)";
+					}
 				}
+			}
+
+			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
+				if (OnCompileInk != null) {
+					OnCompileInk (compilingFile.inkFile);
+				}
+			}
+
+			if(errorsFound) {
+				Debug.LogWarning("Ink compilation completed with errors at "+DateTime.Now.ToLongTimeString()+listOfFiles);
+			} else {
+				Debug.Log("Ink compilation completed at "+DateTime.Now.ToLongTimeString()+listOfFiles);
 			}
 			InkLibrary.Instance.compilationStack.Clear();
 			EditorUtility.ClearProgressBar();
 			if(EditorApplication.isPlayingOrWillChangePlaymode) {
 				Debug.LogWarning("Ink just finished recompiling while in play mode. Your runtime story may not be up to date.");
-			}
-			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
-				if (OnCompileInk != null) {
-					OnCompileInk (compilingFile.inkFile);
-				}
 			}
 		}
 
@@ -193,12 +222,13 @@ namespace Ink.UnityIntegration {
 			pendingFile.inkFile.errors.Clear();
 			pendingFile.inkFile.warnings.Clear();
 			pendingFile.inkFile.todos.Clear();
+			// Todo - switch this to pendingFile.inkFile.includesInkFiles
 			foreach(var child in pendingFile.inkFile.includes) {
 				if(child == null) {
 					Debug.LogError("Error compiling ink: Ink file include in "+pendingFile.inkFile.filePath+" is null.");
 					continue;
 				}
-				InkFile childInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)child);
+				InkFile childInkFile = InkLibrary.GetInkFileWithFile(child);
 				childInkFile.compileErrors.Clear();
 				childInkFile.errors.Clear();
 				childInkFile.warnings.Clear();

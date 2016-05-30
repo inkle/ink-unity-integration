@@ -85,6 +85,31 @@ namespace Ink.UnityIntegration {
 		// We cache the paths of the files to be included for performance, giving us more freedom to refresh the actual includes list without needing to parse all the text.
 		public List<string> includePaths = new List<string>();
 		public List<DefaultAsset> includes = new List<DefaultAsset>();
+		// The InkFiles of the includes of this file
+		public List<InkFile> includesInkFiles {
+			get {
+				List<InkFile> _includesInkFiles = new List<InkFile>();
+				foreach(var child in includes) {
+					if(child == null) {
+						Debug.LogWarning("Child was null!");
+						continue;
+					}
+					_includesInkFiles.Add(InkLibrary.GetInkFileWithFile(child));
+				}
+				return _includesInkFiles;
+			}
+		}
+		// The InkFiles in the include hierarchy of this file.
+		public List<InkFile> inkFilesInIncludeHierarchy {
+			get {
+				List<InkFile> _includesInkFiles = new List<InkFile>();
+				foreach(var child in includesInkFiles) {
+					_includesInkFiles.Add(child);
+					_includesInkFiles.AddRange(child.inkFilesInIncludeHierarchy);
+				}
+				return _includesInkFiles;
+			}
+		}
 
 		// The compiled json file. Use this to start a story.
 		public TextAsset jsonAsset;
