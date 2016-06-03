@@ -214,13 +214,24 @@ namespace Ink.UnityIntegration {
 			if(inkFile.isMaster) {
 				DrawMasterFileHeader();
 			} else {
-				masterInkFile = InkLibrary.GetInkFileWithFile((DefaultAsset)inkFile.master);
+				masterInkFile = inkFile.masterInkFile;
 				DrawSubFileHeader(masterInkFile);
 			}
 
 			DrawEditAndCompileDates(masterInkFile);
-			if(inkFile.isMaster && !editedAfterLastCompile)
-				DrawCompileButton(masterInkFile);
+			if(masterInkFile.hasCompileErrors) {
+				EditorGUILayout.HelpBox("Last compiled failed", MessageType.Error);
+			} if(masterInkFile.hasErrors) {
+				EditorGUILayout.HelpBox("Last compiled had errors", MessageType.Error);
+			} else if(masterInkFile.hasWarnings) {
+				EditorGUILayout.HelpBox("Last compile had warnings", MessageType.Warning);
+			} else if(masterInkFile.jsonAsset == null) {
+				EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
+			}
+			if(inkFile.requiresCompile && GUILayout.Button("Compile")) {
+				InkCompiler.CompileInk(masterInkFile);
+			}
+			
 			DrawIncludedFiles();
 
 			DrawCompileErrors();
@@ -274,22 +285,15 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.EndHorizontal();
 		}
 
-
-		bool editedAfterLastCompile = false;
 		void DrawEditAndCompileDates (InkFile masterInkFile) {
-			editedAfterLastCompile = false;
 			string editAndCompileDateString = "";
 			DateTime lastEditDate = File.GetLastWriteTime(inkFile.absoluteFilePath);
 			editAndCompileDateString += "Last edit date "+lastEditDate.ToString();
-			if(inkFile.isMaster && inkFile.jsonAsset != null) {
+			if(masterInkFile.jsonAsset != null) {
 				DateTime lastCompileDate = File.GetLastWriteTime(InkEditorUtils.CombinePaths(Application.dataPath, AssetDatabase.GetAssetPath(masterInkFile.jsonAsset).Substring(7)));
 				editAndCompileDateString += "\nLast compile date "+lastCompileDate.ToString();
 				if(lastEditDate > lastCompileDate) {
-					editedAfterLastCompile = true;
 					EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.Warning);
-					if(GUILayout.Button("Recompile")) {
-						InkCompiler.CompileInk(masterInkFile);
-					}
 				} else {
 					EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.None);
 				}
@@ -301,26 +305,6 @@ namespace Ink.UnityIntegration {
 		void DrawIncludedFiles () {
 			if(includesFileList != null && includesFileList.count > 0) {
 				includesFileList.DoLayoutList();
-			}
-		}
-
-		void DrawCompileButton (InkFile masterInkFile) {
-			bool drawButton = false;
-			if(masterInkFile.hasCompileErrors) {
-				EditorGUILayout.HelpBox("Last compiled failed", MessageType.Error);
-				drawButton = true;
-			} if(masterInkFile.hasErrors) {
-				EditorGUILayout.HelpBox("Last compiled had errors", MessageType.Error);
-				drawButton = true;
-			} else if(masterInkFile.hasWarnings) {
-				EditorGUILayout.HelpBox("Last compile had warnings", MessageType.Warning);
-				drawButton = true;
-			} else if(masterInkFile.jsonAsset == null) {
-				EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
-				drawButton = true;
-			}
-			if(drawButton && GUILayout.Button("Compile")) {
-				InkCompiler.CompileInk(masterInkFile);
 			}
 		}
 

@@ -91,7 +91,7 @@ namespace Ink.UnityIntegration {
 				List<InkFile> _includesInkFiles = new List<InkFile>();
 				foreach(var child in includes) {
 					if(child == null) {
-						Debug.LogWarning("Child was null!");
+						Debug.LogError("Error compiling ink: Ink file include in "+filePath+" is null.");
 						continue;
 					}
 					_includesInkFiles.Add(InkLibrary.GetInkFileWithFile(child));
@@ -143,6 +143,51 @@ namespace Ink.UnityIntegration {
 				return todos.Count > 0;
 			}
 		}
+
+
+		public bool requiresCompile {
+			get {
+				InkFile masterInkFileIncludingSelf = isMaster ? this : masterInkFile;
+				if(masterInkFileIncludingSelf.jsonAsset == null) 
+					return true;
+
+				foreach(InkFile inkFile in masterInkFileIncludingSelf.inkFilesInIncludeHierarchy) {
+					if(inkFile.hasCompileErrors) {
+						return true;
+					} else if(inkFile.hasErrors) {
+						return true;
+					} else if(inkFile.hasWarnings) {
+						return true;
+					} else if(inkFile.lastEditDate > lastCompileDate) {
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Gets the last compile date of the story.
+		/// </summary>
+		/// <value>The last compile date of the story.</value>
+		public DateTime lastCompileDate {
+			get {
+				InkFile masterInkFileIncludingSelf = isMaster ? this : masterInkFile;
+				string fullJSONFilePath = InkEditorUtils.CombinePaths(Application.dataPath, AssetDatabase.GetAssetPath(masterInkFileIncludingSelf.jsonAsset).Substring(7));
+				return File.GetLastWriteTime(fullJSONFilePath);
+			}
+		}
+
+		/// <summary>
+		/// Gets the last edit date of the file.
+		/// </summary>
+		/// <value>The last edit date of the file.</value>
+		public DateTime lastEditDate {
+			get {
+				return File.GetLastWriteTime(absoluteFilePath);
+			}
+		}
+
 
 		[System.Serializable]
 		public class InkFileLog {
