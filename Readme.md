@@ -20,6 +20,8 @@ Features:
 
 For more information on **ink**, see [the documentation in the main ink repo](https://github.com/inkle/ink). For convenience, the package also creates an (**Ink > Help**) menu option.
 
+To keep up to date with the latest news about ink [sign up for the mailing list](http://www.inklestudios.com/ink#signup).
+
 ## Customisation
 
 This package has been designed to be modular. You can delete many of the folders to remove functionality without causing errors.
