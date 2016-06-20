@@ -19,8 +19,7 @@ namespace Ink.UnityIntegration {
 	// Helper class for ink files that maintains INCLUDE connections between ink files
 	[System.Serializable]
 	public sealed class InkFile {
-		private const string includeKey = "INCLUDE ";
-
+		
 		public bool compileAutomatically = false;
 
 		// The full file path
