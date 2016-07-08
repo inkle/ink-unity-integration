@@ -47,14 +47,6 @@ namespace Ink.UnityIntegration {
 		
 		public override void OnInspectorGUI() {
 			serializedObject.Update();
-
-			if(PlayerSettings.apiCompatibilityLevel == ApiCompatibilityLevel.NET_2_0_Subset) {
-				EditorGUILayout.HelpBox("API Compatibility Level is .Net 2.0 Subset. Ink requires Net 2.0 to run in compiled builds.", MessageType.Warning);
-				if (GUILayout.Button("Fix")) {
-					PlayerSettings.apiCompatibilityLevel = ApiCompatibilityLevel.NET_2_0;
-				}
-			}
-
 			data.compileAutomatically = EditorGUILayout.Toggle(new GUIContent("Compile Ink Automatically", "When disabled, automatic compilation can be enabled on a per-story basis via the inspector for a master story file."), data.compileAutomatically);
 			data.handleJSONFilesAutomatically = EditorGUILayout.Toggle(new GUIContent("Handle JSON Automatically", "Whether JSON files are moved, renamed and deleted along with their ink files."), data.handleJSONFilesAutomatically);
 			debugLibrary = EditorGUILayout.Toggle(new GUIContent("Show Library (Debugging)", "Hidden by default, you can view the ink library for debugging purposes. Be wary if editing!"), debugLibrary);

@@ -94,10 +94,6 @@ namespace Ink.UnityIntegration {
 				PostprocessInkFiles(importedInkAssets);
 			if(inklecateFileLocation != null)
 				PostprocessInklecate(inklecateFileLocation);
-			
-			if(PlayerSettings.apiCompatibilityLevel == ApiCompatibilityLevel.NET_2_0_Subset) {
-				Debug.LogWarning("Detected PlayerSettings.apiCompatibilityLevel is .NET 2.0 Subset. Due to JSON.Net as used by ink-engine.dll, API Compatibility Level must be set to .NET 2.0 for standalone builds to function. Change this in PlayerSettings.");
-			}
 		}
 
 		private static void PostprocessInklecate (string inklecateFileLocation) {
