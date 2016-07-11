@@ -4,7 +4,7 @@ This Unity package allows you to integrate inkle's [ink narrative scripting lang
 
 Features:
 
- - **Running ink in game**: Allows usage of JSON-compiled ink files in Unity via the included `ink-engine.dll` (and Json.Net dependency).
+ - **Running ink in game**: Allows usage of JSON-compiled ink files in Unity via the included `ink-engine.dll`.
 
  - **Auto Compilation**: Instantly creates and updates a JSON story file when a `.ink` is updated. Errors in your `.ink` script are displayed as errors in Unity's own console.
  	
@@ -30,7 +30,7 @@ You should never delete the DLL folder (although you may delete the windows/mac 
 
 ## Using ink in game your game. 
 
-The **ink player** is the core feature of this package; the minimal requirements to actually run a compiled JSON story file are the `ink-engine.dll` and `Newtonsoft.Json.dll` libraries.
+The **ink player** is the core feature of this package; the minimal requirements to actually run a compiled JSON story file is the `ink-engine.dll` library.
 
 ## Ink Player
 
@@ -66,13 +66,10 @@ If you're interested in keeping up-to-date with cutting edge features, you can d
 * Is the Linux Unity Editor supported?
 
   *We haven't implemented it, although it should be easy enough by running inklecate.exe with mono. Take a look at `InkCompiler.cs` if you want to add it.*
+  
+* What happened to Newtonsoft.Json.Net? Do I still need my API compatibility set to .NET 2.0?
 
-* I'm getting this error:
-
-        Internal compiler error. See the console log for more information. output was:
-        Unhandled Exception: System.TypeLoadException: Could not load type 'Newtonsoft.Json.Linq.JContainer' from assembly 'Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed'.`
- 	
- 	You need to change your API compatibility level from .NET 2.0 subset to .NET 2.0.
+  We removed our dependency on Newtonsoft.Json.Net, so you can keep (or revert) your API compatibility to .NET 2.0 Subset, if you're upgrading your ink Unity integration plugin.
 
 # License
 
