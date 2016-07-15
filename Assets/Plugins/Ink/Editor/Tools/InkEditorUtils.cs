@@ -43,7 +43,7 @@ namespace Ink.UnityIntegration {
 		public const string inkFileExtension = ".ink";
 		private const string templateFileLocation = "Assets/Plugins/Ink/Template/Template.txt";
 
-		[MenuItem("Assets/Create/Ink", false, 100)]
+		[MenuItem("Assets/Create/Ink", false, 120)]
 		public static void CreateNewInkFile () {
 			string fileName = "New Ink.ink";
 			string filePath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(GetSelectedPathOrFallback(), fileName));

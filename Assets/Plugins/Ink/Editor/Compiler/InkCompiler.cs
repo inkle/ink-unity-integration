@@ -105,7 +105,11 @@ namespace Ink.UnityIntegration {
 			if(Application.platform == RuntimePlatform.OSXEditor) {
 				SetInklecateFilePermissions(inklecatePath);
 			}
-			
+
+			if(inklecatePath.Contains("'")){
+				Debug.LogError("Due to a Unity bug, Inklecate path cannot contain an apostrophe. Ink will not compile until this is resolved. Path is '"+inklecatePath+"'");
+				return;
+			}
 			string inputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileName(inkFile.filePath));
 			string outputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileNameWithoutExtension(Path.GetFileName(inkFile.filePath))) + ".json";
 			string inkArguments = "-c -o " + "\"" + outputPath + "\" \"" + inputPath + "\"";
@@ -118,7 +122,6 @@ namespace Ink.UnityIntegration {
 			InkLibrary.Instance.compilationStack.Add(pendingFile);
 
 			Process process = new Process();
-			process.StartInfo.WorkingDirectory = inkFile.absoluteFolderPath;
 			process.StartInfo.FileName = inklecatePath;
 			process.StartInfo.Arguments = inkArguments;
 			process.StartInfo.RedirectStandardError = true;
