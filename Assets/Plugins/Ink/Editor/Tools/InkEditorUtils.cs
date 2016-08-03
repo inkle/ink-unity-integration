@@ -141,10 +141,10 @@ namespace Ink.UnityIntegration {
 		}
 
 		public static string GetInklecateFilePath () {
+			#if UNITY_EDITOR
 			#if UNITY_EDITOR_WIN
 			string inklecateName = "inklecate_win.exe";
 			#endif
-
 			// Unfortunately inklecate's implementation uses newer features of C# that aren't
 			// available in the version of mono that ships with Unity, so we can't make use of
 			// it. This means that we need to compile the mono runtime directly into it, inflating
@@ -152,6 +152,7 @@ namespace Ink.UnityIntegration {
 			// when Unity ships with a newer version.
 			#if UNITY_EDITOR_OSX
 			string inklecateName = "inklecate_mac";
+			#endif
 			#endif
 
 			string[] inklecateDirectories = Directory.GetFiles(Application.dataPath, inklecateName, SearchOption.AllDirectories);

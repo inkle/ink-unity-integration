@@ -102,8 +102,8 @@ namespace Ink.UnityIntegration {
 		public List<InkFile> inkFilesInIncludeHierarchy {
 			get {
 				List<InkFile> _includesInkFiles = new List<InkFile>();
+				_includesInkFiles.Add(this);
 				foreach(var child in includesInkFiles) {
-					_includesInkFiles.Add(child);
 					_includesInkFiles.AddRange(child.inkFilesInIncludeHierarchy);
 				}
 				return _includesInkFiles;
@@ -221,7 +221,7 @@ namespace Ink.UnityIntegration {
 				DefaultAsset includedInkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
 				InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileAsset);
 				if(includedInkFile == null) {
-					Debug.LogError("Expected Ink file at "+localIncludePath+" but file was not found.");
+					Debug.LogError(filePath+ " expected child Ink file at "+localIncludePath+" but file was not found.");
 				} else if (includedInkFile.includes.Contains(inkAsset)) {
 					Debug.LogError("Circular INCLUDE reference between "+filePath+" and "+includedInkFile.filePath+".");
 				} else

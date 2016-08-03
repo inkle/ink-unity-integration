@@ -13,6 +13,10 @@ using System.Runtime.CompilerServices;
 
 namespace Ink.UnityIntegration {
 	class InkPostProcessor : AssetPostprocessor {
+		// Several assets moved at the same time can cause unity to call OnPostprocessAllAssets several times as a result of moving additional files, or simply due to minor time differences.
+		// This queue tells the compiler which files to recompile after moves have completed.
+		// Not a perfect solution - If Unity doesn't move all the files in the same attempt you can expect some error messages to appear on compile.
+		private static List<string> queuedMovedAssets = new List<string>();
 
 		// Recompiles any ink files as a result of an ink file (re)import
 		private static void OnPostprocessAllAssets (string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths) {
@@ -65,17 +69,72 @@ namespace Ink.UnityIntegration {
 		private static void OnMoveAssets (string[] movedAssets) {
 			if (!InkLibrary.Instance.handleJSONFilesAutomatically) 
 				return;
+			
+			List<string> validMovedAssets = new List<string>();
 			for (var i = 0; i < movedAssets.Length; i++) {
 				if(Path.GetExtension(movedAssets[i]) != InkEditorUtils.inkFileExtension) 
 					continue;
-				InkFile inkFile = InkLibrary.GetInkFileWithPath(movedAssets[i]);
-				if(inkFile != null) {
-					string jsonAssetPath = AssetDatabase.GetAssetPath(inkFile.jsonAsset);
+				validMovedAssets.Add(movedAssets[i]);
+				queuedMovedAssets.Add(movedAssets[i]);
+
+			}
+			// Move compiled JSON files.
+			// This can cause Unity to postprocess assets again.
+			bool assetMoved = false;
+			foreach(var inkFilePath in validMovedAssets) {
+				InkFile inkFile = InkLibrary.GetInkFileWithPath(inkFilePath);
+				if(inkFile == null) continue;
+				if(inkFile.jsonAsset == null) continue;
+
+				string jsonAssetPath = AssetDatabase.GetAssetPath(inkFile.jsonAsset);
+				
+				string movedAssetDir = Path.GetDirectoryName(inkFilePath);
+				string movedAssetFile = Path.GetFileName(inkFilePath);
+				string newPath = InkEditorUtils.CombinePaths(movedAssetDir, Path.GetFileNameWithoutExtension(movedAssetFile)) + ".json";
+				AssetDatabase.MoveAsset(jsonAssetPath, newPath);
+				assetMoved = true;
+			}
+
+			// Check if no JSON assets were moved (as a result of none needing to move, or this function being called as a result of JSON files being moved)
+			if(!assetMoved && queuedMovedAssets.Count > 0) {
+				List<InkFile> filesToCompile = new List<InkFile>();
+
+				// Add the old master file to the files to be recompiled
+				foreach(var inkFilePath in queuedMovedAssets) {
+					InkFile inkFile = InkLibrary.GetInkFileWithPath(inkFilePath);
+					if(inkFile == null) continue;
+
+					InkFile masterInkFile = inkFile;
+					if(!inkFile.isMaster)
+						masterInkFile = inkFile.masterInkFile;
 					
-					string movedAssetDir = Path.GetDirectoryName(movedAssets[i]);
-					string movedAssetFile = Path.GetFileName(movedAssets[i]);
-					string newPath = InkEditorUtils.CombinePaths(movedAssetDir, Path.GetFileNameWithoutExtension(movedAssetFile)) + ".json";
-					AssetDatabase.MoveAsset(jsonAssetPath, newPath);
+					if(!filesToCompile.Contains(masterInkFile))
+						filesToCompile.Add(masterInkFile);
+				}
+
+				// Rebuild file connections and recompile any files that may have changed.
+				InkLibrary.RebuildInkFileConnections();
+
+				// Add the new file to be recompiled
+				foreach(var inkFilePath in queuedMovedAssets) {
+					InkFile inkFile = InkLibrary.GetInkFileWithPath(inkFilePath);
+					if(inkFile == null) continue;
+
+					InkFile masterInkFile = inkFile;
+					if(!inkFile.isMaster)
+						masterInkFile = inkFile.masterInkFile;
+					
+					if(!filesToCompile.Contains(masterInkFile))
+						filesToCompile.Add(masterInkFile);
+					
+				}
+
+				queuedMovedAssets.Clear();
+
+				// Compile any ink files that are deemed master files a rebuild
+				foreach(var inkFile in filesToCompile) {
+					if(inkFile.isMaster)
+						InkCompiler.CompileInk(inkFile);
 				}
 			}
 		}

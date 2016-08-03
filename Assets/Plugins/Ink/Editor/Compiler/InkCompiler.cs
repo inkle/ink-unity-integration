@@ -105,7 +105,6 @@ namespace Ink.UnityIntegration {
 			if(Application.platform == RuntimePlatform.OSXEditor) {
 				SetInklecateFilePermissions(inklecatePath);
 			}
-
 			if(inklecatePath.Contains("'")){
 				Debug.LogError("Due to a Unity bug, Inklecate path cannot contain an apostrophe. Ink will not compile until this is resolved. Path is '"+inklecatePath+"'");
 				return;
