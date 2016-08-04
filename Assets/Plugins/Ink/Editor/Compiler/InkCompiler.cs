@@ -218,6 +218,7 @@ namespace Ink.UnityIntegration {
 			if(EditorApplication.isPlayingOrWillChangePlaymode) {
 				Debug.LogWarning("Ink just finished recompiling while in play mode. Your runtime story may not be up to date.");
 			}
+			InkLibrary.Save();
 		}
 
 		private static void SetOutputLog (CompilationStackItem pendingFile) {

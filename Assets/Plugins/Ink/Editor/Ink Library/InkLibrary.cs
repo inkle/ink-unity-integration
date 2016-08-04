@@ -135,7 +135,10 @@ namespace Ink.UnityIntegration {
 			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
 				inkFile.FindCompiledJSONAsset();
 			}
+			Save();
+		}
 
+		public static void Save () {
 			EditorUtility.SetDirty(InkLibrary.Instance);
 			AssetDatabase.SaveAssets();
 			EditorApplication.RepaintProjectWindow();
