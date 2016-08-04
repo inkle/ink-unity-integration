@@ -41,10 +41,15 @@ namespace Ink.UnityIntegration {
 		bool showingSaveLoadPanel;
 		bool showingDivertsPanel;
 		private Vector2 divertsScrollPosition;
+		bool showingFunctionsPanel;
 		bool showingVariablesPanel;
 		private Vector2 variablesScrollPosition;
 
 		private string divertCommand;
+
+		private string functionName;
+		private string testedFunctionName;
+		private object functionReturnValue;
 
 		private Exception errors;
 		bool storyStateValid = false;
@@ -88,8 +93,7 @@ namespace Ink.UnityIntegration {
 				return;
 			this.storyJSONTextAsset = storyJSONTextAsset;
 			storyJSON = this.storyJSONTextAsset.text;
-			InitStory();
-			TryContinue();
+			PlayInternal();
 		}
 
 		void Play (string storyJSON) {
@@ -97,6 +101,11 @@ namespace Ink.UnityIntegration {
 				return;
 			this.storyJSONTextAsset = null;
 			this.storyJSON = storyJSON;
+			PlayInternal();
+		}
+
+		void PlayInternal () {
+			testedFunctionName = null;
 			InitStory();
 			TryContinue();
 		}
@@ -122,7 +131,11 @@ namespace Ink.UnityIntegration {
 		
 		void ContinueStory () {
 			story.Continue();
-			storyHistory.Add(new InkPlayerHistoryContentItem(story.currentText.Trim()));
+			AddContent(story.currentText.Trim());
+		}
+
+		void AddContent (string content) {
+			storyHistory.Add(new InkPlayerHistoryContentItem(content));
 			ScrollToBottom();
 			AddToHistory();
 		}
@@ -208,6 +221,12 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.EndHorizontal();
 			if(showingDivertsPanel)
 				DisplayDiverts ();
+
+			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+			showingFunctionsPanel = EditorGUILayout.Foldout(showingFunctionsPanel, "Functions");
+			EditorGUILayout.EndHorizontal();
+			if(showingFunctionsPanel)
+				DisplayFunctions ();
 
 			if(InkEditorUtils.StoryContainsVariables(story)) {
 				EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -371,15 +390,51 @@ namespace Ink.UnityIntegration {
 
 		void DisplayDiverts () {
 			GUILayout.BeginVertical();
-//			divertsScrollPosition = EditorGUILayout.BeginScrollView(divertsScrollPosition);
+			GUILayout.BeginHorizontal();
 			divertCommand = EditorGUILayout.TextField("Divert command", divertCommand);
-			EditorGUI.BeginDisabledGroup(divertCommand == null || divertCommand == "");
+			EditorGUI.BeginDisabledGroup(divertCommand == "");
 			if (GUILayout.Button("Divert")) {
 				story.ChoosePathString(divertCommand);
 				TryContinue();
 			}
 			EditorGUI.EndDisabledGroup();
-//			EditorGUILayout.EndScrollView();
+			GUILayout.EndHorizontal();
+			GUILayout.EndVertical();
+		}
+
+		void DisplayFunctions () {
+			GUILayout.BeginVertical();
+			GUILayout.BeginHorizontal();
+			EditorGUI.BeginChangeCheck();
+			functionName = EditorGUILayout.TextField("Function", functionName);
+			if(EditorGUI.EndChangeCheck()) {
+				testedFunctionName = null;
+				functionReturnValue = null;
+			}
+			bool functionIsValid = functionName != "" && story.HasFunction(functionName);
+			EditorGUI.BeginDisabledGroup(!functionIsValid);
+			if (GUILayout.Button("Execute")) {
+				string outputContent = null;
+				functionReturnValue = story.EvaluateFunction(functionName, out outputContent);
+				if(outputContent != null)
+					AddContent(outputContent);
+				testedFunctionName = functionName;
+			}
+			GUILayout.EndHorizontal();
+			EditorGUI.EndDisabledGroup();
+
+			if(functionIsValid && functionName == testedFunctionName) {
+				if(functionReturnValue == null) {
+					EditorGUILayout.LabelField("Output (Null)");
+				} else if(functionReturnValue is string) {
+					EditorGUILayout.TextField("Output (String)", (string)functionReturnValue);
+				} else if(functionReturnValue is float) {
+					EditorGUILayout.FloatField("Output (Float)", (float)functionReturnValue);
+				} else if(functionReturnValue is int) {
+					EditorGUILayout.IntField("Output (Int)", (int)functionReturnValue);
+				}
+			}
+
 			GUILayout.EndVertical();
 		}
 
