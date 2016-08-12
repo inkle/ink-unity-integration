@@ -111,7 +111,7 @@ namespace Ink.UnityIntegration {
 			}
 			string inputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileName(inkFile.filePath));
 			string outputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileNameWithoutExtension(Path.GetFileName(inkFile.filePath))) + ".json";
-			string inkArguments = "-c -o " + "\"" + outputPath + "\" \"" + inputPath + "\"";
+			string inkArguments = InkLibrary.Instance.additionalCompilerOptions + " -c -o " + "\"" + outputPath + "\" \"" + inputPath + "\"";
 
 			CompilationStackItem pendingFile = new CompilationStackItem();
 			pendingFile.inkFile = InkLibrary.GetInkFileWithAbsolutePath(inputPath);
@@ -121,8 +121,15 @@ namespace Ink.UnityIntegration {
 			InkLibrary.Instance.compilationStack.Add(pendingFile);
 
 			Process process = new Process();
-			process.StartInfo.FileName = inklecatePath;
-			process.StartInfo.Arguments = inkArguments;
+
+			if( InkLibrary.Instance.runInklecateWithMono ) {
+				process.StartInfo.FileName = "/usr/local/bin/mono";
+				process.StartInfo.Arguments = inklecatePath + " " + inkArguments;
+			} else {
+				process.StartInfo.FileName = inklecatePath;
+				process.StartInfo.Arguments = inkArguments;
+			}
+
 			process.StartInfo.RedirectStandardError = true;
 			process.StartInfo.RedirectStandardOutput = true;
 			process.StartInfo.UseShellExecute = false;

@@ -42,6 +42,10 @@ namespace Ink.UnityIntegration {
 		public List<InkFile> inkLibrary = new List<InkFile>();
 		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
 
+		public string customInklecateName;
+		public bool runInklecateWithMono;
+		public string additionalCompilerOptions;
+
 		[MenuItem("Edit/Project Settings/Ink", false, 500)]
 		public static void SelectFromProjectSettings() {
 			Selection.activeObject = Instance;

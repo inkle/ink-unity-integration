@@ -155,6 +155,11 @@ namespace Ink.UnityIntegration {
 			#endif
 			#endif
 
+			string customInklecateName = InkLibrary.Instance.customInklecateName;
+			if( !(customInklecateName == null || customInklecateName.Length == 0) ) {
+				inklecateName = customInklecateName;
+			}
+
 			string[] inklecateDirectories = Directory.GetFiles(Application.dataPath, inklecateName, SearchOption.AllDirectories);
 			if(inklecateDirectories.Length == 0) {
 				return null;
