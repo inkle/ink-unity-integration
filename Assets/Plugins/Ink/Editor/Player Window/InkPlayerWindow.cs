@@ -12,11 +12,18 @@ namespace Ink.UnityIntegration {
 	/// Ink player window. Tests stories in an editor window.
 	/// </summary>
 	public class InkPlayerWindow : EditorWindow {
+		private const string windowTitle = "Ink Player";
+
+//		public StoryState storyState = new StoryState();
+//		public class StoryState {
+//		}
+		public bool attached {get; private set;}
+		
 		private TextAsset storyJSONTextAsset;
 		private string storyJSON;
-		private Story story;
+		public Story story {get; private set;}
 		private TextAsset _storyStateTextAsset;
-		private TextAsset storyStateTextAsset {
+		public TextAsset storyStateTextAsset {
 			get {
 				return _storyStateTextAsset;
 			} set {
@@ -27,41 +34,94 @@ namespace Ink.UnityIntegration {
 					storyStateValid = InkEditorUtils.CheckStoryStateIsValid(storyJSONTextAsset.text, storyStateTextAsset.text);
 			}
 		}
-
+		
 		private UndoHistory<InkPlayerHistoryItem> storyStateHistory;
 		private List<InkPlayerHistoryContentItem> storyHistory;
-		private bool displayChoicesInLog = false;
-		private bool continueAutomatically = true;
-
-		private Vector2 scrollPosition;
-
-		bool showingContentPanel = true;
-		private Vector2 contentScrollPosition;
-		bool showingChoicesPanel = true;
-		bool showingSaveLoadPanel;
-		bool showingDivertsPanel;
-		private Vector2 divertsScrollPosition;
-		bool showingFunctionsPanel;
-		bool showingVariablesPanel;
-		private Vector2 variablesScrollPosition;
-
-		private string divertCommand;
-
-		private string functionName;
-		private string testedFunctionName;
-		private object functionReturnValue;
-
+		
 		private Exception errors;
-		bool storyStateValid = false;
+		private bool storyStateValid = false;
+
+		public PlayerOptions playerOptions = new PlayerOptions();
+		public class PlayerOptions {
+			public bool continueAutomatically = true;
+			public bool chooseAutomatically = false;
+		}
+
+//		private WindowState windowState = new WindowState();
+//		public class WindowState {
+			public Vector2 scrollPosition;
+			public bool showingContentPanel = true;
+			public Vector2 contentScrollPosition;
+			public bool showingChoicesPanel = true;
+			public bool showingSaveLoadPanel;
+
+			public bool showingFunctionsPanel;
+
+			public Vector2 variablesScrollPosition;
+//		}
+
+		public bool showingDivertsPanel;
+		private DivertPanelState divertPanelState = new DivertPanelState();
+		public class DivertPanelState {
+			public Vector2 divertsScrollPosition;
+			public string divertCommand = String.Empty;
+		}
+
+		private FunctionPanelState functionPanelState = new FunctionPanelState();
+		public class FunctionPanelState {
+			public string functionName = String.Empty;
+			public string testedFunctionName = null;
+			public object functionReturnValue = null;
+		}
+
+		public bool showingVariablesPanel;
+//		private VariablesPanelState variablesPanelState = new FunctionPanelState();
+//		public class VariablesPanelState {
+//		}
+
+		public DisplayOptions displayOptions = new DisplayOptions();
+		public class DisplayOptions {
+			public bool displayTime = false;
+			public bool displayChoicesInLog = false;
+			public bool displayDebugNotesInLog = false;
+		}
+
 
 		[MenuItem("Window/Ink Player %#i", false, 2300)]
 		public static InkPlayerWindow GetWindow () {
-			return GetWindow<InkPlayerWindow>("Ink Player", true);
+			return GetWindow<InkPlayerWindow>(windowTitle, true);
+		}
+
+		public static InkPlayerWindow GetWindow (bool focus) {
+			return GetWindow<InkPlayerWindow>(windowTitle, focus);
 		}
 		
 		void OnEnable () {
 			storyStateHistory = new UndoHistory<InkPlayerHistoryItem>();
 			storyHistory = new List<InkPlayerHistoryContentItem>();
+			EditorApplication.update += Update;
+		}
+
+		private void Update () {
+			if(story != null && playerOptions.chooseAutomatically) {
+				if(story.currentChoices.Count > 0) {
+					MakeRandomChoice();
+				}
+			}
+		}
+
+		// Requires testing - would allow users to attach a run-time story to this window for testing purposes.
+		public static InkPlayerWindow Attach (Story story) {
+			InkPlayerWindow window = GetWindow();
+			window.Clear();
+			window.story = story;
+			window.attached = true;
+			return window;
+		}
+
+		private void Detach () {
+			attached = false;
+			story = null;
 		}
 
 		public static void LoadAndPlay (TextAsset storyJSONTextAsset) {
@@ -105,9 +165,17 @@ namespace Ink.UnityIntegration {
 		}
 
 		void PlayInternal () {
-			testedFunctionName = null;
+			functionPanelState.testedFunctionName = null;
 			InitStory();
-			TryContinue();
+			PingAutomator();
+		}
+
+		void PingAutomator () {
+			if(story.canContinue && playerOptions.continueAutomatically) {
+				TryContinue();
+			} else if(story.currentChoices.Count > 0 && playerOptions.chooseAutomatically) { 
+				MakeRandomChoice();
+			}
 		}
 
 		void InitStory () {
@@ -116,6 +184,11 @@ namespace Ink.UnityIntegration {
 		}
 		
 		void Stop () {
+			Clear ();
+		}
+
+		void Clear () {
+			functionPanelState.testedFunctionName = null;
 			storyStateHistory.Clear();
 			storyHistory.Clear();
 			story = null;
@@ -135,7 +208,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		void AddContent (string content) {
-			storyHistory.Add(new InkPlayerHistoryContentItem(content));
+			storyHistory.Add(new InkPlayerHistoryContentItem(content, InkPlayerHistoryContentItem.ContentType.StoryContent));
 			ScrollToBottom();
 			AddToHistory();
 		}
@@ -160,12 +233,14 @@ namespace Ink.UnityIntegration {
 		}
 
 		void SaveStoryState (string storyStateJSON) {
+			storyHistory.Add(new InkPlayerHistoryContentItem("Saved state", InkPlayerHistoryContentItem.ContentType.DebugNote));
 			storyStateTextAsset = InkEditorUtils.CreateStoryStateTextFile(storyStateJSON, System.IO.Path.GetDirectoryName(AssetDatabase.GetAssetPath(storyJSONTextAsset)), storyJSONTextAsset.name+"_SaveState");
 		}
 
 		void LoadStoryState (string storyStateJSON) {
 			storyHistory.Clear();
 			storyStateHistory.Clear();
+			storyHistory.Add(new InkPlayerHistoryContentItem("Loaded state", InkPlayerHistoryContentItem.ContentType.DebugNote));
 			story.state.LoadJson(storyStateJSON);
 		}
 
@@ -176,7 +251,7 @@ namespace Ink.UnityIntegration {
 		void TryContinue () {
 			if(!story.canContinue) 
 				return;
-			if(continueAutomatically) {
+			if(playerOptions.continueAutomatically) {
 				while (story.canContinue) {
 					ContinueStory();
 				}
@@ -188,79 +263,59 @@ namespace Ink.UnityIntegration {
 		void OnGUI () {
 			this.Repaint();
 			scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+
 			DisplayHeader();
+
 			if(errors == null) {
-				DisplayControlbar();
+				DisplayStoryControlGroup();
 			} else {
 				DisplayErrors();
 			}
-			if(story == null) {
-				EditorGUILayout.EndScrollView();
-				return;
+
+			if(story != null) {
+				DrawStory();
+				DrawChoices();
+				DrawSaveLoad();
+				DrawDiverts();
+				DrawFunctions();
+				DrawVariables();
 			}
-			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-			showingContentPanel = EditorGUILayout.Foldout(showingContentPanel, "Content");
-			EditorGUILayout.EndHorizontal();
-			if(showingContentPanel)
-				DisplayStory ();
 
-			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-			showingChoicesPanel = EditorGUILayout.Foldout(showingChoicesPanel, "Choices");
-			EditorGUILayout.EndHorizontal();
-			if(showingChoicesPanel)
-				DisplayChoices ();
-
-			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-			showingSaveLoadPanel = EditorGUILayout.Foldout(showingSaveLoadPanel, "Story State");
-			EditorGUILayout.EndHorizontal();
-			if(showingSaveLoadPanel)
-				DisplaySaveLoad ();
-
-			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-			showingDivertsPanel = EditorGUILayout.Foldout(showingDivertsPanel, "Diverts");
-			EditorGUILayout.EndHorizontal();
-			if(showingDivertsPanel)
-				DisplayDiverts ();
-
-			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-			showingFunctionsPanel = EditorGUILayout.Foldout(showingFunctionsPanel, "Functions");
-			EditorGUILayout.EndHorizontal();
-			if(showingFunctionsPanel)
-				DisplayFunctions ();
-
-			if(InkEditorUtils.StoryContainsVariables(story)) {
-				EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-				showingVariablesPanel = EditorGUILayout.Foldout(showingVariablesPanel, "Variables");
-				EditorGUILayout.EndHorizontal();
-				if(showingVariablesPanel)
-					DisplayVariables ();
-			}
 			EditorGUILayout.EndScrollView();
 		}
 		
 		void DisplayHeader () {
-			EditorGUILayout.BeginVertical();
-			EditorGUI.BeginChangeCheck();
-			storyJSONTextAsset = EditorGUILayout.ObjectField("Story JSON", storyJSONTextAsset, typeof(TextAsset), false) as TextAsset;
-			if(EditorGUI.EndChangeCheck()) {
-				if(storyJSONTextAsset == null) {
-					story = null;
-				} else {
-					Stop();
-					Play(storyJSONTextAsset);
+			if(attached) {
+				EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+				GUILayout.Label("Attached");
+				if (GUILayout.Button("Detach", EditorStyles.toolbarButton)) {
+					Detach();
 				}
+				EditorGUILayout.EndHorizontal();
+			} else {
+				EditorGUILayout.BeginVertical();
+				EditorGUI.BeginChangeCheck();
+				storyJSONTextAsset = EditorGUILayout.ObjectField("Story JSON", storyJSONTextAsset, typeof(TextAsset), false) as TextAsset;
+				if(EditorGUI.EndChangeCheck()) {
+					if(storyJSONTextAsset == null) {
+						story = null;
+					} else {
+						Stop();
+						Play(storyJSONTextAsset);
+					}
+				}
+				if(storyJSONTextAsset != null && storyJSON != null && storyJSONTextAsset.text != storyJSON) {
+					EditorGUILayout.HelpBox("Story JSON file has changed. Restart to play updated story.", MessageType.Warning);
+				}
+				EditorGUILayout.EndVertical();
 			}
-			if(storyJSONTextAsset != null && storyJSON != null && storyJSONTextAsset.text != storyJSON) {
-				EditorGUILayout.HelpBox("Story JSON file has changed. Restart to play updated story.", MessageType.Warning);
-			}
-			EditorGUILayout.EndVertical();
 		}
 		
 		void DisplayErrors () {
 			EditorGUILayout.HelpBox(errors.Message, MessageType.Error);
 		}
-		
-		void DisplayControlbar () {
+
+		void DisplayStoryControlGroup () {
 			EditorGUILayout.BeginHorizontal (EditorStyles.toolbar);
 
 			if(story == null) {
@@ -270,13 +325,17 @@ namespace Ink.UnityIntegration {
 				}
 				EditorGUI.EndDisabledGroup();
 			} else {
-				GUILayout.BeginHorizontal();
 				if(GUILayout.Button("Stop", EditorStyles.toolbarButton)) {
 					Stop();
 				}
 				if(GUILayout.Button("Restart", EditorStyles.toolbarButton)) {
 					Restart();
 				}
+			}
+
+			GUILayout.FlexibleSpace();
+
+			if(story != null) {
 				EditorGUI.BeginDisabledGroup(!storyStateHistory.canUndo);
 				if(GUILayout.Button("Undo", EditorStyles.toolbarButton)) {
 					Undo();
@@ -287,48 +346,90 @@ namespace Ink.UnityIntegration {
 					Redo();
 				}
 				EditorGUI.EndDisabledGroup();
-				GUILayout.FlexibleSpace();
-				EditorGUI.BeginChangeCheck();
-				displayChoicesInLog = GUILayout.Toggle(displayChoicesInLog, "Display Choices", EditorStyles.toolbarButton);
-				if(EditorGUI.EndChangeCheck()) {
-					ScrollToBottom();
-				}
-				EditorGUI.BeginChangeCheck();
-				continueAutomatically = GUILayout.Toggle(continueAutomatically, "Auto-Continue", EditorStyles.toolbarButton);
-				if(EditorGUI.EndChangeCheck() && continueAutomatically) {
-					while(story.canContinue) {
-						ContinueStory();
-					}
-				}
-				GUILayout.EndHorizontal();
 			}
-			
-			EditorGUILayout.EndHorizontal ();
+
+			GUILayout.FlexibleSpace();
+
+			EditorGUI.BeginChangeCheck();
+			playerOptions.continueAutomatically = GUILayout.Toggle(playerOptions.continueAutomatically, "Auto-Continue", EditorStyles.toolbarButton);
+			if(EditorGUI.EndChangeCheck() && playerOptions.continueAutomatically) {
+				PingAutomator();
+			}
+
+			playerOptions.chooseAutomatically = GUILayout.Toggle(playerOptions.chooseAutomatically, "Auto-Choice", EditorStyles.toolbarButton);
+
+			GUILayout.EndHorizontal();
 		}
-		
-		void DisplayStory () {
+
+		void DrawStory () {
+			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+			showingContentPanel = EditorGUILayout.Foldout(showingContentPanel, "Content");
+			EditorGUI.BeginChangeCheck();
+			displayOptions.displayTime = GUILayout.Toggle(displayOptions.displayTime, "Time", EditorStyles.toolbarButton);
+			if(EditorGUI.EndChangeCheck()) {
+				ScrollToBottom();
+			}
+
+			EditorGUI.BeginChangeCheck();
+			displayOptions.displayChoicesInLog = GUILayout.Toggle(displayOptions.displayChoicesInLog, "Choices", EditorStyles.toolbarButton);
+			if(EditorGUI.EndChangeCheck()) {
+				ScrollToBottom();
+			}
+			EditorGUI.BeginChangeCheck();
+			displayOptions.displayDebugNotesInLog = GUILayout.Toggle(displayOptions.displayDebugNotesInLog, "Debug", EditorStyles.toolbarButton);
+			if(EditorGUI.EndChangeCheck()) {
+				ScrollToBottom();
+			}
+			EditorGUILayout.EndHorizontal();
+			if(showingContentPanel)
+				DisplayStoryBody ();
+		}
+
+		void DisplayStoryBody () {
 			GUILayout.BeginVertical();
 			
 			contentScrollPosition = EditorGUILayout.BeginScrollView(contentScrollPosition);
 			
 			foreach(InkPlayerHistoryContentItem content in storyHistory) {
-				if(content.isChoice) {
-					if(displayChoicesInLog)
-						DisplayLine(" > "+content.content);
-				} else {
-					DisplayLine(content.content);
+				if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryContent) {
+					DisplayContent(content);
+				} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryChoice && displayOptions.displayChoicesInLog) {
+					DisplayContent(content);
+				} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.DebugNote && displayOptions.displayDebugNotesInLog) {
+					DisplayContent(content);
 				}
 			}
 			EditorGUILayout.EndScrollView();
 			GUILayout.EndVertical();
 		}
 
+		void DisplayContent(InkPlayerHistoryContentItem content)  {
+			string s = String.Empty;
+			if(displayOptions.displayTime) 
+				s = "("+content.time.ToLongTimeString()+") ";
+			if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryChoice && displayOptions.displayChoicesInLog) {
+				s += " > ";
+			} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.DebugNote && displayOptions.displayDebugNotesInLog) {
+				s += " // ";
+			}
+			s += content.content;
+			DisplayLine(s);
+			
+		}
 		void DisplayLine (string content) {
 			float width = position.width-28;
 			float height = EditorStyles.wordWrappedLabel.CalcHeight(new GUIContent(content), width);
 			EditorGUILayout.SelectableLabel(content, EditorStyles.wordWrappedLabel, GUILayout.ExpandHeight(true), GUILayout.Width(width), GUILayout.Height(height));
 		}
-		
+
+		void DrawChoices () {
+			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+			showingChoicesPanel = EditorGUILayout.Foldout(showingChoicesPanel, "Choices");
+			EditorGUILayout.EndHorizontal();
+			if(showingChoicesPanel)
+				DisplayChoices ();
+		}
+
 		void DisplayChoices () {
 			GUILayout.BeginVertical();
 			
@@ -344,10 +445,7 @@ namespace Ink.UnityIntegration {
 			} else if(story.currentChoices.Count > 0) {
 				foreach(Choice choice in story.currentChoices) {
 					if(GUILayout.Button(choice.text.Trim())) {
-						storyHistory.Add(new InkPlayerHistoryContentItem(choice.text.Trim(), true));
-						story.ChooseChoiceIndex(choice.index);
-						AddToHistory();
-						TryContinue();
+						MakeChoice(choice);
 					}
 				}
 			} else {
@@ -357,7 +455,26 @@ namespace Ink.UnityIntegration {
 			GUILayout.EndVertical();
 		}
 
-		void DisplaySaveLoad () {
+		void MakeRandomChoice () {
+			MakeChoice(story.currentChoices[UnityEngine.Random.Range(0, story.currentChoices.Count)]);
+		}
+
+		void MakeChoice (Choice choice) {
+			storyHistory.Add(new InkPlayerHistoryContentItem(choice.text.Trim(), InkPlayerHistoryContentItem.ContentType.StoryChoice));
+			story.ChooseChoiceIndex(choice.index);
+			AddToHistory();
+			TryContinue();
+		}
+
+		void DrawSaveLoad () {
+			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+			showingSaveLoadPanel = EditorGUILayout.Foldout(showingSaveLoadPanel, "Story State");
+			EditorGUILayout.EndHorizontal();
+			if(showingSaveLoadPanel)
+				DrawSaveLoadPanel ();
+		}
+
+		void DrawSaveLoadPanel () {
 			GUILayout.BeginVertical();
 
 			EditorGUILayout.BeginHorizontal();
@@ -388,57 +505,87 @@ namespace Ink.UnityIntegration {
 			GUILayout.EndVertical();
 		}
 
-		void DisplayDiverts () {
+		void DrawDiverts () {
+			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+			showingDivertsPanel = EditorGUILayout.Foldout(showingDivertsPanel, "Diverts");
+			EditorGUILayout.EndHorizontal();
+			if(showingDivertsPanel)
+				DrawDivertsPanel ();
+		}
+
+		void DrawDivertsPanel () {
 			GUILayout.BeginVertical();
 			GUILayout.BeginHorizontal();
-			divertCommand = EditorGUILayout.TextField("Divert command", divertCommand);
-			EditorGUI.BeginDisabledGroup(divertCommand == "");
+			divertPanelState.divertCommand = EditorGUILayout.TextField("Divert command", divertPanelState.divertCommand);
+			EditorGUI.BeginDisabledGroup(divertPanelState.divertCommand == "");
 			if (GUILayout.Button("Divert")) {
-				story.ChoosePathString(divertCommand);
-				TryContinue();
+				storyHistory.Add(new InkPlayerHistoryContentItem("Diverted to '"+divertPanelState.divertCommand+"'", InkPlayerHistoryContentItem.ContentType.DebugNote));
+				story.ChoosePathString(divertPanelState.divertCommand);
+				PingAutomator();
 			}
 			EditorGUI.EndDisabledGroup();
 			GUILayout.EndHorizontal();
 			GUILayout.EndVertical();
 		}
 
-		void DisplayFunctions () {
+		void DrawFunctions () {
+			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+			showingFunctionsPanel = EditorGUILayout.Foldout(showingFunctionsPanel, "Functions");
+			EditorGUILayout.EndHorizontal();
+			if(showingFunctionsPanel)
+				DrawFunctionsPanel ();
+		}
+
+		void DrawFunctionsPanel () {
 			GUILayout.BeginVertical();
+
 			GUILayout.BeginHorizontal();
 			EditorGUI.BeginChangeCheck();
-			functionName = EditorGUILayout.TextField("Function", functionName);
+			functionPanelState.functionName = EditorGUILayout.TextField("Function", functionPanelState.functionName);
 			if(EditorGUI.EndChangeCheck()) {
-				testedFunctionName = null;
-				functionReturnValue = null;
+				functionPanelState.testedFunctionName = null;
+				functionPanelState.functionReturnValue = null;
 			}
-			bool functionIsValid = functionName != "" && story.HasFunction(functionName);
+
+			bool functionIsValid = functionPanelState.functionName != String.Empty && story.HasFunction(functionPanelState.functionName);
 			EditorGUI.BeginDisabledGroup(!functionIsValid);
 			if (GUILayout.Button("Execute")) {
+				storyHistory.Add(new InkPlayerHistoryContentItem("Execute function '"+functionPanelState.functionName+"'", InkPlayerHistoryContentItem.ContentType.DebugNote));
 				string outputContent = null;
-				functionReturnValue = story.EvaluateFunction(functionName, out outputContent);
+				functionPanelState.functionReturnValue = story.EvaluateFunction(functionPanelState.functionName, out outputContent);
 				if(outputContent != null)
 					AddContent(outputContent);
-				testedFunctionName = functionName;
+				functionPanelState.testedFunctionName = functionPanelState.functionName;
 			}
-			GUILayout.EndHorizontal();
 			EditorGUI.EndDisabledGroup();
+			GUILayout.EndHorizontal();
 
-			if(functionIsValid && functionName == testedFunctionName) {
-				if(functionReturnValue == null) {
+			if(functionIsValid && functionPanelState.functionName == functionPanelState.testedFunctionName) {
+				if(functionPanelState.functionReturnValue == null) {
 					EditorGUILayout.LabelField("Output (Null)");
-				} else if(functionReturnValue is string) {
-					EditorGUILayout.TextField("Output (String)", (string)functionReturnValue);
-				} else if(functionReturnValue is float) {
-					EditorGUILayout.FloatField("Output (Float)", (float)functionReturnValue);
-				} else if(functionReturnValue is int) {
-					EditorGUILayout.IntField("Output (Int)", (int)functionReturnValue);
+				} else if(functionPanelState.functionReturnValue is string) {
+					EditorGUILayout.TextField("Output (String)", (string)functionPanelState.functionReturnValue);
+				} else if(functionPanelState.functionReturnValue is float) {
+					EditorGUILayout.FloatField("Output (Float)", (float)functionPanelState.functionReturnValue);
+				} else if(functionPanelState.functionReturnValue is int) {
+					EditorGUILayout.IntField("Output (Int)", (int)functionPanelState.functionReturnValue);
 				}
 			}
 
 			GUILayout.EndVertical();
 		}
 
-		void DisplayVariables () {
+		void DrawVariables () {
+			if(InkEditorUtils.StoryContainsVariables(story)) {
+				EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+				showingVariablesPanel = EditorGUILayout.Foldout(showingVariablesPanel, "Variables");
+				EditorGUILayout.EndHorizontal();
+				if(showingVariablesPanel)
+					DrawVariablesPanel ();
+			}
+		}
+
+		void DrawVariablesPanel () {
 			GUILayout.BeginVertical(GUI.skin.box, GUILayout.MaxHeight(80));
 			variablesScrollPosition = EditorGUILayout.BeginScrollView(variablesScrollPosition);
 
@@ -460,6 +607,7 @@ namespace Ink.UnityIntegration {
 				}
 			}
 			if(variableToChange != null) {
+				storyHistory.Add(new InkPlayerHistoryContentItem("Change '"+variableToChange+"' from '"+story.variablesState[variableToChange]+"' to '"+newVariableValue+"'", InkPlayerHistoryContentItem.ContentType.DebugNote));
 				story.variablesState[variableToChange] = newVariableValue;
 				variableToChange = null;
 				newVariableValue = null;
@@ -578,12 +726,20 @@ namespace Ink.UnityIntegration {
 	}
 
 	public class InkPlayerHistoryContentItem {
-		public string content;
-		public bool isChoice = false;
+		public enum ContentType {
+			StoryContent,
+			StoryChoice,
+			DebugNote
+		}
 
-		public InkPlayerHistoryContentItem (string text, bool isChoice = false) {
+		public string content;
+		public ContentType contentType;
+		public DateTime time;
+
+		public InkPlayerHistoryContentItem (string text, ContentType contentType) {
 			this.content = text;
-			this.isChoice = isChoice;
+			this.contentType = contentType;
+			time = DateTime.Now;
 		}
 	}
 }
