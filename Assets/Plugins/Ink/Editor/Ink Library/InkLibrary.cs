@@ -17,13 +17,7 @@ namespace Ink.UnityIntegration {
 	public class InkLibrary : ScriptableObject {
 		public static bool created {
 			get {
-				InkLibrary tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(defaultPath);
-				if(tmpSettings != null) 
-					return true;
-				string[] GUIDs = AssetDatabase.FindAssets("t:"+typeof(InkLibrary).Name);
-				if(GUIDs.Length > 0)
-					return true;
-				return false;
+				return FindLibrary() != null;
 			}
 		}
 		private static InkLibrary _Instance;
@@ -35,6 +29,7 @@ namespace Ink.UnityIntegration {
 			}
 		}
 		public const string defaultPath = "Assets/InkLibrary.asset";
+		public const string pathPlayerPrefsKey = "InkLibraryAssetPath";
 
 		public bool compileAutomatically = true;
 		public bool handleJSONFilesAutomatically = true;
@@ -62,21 +57,28 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		private static InkLibrary FindOrCreateLibrary () {
-			InkLibrary tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(defaultPath);
-			if(tmpSettings == null) {
-				string[] GUIDs = AssetDatabase.FindAssets("t:"+typeof(InkLibrary).Name);
-				if(GUIDs.Length > 0) {
-					string path = AssetDatabase.GUIDToAssetPath(GUIDs[0]);
-					tmpSettings = AssetDatabase.LoadAssetAtPath<InkLibrary>(path);
-					if(GUIDs.Length > 1) {
-						for(int i = 1; i < GUIDs.Length; i++) {
-							AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(GUIDs[i]));
-						}
-						Debug.LogWarning("More than one InkLibrary was found. Deleted excess libraries.");
-					}
-				}
+		private static InkLibrary FindLibrary () {
+			if(EditorPrefs.HasKey(pathPlayerPrefsKey)) {
+				return AssetDatabase.LoadAssetAtPath<InkLibrary>(EditorPrefs.GetString(pathPlayerPrefsKey));
 			}
+
+			string[] GUIDs = AssetDatabase.FindAssets("t:"+typeof(InkLibrary).Name);
+			if(GUIDs.Length > 0) {
+				if(GUIDs.Length > 1) {
+					for(int i = 1; i < GUIDs.Length; i++) {
+						AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(GUIDs[i]));
+					}
+					Debug.LogWarning("More than one InkLibrary was found. Deleted excess libraries.");
+				}
+				string path = AssetDatabase.GUIDToAssetPath(GUIDs[0]);
+				EditorPrefs.SetString(pathPlayerPrefsKey, path);
+				return AssetDatabase.LoadAssetAtPath<InkLibrary>(path);
+			}
+			return null;
+		}
+
+		private static InkLibrary FindOrCreateLibrary () {
+			InkLibrary tmpSettings = FindLibrary();
 			// If we couldn't find the asset in the project, create a new one.
 			if(tmpSettings == null) {
 				tmpSettings = CreateInkLibrary ();
@@ -91,6 +93,7 @@ namespace Ink.UnityIntegration {
 			AssetDatabase.CreateAsset (asset, defaultPath);
 			AssetDatabase.SaveAssets ();
 			AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(asset));
+			EditorPrefs.SetString(pathPlayerPrefsKey, defaultPath);
 			return asset;
 		}
 

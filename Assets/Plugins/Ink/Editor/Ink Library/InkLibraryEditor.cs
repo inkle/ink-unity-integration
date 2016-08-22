@@ -47,6 +47,10 @@ namespace Ink.UnityIntegration {
 		
 		public override void OnInspectorGUI() {
 			serializedObject.Update();
+			EditorGUILayout.HelpBox("This file stores references to the ink files in your project and performs other tasks. It is a core part of the Ink Integration package.\nDeleting this file will cause a new instance of it to be created in the project root.", MessageType.Info);
+			if (GUILayout.Button(new GUIContent("Recompile All", "Rebuilds the ink library and recompiles all files. Do this if you're getting unusual errors."))) {
+				InkCompiler.RecompileAll();
+			}
 			data.compileAutomatically = EditorGUILayout.Toggle(new GUIContent("Compile Ink Automatically", "When disabled, automatic compilation can be enabled on a per-story basis via the inspector for a master story file."), data.compileAutomatically);
 			data.handleJSONFilesAutomatically = EditorGUILayout.Toggle(new GUIContent("Handle JSON Automatically", "Whether JSON files are moved, renamed and deleted along with their ink files."), data.handleJSONFilesAutomatically);
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("customInklecateName"));

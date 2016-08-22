@@ -314,5 +314,9 @@ namespace Ink.UnityIntegration {
 	        List<string> _includeFilenames;
 	        string _text;
 	    }
+		public override string ToString () {
+			return string.Format ("[InkFile: filePath={0}]", filePath);
+		} 
 	}
+
 }

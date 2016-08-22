@@ -100,24 +100,24 @@ namespace Ink.UnityIntegration {
 	    }
 
 	    static void OnDrawProjectWindowItem(string guid, Rect rect) {
-	    	if(!InkLibrary.created)
-	    		return;
-	        var path = AssetDatabase.GUIDToAssetPath(guid);
+	        string path = AssetDatabase.GUIDToAssetPath(guid);
+			if (Path.GetExtension(path) == InkEditorUtils.inkFileExtension && InkLibrary.created) {
+				DefaultAsset asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(path);
+				DrawInkFile(InkLibrary.GetInkFileWithFile(asset), rect);
+			}
+	    }
 
-			if (Path.GetExtension(path) == InkEditorUtils.inkFileExtension) {
-				InkFile inkFile = InkLibrary.GetInkFileWithPath(path);
-
-				var isSmall = rect.width > rect.height;
-				if (isSmall) {
-					rect.width = rect.height;
-				} else {
-					rect.height = rect.width;
-				}
-				if (rect.width >= largeIconSize) {
-					DrawLarge(inkFile, rect);
-				} else {
-					DrawSmall(inkFile, rect);
-				}
+		static void DrawInkFile (InkFile inkFile, Rect rect) {
+			bool isSmall = rect.width > rect.height;
+			if (isSmall) {
+				rect.width = rect.height;
+			} else {
+				rect.height = rect.width;
+			}
+			if (rect.width >= largeIconSize) {
+				DrawLarge(inkFile, rect);
+			} else {
+				DrawSmall(inkFile, rect);
 			}
 	    }
 
