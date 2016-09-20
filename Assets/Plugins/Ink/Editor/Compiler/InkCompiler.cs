@@ -109,7 +109,7 @@ namespace Ink.UnityIntegration {
 				Debug.LogError("Due to a Unity bug, Inklecate path cannot contain an apostrophe. Ink will not compile until this is resolved. Path is '"+inklecatePath+"'");
 				return;
 			} else if(inklecatePath.Contains(" ")){
-				Debug.LogWarning("Inklecate path should not contain a space. This might lead to compilation failing. Path is '"+inklecatePath+"'");
+				Debug.LogWarning("Inklecate path should not contain a space. This might lead to compilation failing. Path is '"+inklecatePath+"'. If you don't see any compilation errors, you can ignore this warning.");
 			}
 			string inputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileName(inkFile.filePath));
 			string outputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileNameWithoutExtension(Path.GetFileName(inkFile.filePath))) + ".json";

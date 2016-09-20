@@ -17,7 +17,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the state save file JSON-based format.
         /// </summary>
-        public const int kInkSaveStateVersion = 4;
+        public const int kInkSaveStateVersion = 5;
         const int kMinCompatibleLoadVersion = 4;
 
         /// <summary>
@@ -72,7 +72,8 @@ namespace Ink.Runtime
         internal Dictionary<string, int> visitCounts { get; private set; }
         internal Dictionary<string, int> turnIndices { get; private set; }
         internal int currentTurnIndex { get; private set; }
-        internal int storySeed { get; private set; }
+        internal int storySeed { get; set; }
+        internal int previousRandom { get; set; }
         internal bool didSafeExit { get; set; }
 
         internal Story story { get; set; }
@@ -167,6 +168,7 @@ namespace Ink.Runtime
             // Seed the shuffle random numbers
             int timeSeed = DateTime.Now.Millisecond;
             storySeed = (new Random (timeSeed)).Next () % 100;
+            previousRandom = 0;
 
             currentChoices = new List<Choice> ();
 
@@ -198,8 +200,6 @@ namespace Ink.Runtime
 
             copy.callStack = new CallStack (callStack);
 
-            copy._currentRightGlue = _currentRightGlue;
-
             copy.variablesState = new VariablesState (copy.callStack);
             copy.variablesState.CopyFrom (variablesState);
 
@@ -214,6 +214,7 @@ namespace Ink.Runtime
             copy.turnIndices = new Dictionary<string, int> (turnIndices);
             copy.currentTurnIndex = currentTurnIndex;
             copy.storySeed = storySeed;
+            copy.previousRandom = previousRandom;
 
             copy.didSafeExit = didSafeExit;
 
@@ -257,13 +258,6 @@ namespace Ink.Runtime
 
                 obj ["currentChoices"] = Json.ListToJArray (currentChoices);
 
-				if (_currentRightGlue) {
-					int rightGluePos = _outputStream.IndexOf (_currentRightGlue);
-					if( rightGluePos != -1 ) {
-						obj ["currRightGlue"] = _outputStream.IndexOf (_currentRightGlue);
-					}
-				}
-
                 if( divertedTargetObject != null )
                     obj ["currentDivertTarget"] = divertedTargetObject.path.componentsString;
 
@@ -271,6 +265,7 @@ namespace Ink.Runtime
                 obj ["turnIndices"] = Json.IntDictionaryToJObject (turnIndices);
                 obj ["turnIdx"] = currentTurnIndex;
                 obj ["storySeed"] = storySeed;
+                obj ["previousRandom"] = previousRandom;
 
                 obj ["inkSaveVersion"] = kInkSaveStateVersion;
 
@@ -300,14 +295,6 @@ namespace Ink.Runtime
 
                 currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
 
-                object propValue;
-                if( jObject.TryGetValue("currRightGlue", out propValue ) ) {
-                    int gluePos = (int)propValue;
-					if( gluePos >= 0 ) {
-						_currentRightGlue = _outputStream [gluePos] as Glue;
-					}
-                }
-
 				object currentDivertTargetPath;
 				if (jObject.TryGetValue("currentDivertTarget", out currentDivertTargetPath)) {
                     var divertPath = new Path (currentDivertTargetPath.ToString ());
@@ -318,6 +305,7 @@ namespace Ink.Runtime
                 turnIndices = Json.JObjectToIntDictionary ((Dictionary<string, object>)jObject ["turnIndices"]);
                 currentTurnIndex = (int)jObject ["turnIdx"];
                 storySeed = (int)jObject ["storySeed"];
+                previousRandom = (int)jObject ["previousRandom"];
 
 				object jChoiceThreadsObj = null;
 				jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);
@@ -458,12 +446,10 @@ namespace Ink.Runtime
             bool includeInOutput = true;
 
             if (glue) {
-                
+
                 // Found matching left-glue for right-glue? Close it.
-                bool foundMatchingLeftGlue = glue.isLeft && _currentRightGlue && glue.parent == _currentRightGlue.parent;
-                if (foundMatchingLeftGlue) {
-                    _currentRightGlue = null;
-                }
+                var existingRightGlue = currentRightGlue;
+                bool foundMatchingLeftGlue = glue.isLeft && existingRightGlue && glue.parent == existingRightGlue.parent;
 
                 // Left/Right glue is auto-generated for inline expressions 
                 // where we want to absorb newlines but only in a certain direction.
@@ -472,13 +458,7 @@ namespace Ink.Runtime
                     TrimNewlinesFromOutputStream(stopAndRemoveRightGlue:foundMatchingLeftGlue);
                 }
 
-                // New right-glue
-                bool isNewRightGlue = glue.isRight && _currentRightGlue == null;
-                if (isNewRightGlue) {
-                    _currentRightGlue = glue;
-                }
-
-                includeInOutput = glue.isBi || isNewRightGlue;
+                includeInOutput = glue.isBi || glue.isRight;
             }
 
             else if( text ) {
@@ -496,7 +476,6 @@ namespace Ink.Runtime
                     // Able to completely reset when 
                     else if (text.isNonWhitespace) {
                         RemoveExistingGlue ();
-                        _currentRightGlue = null;
                     }
                 } else if (text.isNewline) {
                     if (outputStreamEndsInNewline || !outputStreamContainsContent)
@@ -598,6 +577,20 @@ namespace Ink.Runtime
             }
         }
 
+        Runtime.Glue currentRightGlue {
+            get {
+                for (int i = _outputStream.Count - 1; i >= 0; i--) {
+                    var c = _outputStream [i];
+                    var glue = c as Glue;
+                    if (glue && glue.isRight)
+                        return glue;
+                    else if (c is ControlCommand) // e.g. BeginString
+                        break;
+                }
+                return null;
+            }
+        }
+
         internal bool outputStreamEndsInNewline {
             get {
                 if (_outputStream.Count > 0) {
@@ -672,7 +665,7 @@ namespace Ink.Runtime
         }
 
 
-        internal void ForceEndFlow()
+        public void ForceEnd()
         {
             currentContentObject = null;
 
@@ -683,6 +676,8 @@ namespace Ink.Runtime
                 callStack.Pop ();
 
             currentChoices.Clear();
+
+            previousContentObject = null;
 
             didSafeExit = true;
         }
@@ -713,7 +708,6 @@ namespace Ink.Runtime
         // REMEMBER! REMEMBER! REMEMBER!
             
         List<Runtime.Object> _outputStream;
-        Runtime.Glue _currentRightGlue;
     }
 }
 
