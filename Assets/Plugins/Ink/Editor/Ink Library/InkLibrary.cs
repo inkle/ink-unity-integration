@@ -31,6 +31,15 @@ namespace Ink.UnityIntegration {
 		public const string defaultPath = "Assets/InkLibrary.asset";
 		public const string pathPlayerPrefsKey = "InkLibraryAssetPath";
 
+		public const string defaultTemplateFileLocation = "Assets/Plugins/Ink/Template/Template.txt";
+		public TextAsset templateFile;
+		public string templateFilePath {
+			get {
+				if(templateFile == null) return "";
+				else return AssetDatabase.GetAssetPath(templateFile);
+			}
+		}
+
 		public bool compileAutomatically = true;
 		public bool handleJSONFilesAutomatically = true;
 
@@ -95,6 +104,7 @@ namespace Ink.UnityIntegration {
 			AssetDatabase.SaveAssets ();
 			AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(asset));
 			EditorPrefs.SetString(pathPlayerPrefsKey, defaultPath);
+			asset.templateFile = AssetDatabase.LoadAssetAtPath<TextAsset>(defaultTemplateFileLocation);
 			return asset;
 		}
 
@@ -118,7 +128,7 @@ namespace Ink.UnityIntegration {
 			for (int i = 0; i < inkFilePaths.Length; i++) {
 				InkFile inkFile = GetInkFileWithAbsolutePath(inkFilePaths [i]);
 				if(inkFile == null) {
-					string localAssetPath = inkFilePaths [i].Substring(Application.dataPath.Length-6);
+					string localAssetPath = InkEditorUtils.AbsoluteToUnityRelativePath(inkFilePaths [i]);
 					DefaultAsset inkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localAssetPath);
 					// If the ink file can't be found, it might not yet have been imported. We try to manually import it to fix this.
 					if(inkFileAsset == null) {

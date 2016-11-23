@@ -2,10 +2,10 @@
 using UnityEditor;
 using System.Collections;
 
-public class CleanProject {
+public static class CleanProject {
 
 	[MenuItem("Publishing/Clean")]
-	public void Clean () {
+	public static void Clean () {
 		Debug.Log("TODO - Destroy the Ink library");
 		Debug.Log("TODO - Make sure ink is up to date");
 		Debug.Log("TODO - Make sure the readme is up To date");

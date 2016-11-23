@@ -27,7 +27,7 @@ namespace Ink.UnityIntegration {
 				text = streamReader.ReadToEnd();
 				streamReader.Close();
 			} else {
-				Debug.LogWarning("Could not find .ink template file at expected path "+templateFilePath+". New file will be empty.");
+				Debug.LogWarning("Could not find .ink template file at expected path '"+templateFilePath+"'. New file will be empty.");
 			}
 			UTF8Encoding encoding = new UTF8Encoding(true, false);
 			bool append = false;
@@ -41,16 +41,15 @@ namespace Ink.UnityIntegration {
 
 	public static class InkEditorUtils {
 		public const string inkFileExtension = ".ink";
-		private const string templateFileLocation = "Assets/Plugins/Ink/Template/Template.txt";
 
 		[MenuItem("Assets/Create/Ink", false, 120)]
 		public static void CreateNewInkFile () {
 			string fileName = "New Ink.ink";
 			string filePath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(GetSelectedPathOrFallback(), fileName));
-			CreateNewInkFile(filePath);
+			CreateNewInkFile(filePath, InkLibrary.Instance.templateFilePath);
 		}
 
-		public static void CreateNewInkFile (string filePath) {
+		public static void CreateNewInkFile (string filePath, string templateFileLocation) {
 			ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<CreateInkAssetAction>(), filePath, InkBrowserIcons.inkFileIcon, templateFileLocation);
 		}
 
@@ -86,8 +85,9 @@ namespace Ink.UnityIntegration {
 			using (StreamWriter outfile = new StreamWriter(fullPathName)) {
 				outfile.Write(jsonStoryState);
 			}
-			AssetDatabase.ImportAsset(fullPathName.Substring(Application.dataPath.Length-6));
-			TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(fullPathName.Substring(Application.dataPath.Length-6));
+			string relativePath = AbsoluteToUnityRelativePath(fullPathName);
+			AssetDatabase.ImportAsset(relativePath);
+			TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(relativePath);
 			return textAsset;
 		}
 
@@ -184,6 +184,10 @@ namespace Ink.UnityIntegration {
 		// equality checks on path strings return equalities as expected.
 		public static string CombinePaths(string firstPath, string secondPath) {
 			return SanitizePathString(Path.Combine(firstPath, secondPath));
+		}
+
+		public static string AbsoluteToUnityRelativePath(string fullPath) {
+			return SanitizePathString(fullPath.Substring(Application.dataPath.Length-6));
 		}
 	}
 }

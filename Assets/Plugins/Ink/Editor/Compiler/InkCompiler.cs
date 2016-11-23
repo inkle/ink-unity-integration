@@ -203,7 +203,7 @@ namespace Ink.UnityIntegration {
 						listOfFiles += " (With error)";
 						errorsFound = true;
 					} else {
-						string localJSONAssetPath = compilingFile.jsonAbsoluteFilePath.Substring (Application.dataPath.Length - 6);
+						string localJSONAssetPath = InkEditorUtils.AbsoluteToUnityRelativePath(compilingFile.jsonAbsoluteFilePath);
 						AssetDatabase.ImportAsset (localJSONAssetPath);
 						compilingFile.inkFile.jsonAsset = AssetDatabase.LoadAssetAtPath<TextAsset> (localJSONAssetPath);
 					}
