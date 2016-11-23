@@ -147,6 +147,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		static void DrawSmall (InkFile inkFile, Rect rect) {
+			rect.x += 3;
 			if(inkFileIcon != null)
 				GUI.DrawTexture(rect, inkFileIcon);
 
