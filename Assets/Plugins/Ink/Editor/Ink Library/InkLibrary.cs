@@ -59,7 +59,8 @@ namespace Ink.UnityIntegration {
 
 		private static InkLibrary FindLibrary () {
 			if(EditorPrefs.HasKey(pathPlayerPrefsKey)) {
-				return AssetDatabase.LoadAssetAtPath<InkLibrary>(EditorPrefs.GetString(pathPlayerPrefsKey));
+				InkLibrary tmpLibrary = AssetDatabase.LoadAssetAtPath<InkLibrary>(EditorPrefs.GetString(pathPlayerPrefsKey));
+				if(tmpLibrary != null) return tmpLibrary;
 			}
 
 			string[] GUIDs = AssetDatabase.FindAssets("t:"+typeof(InkLibrary).Name);
