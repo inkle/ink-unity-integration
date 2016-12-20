@@ -63,7 +63,20 @@ namespace Ink.Runtime
         // REMEMBER! REMEMBER! REMEMBER!
 
         internal List<Runtime.Object> outputStream { get { return _outputStream; } }
-        internal List<Choice> currentChoices { get; private set; }
+		internal List<Choice> currentChoices { 
+			get { 
+				// If we can continue generating text content rather than choices,
+				// then we reflect the choice list as being empty, since choices
+				// should always come at the end.
+				if( canContinue ) return new List<Choice>();
+				return _currentChoices;
+			} 
+		}
+		internal List<Choice> generatedChoices {
+			get {
+				return _currentChoices;
+			}
+		}
         internal List<string> currentErrors { get; private set; }
         internal VariablesState variablesState { get; private set; }
         internal CallStack callStack { get; set; }
@@ -116,6 +129,12 @@ namespace Ink.Runtime
                 callStack.currentThread.previousContentObject = value;
             }
         }
+
+		internal bool canContinue {
+			get {
+				return currentContentObject != null && !hasError;
+			}
+		}
             
         internal bool hasError
         {
@@ -128,35 +147,47 @@ namespace Ink.Runtime
         {
             get 
             {
-                var sb = new StringBuilder ();
+				if( _outputStreamTextDirty ) {
+					var sb = new StringBuilder ();
 
-                foreach (var outputObj in _outputStream) {
-                    var textContent = outputObj as StringValue;
-                    if (textContent != null) {
-                        sb.Append(textContent.value);
-                    }
-                }
+					foreach (var outputObj in _outputStream) {
+						var textContent = outputObj as StringValue;
+						if (textContent != null) {
+							sb.Append(textContent.value);
+						}
+					}
 
-                return sb.ToString ();
+					_currentText = sb.ToString ();
+
+					_outputStreamTextDirty = false;
+				}
+
+				return _currentText;
             }
         }
+		string _currentText;
 
         internal List<string> currentTags 
         {
             get 
             {
-                List<string> tags = new List<string>();
+				if( _outputStreamTagsDirty ) {
+					_currentTags = new List<string>();
 
-                foreach (var outputObj in _outputStream) {
-                    var tag = outputObj as Tag;
-                    if (tag != null) {
-                        tags.Add (tag.text);
-                    }
-                }
+					foreach (var outputObj in _outputStream) {
+						var tag = outputObj as Tag;
+						if (tag != null) {
+							_currentTags.Add (tag.text);
+						}
+					}
 
-                return tags;
+					_outputStreamTagsDirty = false;
+				}
+
+				return _currentTags;
             }
         }
+		List<string> _currentTags;
 
         internal bool inExpressionEvaluation {
             get {
@@ -172,6 +203,7 @@ namespace Ink.Runtime
             this.story = story;
 
             _outputStream = new List<Runtime.Object> ();
+			OutputStreamDirty();
 
             evaluationStack = new List<Runtime.Object> ();
 
@@ -187,7 +219,7 @@ namespace Ink.Runtime
             storySeed = (new Random (timeSeed)).Next () % 100;
             previousRandom = 0;
 
-            currentChoices = new List<Choice> ();
+			_currentChoices = new List<Choice> ();
 
             GoToStart();
         }
@@ -208,7 +240,9 @@ namespace Ink.Runtime
             var copy = new StoryState(story);
 
             copy.outputStream.AddRange(_outputStream);
-            copy.currentChoices.AddRange(currentChoices);
+			OutputStreamDirty();
+
+			copy._currentChoices.AddRange(_currentChoices);
 
             if (hasError) {
                 copy.currentErrors = new List<string> ();
@@ -251,7 +285,7 @@ namespace Ink.Runtime
 				var obj = new Dictionary<string, object> ();
 
 				Dictionary<string, object> choiceThreads = null;
-                foreach (Choice c in currentChoices) {
+				foreach (Choice c in _currentChoices) {
                     c.originalChoicePath = c.choicePoint.path.componentsString;
                     c.originalThreadIndex = c.threadAtGeneration.threadIndex;
 
@@ -273,7 +307,7 @@ namespace Ink.Runtime
 
                 obj ["outputStream"] = Json.ListToJArray (_outputStream);
 
-                obj ["currentChoices"] = Json.ListToJArray (currentChoices);
+				obj ["currentChoices"] = Json.ListToJArray (_currentChoices);
 
                 if( divertedTargetObject != null )
                     obj ["currentDivertTarget"] = divertedTargetObject.path.componentsString;
@@ -309,8 +343,9 @@ namespace Ink.Runtime
                 evaluationStack = Json.JArrayToRuntimeObjList ((List<object>)jObject ["evalStack"]);
 
                 _outputStream = Json.JArrayToRuntimeObjList ((List<object>)jObject ["outputStream"]);
+				OutputStreamDirty();
 
-                currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
+				_currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
 
 				object currentDivertTargetPath;
 				if (jObject.TryGetValue("currentDivertTarget", out currentDivertTargetPath)) {
@@ -328,7 +363,7 @@ namespace Ink.Runtime
 				jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);
 				var jChoiceThreads = (Dictionary<string, object>)jChoiceThreadsObj;
 
-				foreach (var c in currentChoices) {
+				foreach (var c in _currentChoices) {
 					c.choicePoint = (ChoicePoint) story.ContentAtPath (new Path (c.originalChoicePath));
 
 					var foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
@@ -351,6 +386,7 @@ namespace Ink.Runtime
         internal void ResetOutput()
         {
             _outputStream.Clear ();
+			OutputStreamDirty();
         }
 
         // Push to output stream, but split out newlines in text for consistency
@@ -369,6 +405,8 @@ namespace Ink.Runtime
             }
 
             PushToOutputStreamIndividual (obj);
+
+			OutputStreamDirty();
         }
 
 
@@ -504,6 +542,8 @@ namespace Ink.Runtime
             if (includeInOutput) {
                 _outputStream.Add (obj);
             }
+
+			OutputStreamDirty();
         }
 
         void TrimNewlinesFromOutputStream(Glue rightGlueToStopAt)
@@ -563,6 +603,8 @@ namespace Ink.Runtime
                     }
                 }
             }
+
+			OutputStreamDirty();
         }
 
         void TrimFromExistingGlue()
@@ -575,6 +617,8 @@ namespace Ink.Runtime
                 else
                     i++;
             }
+
+			OutputStreamDirty();
         }
 
 
@@ -589,6 +633,8 @@ namespace Ink.Runtime
                     break;
                 }
             }
+
+			OutputStreamDirty();
         }
 
         int currentGlueIndex {
@@ -697,14 +743,13 @@ namespace Ink.Runtime
 
         public void ForceEnd()
         {
-
             while (callStack.canPopThread)
                 callStack.PopThread ();
 
             while (callStack.canPop)
                 callStack.Pop ();
 
-            currentChoices.Clear();
+			_currentChoices.Clear();
 
             currentContentObject = null;
             previousContentObject = null;
@@ -716,7 +761,7 @@ namespace Ink.Runtime
         internal void SetChosenPath(Path path)
         {
             // Changing direction, assume we need to clear current set of choices
-            currentChoices.Clear ();
+			_currentChoices.Clear ();
 
             currentPath = path;
 
@@ -814,12 +859,21 @@ namespace Ink.Runtime
             currentErrors.Add (message);
         }
 
+		void OutputStreamDirty()
+		{
+			_outputStreamTextDirty = true;
+			_outputStreamTagsDirty = true;
+		}
+
         // REMEMBER! REMEMBER! REMEMBER!
         // When adding state, update the Copy method and serialisation
         // REMEMBER! REMEMBER! REMEMBER!
             
         List<Runtime.Object> _outputStream;
+		bool _outputStreamTextDirty = true;
+		bool _outputStreamTagsDirty = true;
 
+		List<Choice> _currentChoices;
 
         // Temporary state only, during externally called function evaluation
         bool _isExternalFunctionEvaluation;

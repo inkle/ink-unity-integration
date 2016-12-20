@@ -159,13 +159,33 @@ namespace Ink.UnityIntegration {
 			if( !(customInklecateName == null || customInklecateName.Length == 0) ) {
 				inklecateName = customInklecateName;
 			}
-
+				
 			string[] inklecateDirectories = Directory.GetFiles(Application.dataPath, inklecateName, SearchOption.AllDirectories);
-			if(inklecateDirectories.Length == 0) {
+			if(inklecateDirectories.Length == 0)
 				return null;
-			} else {
-				return Path.GetFullPath(inklecateDirectories[0]);
+
+			var inklecatePath = Path.GetFullPath(inklecateDirectories[0]);
+			var inklecateDirectoryPath = Path.GetDirectoryName(inklecatePath);
+
+			// Currently inklecate.exe is a proper asset? Change the folder so it's hidden from Unity.
+			if( !inklecateDirectoryPath.EndsWith("~") ) {
+				var newDirectoryPath = inklecateDirectoryPath+"~";
+				Directory.Move(inklecateDirectoryPath, newDirectoryPath);
+				inklecateDirectoryPath = newDirectoryPath;
+				inklecatePath = CombinePaths(inklecateDirectoryPath, inklecateName);
 			}
+
+			// Ensure that the runtime DLL exists with the right name. Before it's in a hidden Unity folder,
+			// we include it with the name ".temp" on the end, then rename it, so that there aren't duplicate
+			// symbols with the runtime source we include.
+			string[] tempRuntimeDLLs = Directory.GetFiles(inklecateDirectoryPath, "ink-engine-runtime.dll.temp");
+			if( tempRuntimeDLLs.Length > 0 ) {
+				var dllPath = tempRuntimeDLLs[0];
+				var newDLLPath = CombinePaths(inklecateDirectoryPath, Path.GetFileNameWithoutExtension(dllPath));
+				File.Move(dllPath, newDLLPath); 
+			}
+
+			return inklecatePath;
 		}
 		
 		// Returns a sanitized version of the supplied string by:
