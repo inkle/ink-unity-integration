@@ -153,6 +153,10 @@ namespace Ink.UnityIntegration {
 			#if UNITY_EDITOR_OSX
 			string inklecateName = "inklecate_mac";
 			#endif
+			// Experimental linux build
+			#if UNITY_EDITOR_LINUX
+			string inklecateName = "inklecate_win.exe";
+			#endif
 			#endif
 
 			string customInklecateName = InkLibrary.Instance.customInklecateName;
