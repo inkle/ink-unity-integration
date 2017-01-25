@@ -72,6 +72,12 @@ namespace Ink.UnityIntegration {
 					return InkLibrary.GetInkFileWithFile(master);
 			}
 		}
+		public InkFile masterInkFileIncludingSelf {
+			get {
+				return isMaster ? this : masterInkFile;
+			}
+		}
+
 		// Is this ink file a master file?
 		public bool isMaster {
 			get {
@@ -146,7 +152,6 @@ namespace Ink.UnityIntegration {
 
 		public bool requiresCompile {
 			get {
-				InkFile masterInkFileIncludingSelf = isMaster ? this : masterInkFile;
 				if(masterInkFileIncludingSelf.jsonAsset == null) 
 					return true;
 
@@ -171,7 +176,6 @@ namespace Ink.UnityIntegration {
 		/// <value>The last compile date of the story.</value>
 		public DateTime lastCompileDate {
 			get {
-				InkFile masterInkFileIncludingSelf = isMaster ? this : masterInkFile;
 				string fullJSONFilePath = InkEditorUtils.CombinePaths(Application.dataPath, AssetDatabase.GetAssetPath(masterInkFileIncludingSelf.jsonAsset).Substring(7));
 				return File.GetLastWriteTime(fullJSONFilePath);
 			}
