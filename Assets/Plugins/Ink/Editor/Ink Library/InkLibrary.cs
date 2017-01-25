@@ -51,7 +51,6 @@ namespace Ink.UnityIntegration {
 			public bool runInklecateWithMono;
 			public string additionalCompilerOptions;
 			public DefaultAsset inklecate;
-			public DefaultAsset inkEngineDLL;
 		}
 
 
