@@ -31,7 +31,6 @@ namespace Ink.UnityIntegration {
 		public const string defaultPath = "Assets/InkLibrary.asset";
 		public const string pathPlayerPrefsKey = "InkLibraryAssetPath";
 
-		public const string defaultTemplateFileLocation = "Assets/Plugins/Ink/Template/Template.txt";
 		public TextAsset templateFile;
 		public string templateFilePath {
 			get {
@@ -104,7 +103,7 @@ namespace Ink.UnityIntegration {
 			AssetDatabase.SaveAssets ();
 			AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(asset));
 			EditorPrefs.SetString(pathPlayerPrefsKey, defaultPath);
-			asset.templateFile = AssetDatabase.LoadAssetAtPath<TextAsset>(defaultTemplateFileLocation);
+			asset.templateFile = Resources.Load<TextAsset>("InkDefaultTemplate");
 			return asset;
 		}
 

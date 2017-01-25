@@ -114,14 +114,17 @@ namespace Ink.UnityIntegration {
 		public static InkPlayerWindow Attach (Story story) {
 			InkPlayerWindow window = GetWindow();
 			window.Clear();
+			window.playerOptions.continueAutomatically = false;
+			window.playerOptions.chooseAutomatically = false;
 			window.story = story;
 			window.attached = true;
 			return window;
 		}
 
-		private void Detach () {
-			attached = false;
-			story = null;
+		public static void Detach () {
+			InkPlayerWindow window = GetWindow();
+			window.attached = false;
+			window.story = null;
 		}
 
 		public static void LoadAndPlay (TextAsset storyJSONTextAsset) {
@@ -272,7 +275,7 @@ namespace Ink.UnityIntegration {
 				DisplayErrors();
 			}
 
-			if(story != null) {
+			if(story != null && story.state != null) {
 				DrawStory();
 				DrawChoices();
 				DrawSaveLoad();
@@ -432,7 +435,6 @@ namespace Ink.UnityIntegration {
 
 		void DisplayChoices () {
 			GUILayout.BeginVertical();
-			
 			if(story.canContinue) {
 				if(GUILayout.Button("Continue")) {
 					ContinueStory();

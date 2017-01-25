@@ -67,6 +67,15 @@ namespace Ink.UnityIntegration {
 				return _todoIcon;
 			}
 		}
+		private static Texture2D _manualIcon;
+		public static Texture2D manualIcon {
+			get {
+				if(_todoIcon == null) {
+					_todoIcon = Resources.Load<Texture2D>("InkCompileManualIcon");
+				}
+				return _todoIcon;
+			}
+		}
 		private static Texture2D _childIcon;
 		public static Texture2D childIcon {
 			get {

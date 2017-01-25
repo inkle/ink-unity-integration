@@ -213,5 +213,58 @@ namespace Ink.UnityIntegration {
 		public static string AbsoluteToUnityRelativePath(string fullPath) {
 			return SanitizePathString(fullPath.Substring(Application.dataPath.Length-6));
 		}
+
+		/// <summary>
+		/// Draws a property field for a story using GUILayout, allowing you to attach stories to the player window for debugging.
+		/// </summary>
+		/// <param name="story">Story.</param>
+		/// <param name="label">Label.</param>
+		public static void DrawStoryPropertyField (Story story, GUIContent label) {
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.PrefixLabel(label);
+			InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
+			if(EditorApplication.isPlaying && story != null/* && story.state != null*/) {
+				if(window.attached && window.story == story) {
+					if(GUILayout.Button("Detach")) {
+						InkPlayerWindow.Detach();
+					}
+				} else {
+					if(GUILayout.Button("Attach")) {
+						InkPlayerWindow.Attach(story);
+					}
+				}
+			} else {
+				EditorGUI.BeginDisabledGroup(true);
+				GUILayout.Button("Enter play mode to attach to editor");
+				EditorGUI.EndDisabledGroup();
+			}
+			EditorGUILayout.EndHorizontal();
+		}
+
+		/// <summary>
+		/// Draws a property field for a story using GUI, allowing you to attach stories to the player window for debugging.
+		/// </summary>
+		/// <param name="position">Position.</param>
+		/// <param name="story">Story.</param>
+		/// <param name="label">Label.</param>
+		public static void DrawStoryPropertyField (Rect position, Story story, GUIContent label) {
+			position = EditorGUI.PrefixLabel(position, label);
+			InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
+			if(EditorApplication.isPlaying && story != null/* && story.state != null*/) {
+				if(window.attached && window.story == story) {
+					if(GUI.Button(position, "Detach")) {
+						InkPlayerWindow.Detach();
+					}
+				} else {
+					if(GUI.Button(position, "Attach")) {
+						InkPlayerWindow.Attach(story);
+					}
+				}
+			} else {
+				EditorGUI.BeginDisabledGroup(true);
+				GUI.Button(position, "Enter play mode to attach to editor");
+				EditorGUI.EndDisabledGroup();
+			}
+		}
 	}
 }
