@@ -70,10 +70,10 @@ namespace Ink.UnityIntegration {
 		private static Texture2D _manualIcon;
 		public static Texture2D manualIcon {
 			get {
-				if(_todoIcon == null) {
-					_todoIcon = Resources.Load<Texture2D>("InkCompileManualIcon");
+				if(_manualIcon == null) {
+					_manualIcon = Resources.Load<Texture2D>("InkCompileManualIcon");
 				}
-				return _todoIcon;
+				return _manualIcon;
 			}
 		}
 		private static Texture2D _childIcon;
@@ -165,6 +165,9 @@ namespace Ink.UnityIntegration {
 					GUI.DrawTexture(new Rect(rect.x, rect.y, unknownFileIcon.width, unknownFileIcon.height), unknownFileIcon);
 				}
 			} else {
+				if(!InkLibrary.Instance.compileAutomatically && !inkFile.masterInkFileIncludingSelf.compileAutomatically)
+					GUI.DrawTexture(new Rect(rect.x, rect.y + rect.size.y * 0.5f, rect.size.x * 0.5f, rect.size.y * 0.5f), manualIcon);
+
 				Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
 				if(inkFile.hasErrors && errorIcon != null) {
 					GUI.DrawTexture(miniRect, errorIcon);
