@@ -141,55 +141,34 @@ namespace Ink.UnityIntegration {
 		}
 
 		public static string GetInklecateFilePath () {
-			#if UNITY_EDITOR
-			#if UNITY_EDITOR_WIN
-			string inklecateName = "inklecate_win.exe";
-			#endif
-			// Unfortunately inklecate's implementation uses newer features of C# that aren't
-			// available in the version of mono that ships with Unity, so we can't make use of
-			// it. This means that we need to compile the mono runtime directly into it, inflating
-			// the size of the executable quite dramatically :-( Hopefully we can improve that
-			// when Unity ships with a newer version.
-			#if UNITY_EDITOR_OSX
-			string inklecateName = "inklecate_mac";
-			#endif
-			// Experimental linux build
-			#if UNITY_EDITOR_LINUX
-			string inklecateName = "inklecate_win.exe";
-			#endif
-			#endif
-
-			string customInklecateName = InkLibrary.Instance.customInklecateName;
-			if( !(customInklecateName == null || customInklecateName.Length == 0) ) {
-				inklecateName = customInklecateName;
-			}
+			if(InkLibrary.Instance.customInklecateOptions.inklecate != null) {
+				return Path.GetFullPath(AssetDatabase.GetAssetPath(InkLibrary.Instance.customInklecateOptions.inklecate));
+			} else {
+				#if UNITY_EDITOR
+				#if UNITY_EDITOR_WIN
+				string inklecateName = "inklecate_win.exe";
+				#endif
+				// Unfortunately inklecate's implementation uses newer features of C# that aren't
+				// available in the version of mono that ships with Unity, so we can't make use of
+				// it. This means that we need to compile the mono runtime directly into it, inflating
+				// the size of the executable quite dramatically :-( Hopefully we can improve that
+				// when Unity ships with a newer version.
+				#if UNITY_EDITOR_OSX
+				string inklecateName = "inklecate_mac";
+				#endif
+				// Experimental linux build
+				#if UNITY_EDITOR_LINUX
+				string inklecateName = "inklecate_win.exe";
+				#endif
+				#endif
 				
-			string[] inklecateDirectories = Directory.GetFiles(Application.dataPath, inklecateName, SearchOption.AllDirectories);
-			if(inklecateDirectories.Length == 0)
-				return null;
+				string[] inklecateDirectories = Directory.GetFiles(Application.dataPath, inklecateName, SearchOption.AllDirectories);
+				if(inklecateDirectories.Length == 0)
+					return null;
+				Debug.Log(inklecateDirectories[0]+"   "+Path.GetFullPath(inklecateDirectories[0]));
 
-			var inklecatePath = Path.GetFullPath(inklecateDirectories[0]);
-			var inklecateDirectoryPath = Path.GetDirectoryName(inklecatePath);
-
-			// Currently inklecate.exe is a proper asset? Change the folder so it's hidden from Unity.
-			if( !inklecateDirectoryPath.EndsWith("~") ) {
-				var newDirectoryPath = inklecateDirectoryPath+"~";
-				Directory.Move(inklecateDirectoryPath, newDirectoryPath);
-				inklecateDirectoryPath = newDirectoryPath;
-				inklecatePath = CombinePaths(inklecateDirectoryPath, inklecateName);
+				return Path.GetFullPath(inklecateDirectories[0]);
 			}
-
-			// Ensure that the runtime DLL exists with the right name. Before it's in a hidden Unity folder,
-			// we include it with the name ".temp" on the end, then rename it, so that there aren't duplicate
-			// symbols with the runtime source we include.
-			string[] tempRuntimeDLLs = Directory.GetFiles(inklecateDirectoryPath, "ink-engine-runtime.dll.temp");
-			if( tempRuntimeDLLs.Length > 0 ) {
-				var dllPath = tempRuntimeDLLs[0];
-				var newDLLPath = CombinePaths(inklecateDirectoryPath, Path.GetFileNameWithoutExtension(dllPath));
-				File.Move(dllPath, newDLLPath); 
-			}
-
-			return inklecatePath;
 		}
 		
 		// Returns a sanitized version of the supplied string by:

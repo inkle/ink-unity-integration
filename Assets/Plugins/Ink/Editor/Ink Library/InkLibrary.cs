@@ -45,9 +45,15 @@ namespace Ink.UnityIntegration {
 		public List<InkFile> inkLibrary = new List<InkFile>();
 		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
 
-		public string customInklecateName;
-		public bool runInklecateWithMono;
-		public string additionalCompilerOptions;
+		public CustomInklecateOptions customInklecateOptions = new CustomInklecateOptions();
+		[System.Serializable]
+		public class CustomInklecateOptions {
+			public bool runInklecateWithMono;
+			public string additionalCompilerOptions;
+			public DefaultAsset inklecate;
+			public DefaultAsset inkEngineDLL;
+		}
+
 
 		[MenuItem("Edit/Project Settings/Ink", false, 500)]
 		public static void SelectFromProjectSettings() {

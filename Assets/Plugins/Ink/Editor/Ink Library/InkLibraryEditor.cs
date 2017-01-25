@@ -59,15 +59,16 @@ namespace Ink.UnityIntegration {
 
 			data.compileAutomatically = EditorGUILayout.Toggle(new GUIContent("Compile Ink Automatically", "When disabled, automatic compilation can be enabled on a per-story basis via the inspector for a master story file."), data.compileAutomatically);
 			data.handleJSONFilesAutomatically = EditorGUILayout.Toggle(new GUIContent("Handle JSON Automatically", "Whether JSON files are moved, renamed and deleted along with their ink files."), data.handleJSONFilesAutomatically);
-			EditorGUILayout.PropertyField(serializedObject.FindProperty("customInklecateName"));
-			EditorGUILayout.PropertyField(serializedObject.FindProperty("runInklecateWithMono"));
-			EditorGUILayout.PropertyField(serializedObject.FindProperty("additionalCompilerOptions"));
+
+			EditorGUILayout.PropertyField(serializedObject.FindProperty("customInklecateOptions"), new GUIContent("Custom Inklecate (Advanced)", "For games using a custom version of ink"), true);
 			debugLibrary = EditorGUILayout.Toggle(new GUIContent("Show Library (Debugging)", "Hidden by default, you can view the ink library for debugging purposes. Be wary if editing!"), debugLibrary);
 			if(debugLibrary) {
 //				base.OnInspectorGUI();
 				EditorGUILayout.PropertyField(serializedObject.FindProperty("inkLibrary"), true);
 				EditorGUILayout.PropertyField(serializedObject.FindProperty("compilationStack"), true);
 			}
+
+
 			if(GUI.changed && target != null)         
 				EditorUtility.SetDirty(target);
 			serializedObject.ApplyModifiedProperties();
