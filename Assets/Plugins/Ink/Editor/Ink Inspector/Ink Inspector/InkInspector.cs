@@ -226,7 +226,9 @@ namespace Ink.UnityIntegration {
 			} else if(masterInkFile.hasWarnings) {
 				EditorGUILayout.HelpBox("Last compile had warnings", MessageType.Warning);
 			} else if(masterInkFile.jsonAsset == null) {
-				EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
+				if (!File.Exists(masterInkFile.absoluteFilePath.Replace(".ink", ".json"))) {
+					EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
+				}
 			}
 			if(inkFile.requiresCompile && GUILayout.Button("Compile")) {
 				InkCompiler.CompileInk(masterInkFile);
@@ -251,8 +253,14 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.ObjectField("JSON Asset", inkFile.jsonAsset, typeof(TextAsset), false);
 			EditorGUI.EndDisabledGroup();
 
-			if(inkFile.jsonAsset != null && inkFile.errors.Count == 0 && GUILayout.Button("Play")) {
-				InkPlayerWindow.LoadAndPlay(inkFile.jsonAsset);
+			if (inkFile.jsonAsset != null && inkFile.errors.Count == 0) {
+				if (GUILayout.Button("Play")) {
+					InkPlayerWindow.LoadAndPlay(inkFile.jsonAsset);
+				}
+			} else if (File.Exists(inkFile.absoluteFilePath.Replace(".ink", ".json"))) {
+				if (GUILayout.Button("Play")) {
+					InkPlayerWindow.LoadAndPlay(File.ReadAllText(inkFile.absoluteFilePath.Replace(".ink", ".json")));
+				}
 			}
 
 //				if(!checkedStoryForErrors) {
@@ -291,6 +299,14 @@ namespace Ink.UnityIntegration {
 			editAndCompileDateString += "Last edit date "+lastEditDate.ToString();
 			if(masterInkFile.jsonAsset != null) {
 				DateTime lastCompileDate = File.GetLastWriteTime(InkEditorUtils.CombinePaths(Application.dataPath, AssetDatabase.GetAssetPath(masterInkFile.jsonAsset).Substring(7)));
+				editAndCompileDateString += "\nLast compile date "+lastCompileDate.ToString();
+				if(lastEditDate > lastCompileDate) {
+					EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.Warning);
+				} else {
+					EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.None);
+				}
+			} else if (File.Exists(masterInkFile.absoluteFilePath.Replace(".ink", ".json"))) {
+				DateTime lastCompileDate = File.GetLastWriteTime(masterInkFile.absoluteFilePath.Replace(".ink", ".json"));
 				editAndCompileDateString += "\nLast compile date "+lastCompileDate.ToString();
 				if(lastEditDate > lastCompileDate) {
 					EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.Warning);
