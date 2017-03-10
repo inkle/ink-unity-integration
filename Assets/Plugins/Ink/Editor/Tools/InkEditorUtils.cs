@@ -26,8 +26,6 @@ namespace Ink.UnityIntegration {
 				StreamReader streamReader = new StreamReader(templateFilePath);
 				text = streamReader.ReadToEnd();
 				streamReader.Close();
-			} else {
-				Debug.LogWarning("Could not find .ink template file at expected path '"+templateFilePath+"'. New file will be empty.");
 			}
 			UTF8Encoding encoding = new UTF8Encoding(true, false);
 			bool append = false;
@@ -46,7 +44,7 @@ namespace Ink.UnityIntegration {
 		public static void CreateNewInkFile () {
 			string fileName = "New Ink.ink";
 			string filePath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(GetSelectedPathOrFallback(), fileName));
-			CreateNewInkFile(filePath, InkLibrary.Instance.templateFilePath);
+			CreateNewInkFile(filePath, InkSettings.Instance.templateFilePath);
 		}
 
 		public static void CreateNewInkFile (string filePath, string templateFileLocation) {
@@ -141,8 +139,8 @@ namespace Ink.UnityIntegration {
 		}
 
 		public static string GetInklecateFilePath () {
-			if(InkLibrary.Instance.customInklecateOptions.inklecate != null) {
-				return Path.GetFullPath(AssetDatabase.GetAssetPath(InkLibrary.Instance.customInklecateOptions.inklecate));
+			if(InkSettings.Instance.customInklecateOptions.inklecate != null) {
+				return Path.GetFullPath(AssetDatabase.GetAssetPath(InkSettings.Instance.customInklecateOptions.inklecate));
 			} else {
 				#if UNITY_EDITOR
 				#if UNITY_EDITOR_WIN
@@ -165,7 +163,6 @@ namespace Ink.UnityIntegration {
 				string[] inklecateDirectories = Directory.GetFiles(Application.dataPath, inklecateName, SearchOption.AllDirectories);
 				if(inklecateDirectories.Length == 0)
 					return null;
-				Debug.Log(inklecateDirectories[0]+"   "+Path.GetFullPath(inklecateDirectories[0]));
 
 				return Path.GetFullPath(inklecateDirectories[0]);
 			}
@@ -201,15 +198,21 @@ namespace Ink.UnityIntegration {
 		public static void DrawStoryPropertyField (Story story, GUIContent label) {
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.PrefixLabel(label);
-			InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
-			if(EditorApplication.isPlaying && story != null/* && story.state != null*/) {
-				if(window.attached && window.story == story) {
-					if(GUILayout.Button("Detach")) {
-						InkPlayerWindow.Detach();
+			if(EditorApplication.isPlaying && story != null) {
+				if(EditorWindow.focusedWindow is InkPlayerWindow) {
+					InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
+					if(window.attached && window.story == story) {
+						if(GUILayout.Button("Detach")) {
+							InkPlayerWindow.Detach();
+						}
+					} else {
+						if(GUILayout.Button("Attach")) {
+							InkPlayerWindow.Attach(story);
+						}
 					}
 				} else {
-					if(GUILayout.Button("Attach")) {
-						InkPlayerWindow.Attach(story);
+					if(GUILayout.Button("Open Player Window")) {
+						InkPlayerWindow.GetWindow();
 					}
 				}
 			} else {

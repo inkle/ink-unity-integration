@@ -12,8 +12,7 @@ using Debug = UnityEngine.Debug;
 namespace Ink.UnityIntegration {
 	[InitializeOnLoad]
 	public static class InkCompiler {
-		private const float timeout = 10;
-
+		
 		public static bool compiling {
 			get {
 				return InkLibrary.Instance.compilationStack.Count > 0;
@@ -37,10 +36,10 @@ namespace Ink.UnityIntegration {
 			public string jsonAbsoluteFilePath;
 			public string output;
 			public string errorOutput;
-			public float startTime;
+			public DateTime startTime;
 
 			public CompilationStackItem () {
-				startTime = (float)EditorApplication.timeSinceStartup;
+				startTime = DateTime.Now;
 			}
 		}
 
@@ -55,7 +54,7 @@ namespace Ink.UnityIntegration {
 
 			for (int i = InkLibrary.Instance.compilationStack.Count - 1; i >= 0; i--) {
 				var compilingFile = InkLibrary.Instance.compilationStack [i];
-				if (EditorApplication.timeSinceStartup-compilingFile.startTime > timeout) {
+				if ((float)((DateTime.Now-compilingFile.startTime).TotalSeconds) > _timeout) {
 					InkLibrary.Instance.compilationStack.RemoveAt(i);
 					EditorUtility.ClearProgressBar();
 					Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+".\n. Check an ink file exists at this path and try Assets/Recompile Ink, else please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+compilingFile.errorOutput);
@@ -80,17 +79,21 @@ namespace Ink.UnityIntegration {
 			InkLibrary.Rebuild();
 			List<InkFile> masterInkFiles = InkLibrary.GetMasterInkFiles ();
 			foreach(InkFile masterInkFile in masterInkFiles) {
-				if(InkLibrary.Instance.compileAutomatically || masterInkFile.compileAutomatically)
+				if(InkSettings.Instance.compileAutomatically || masterInkFile.compileAutomatically)
 					CompileInk(masterInkFile);
 			}
 		}
 
+		/// <summary>
+		/// Starts a System.Process that compiles a master ink file, creating a playable JSON file that can be parsed by the Ink.Story class
+		/// </summary>
+		/// <param name="inkFile">Ink file.</param>
 		public static void CompileInk (InkFile inkFile) {
 			if(inkFile == null) {
 				Debug.LogError("Tried to compile ink file "+inkFile.filePath+", but input was null.");
 				return;
 			}
-			if(!inkFile.isMaster)
+			if(!inkFile.metaInfo.isMaster)
 				Debug.LogWarning("Compiling InkFile which is an include. Any file created is likely to be invalid. Did you mean to call CompileInk on inkFile.master?");
 			if(InkLibrary.GetCompilationStackItem(inkFile) != null) {
 				UnityEngine.Debug.LogWarning("Tried compiling ink file, but file is already compiling. "+inkFile.filePath);
@@ -115,7 +118,7 @@ namespace Ink.UnityIntegration {
 			}*/
 			string inputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileName(inkFile.filePath));
 			string outputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileNameWithoutExtension(Path.GetFileName(inkFile.filePath))) + ".json";
-			string inkArguments = InkLibrary.Instance.customInklecateOptions.additionalCompilerOptions + " -c -o " + "\"" + outputPath + "\" \"" + inputPath + "\"";
+			string inkArguments = InkSettings.Instance.customInklecateOptions.additionalCompilerOptions + " -c -o " + "\"" + outputPath + "\" \"" + inputPath + "\"";
 
 			CompilationStackItem pendingFile = new CompilationStackItem();
 			pendingFile.inkFile = InkLibrary.GetInkFileWithAbsolutePath(inputPath);
@@ -123,11 +126,18 @@ namespace Ink.UnityIntegration {
 			pendingFile.jsonAbsoluteFilePath = outputPath;
 			pendingFile.state = CompilationStackItem.State.Compiling;
 			InkLibrary.Instance.compilationStack.Add(pendingFile);
+			InkLibrary.Save();
 
 			Process process = new Process();
-
-			if( InkLibrary.Instance.customInklecateOptions.runInklecateWithMono ) {
-				process.StartInfo.FileName = "/usr/local/bin/mono";
+			if( InkSettings.Instance.customInklecateOptions.runInklecateWithMono && Application.platform != RuntimePlatform.WindowsEditor ) {
+				if(File.Exists(_libraryMono)) {
+					process.StartInfo.FileName = _libraryMono;
+				} else if(File.Exists(_usrMono)) {
+					process.StartInfo.FileName = _usrMono;
+				} else {
+					Debug.LogError("Mono was not found on machine");
+					return;
+				}
 				process.StartInfo.Arguments = inklecatePath + " " + inkArguments;
 			} else {
 				process.StartInfo.FileName = inklecatePath;
@@ -184,18 +194,18 @@ namespace Ink.UnityIntegration {
 				if(compilingFile.errorOutput != "") {
 					listOfFiles += " (With unhandled error)";
 					Debug.LogError("Unhandled error occurred compiling Ink file "+compilingFile.inkFile+"! Please report following error as a bug:\n"+compilingFile.errorOutput);
-					compilingFile.inkFile.compileErrors.Clear();
-					compilingFile.inkFile.compileErrors.Add(compilingFile.errorOutput);
+					compilingFile.inkFile.metaInfo.compileErrors.Clear();
+					compilingFile.inkFile.metaInfo.compileErrors.Add(compilingFile.errorOutput);
 					errorsFound = true;
 				} else {
 					SetOutputLog(compilingFile);
 					bool errorsInEntireStory = false;
 					bool warningsInEntireStory = false;
-					foreach(var inkFile in compilingFile.inkFile.inkFilesInIncludeHierarchy) {
-						if(inkFile.hasErrors) {
+					foreach(var inkFile in compilingFile.inkFile.metaInfo.inkFilesInIncludeHierarchy) {
+						if(inkFile.metaInfo.hasErrors) {
 							errorsInEntireStory = true;
 						}
-						if(inkFile.hasWarnings) {
+						if(inkFile.metaInfo.hasWarnings) {
 							warningsInEntireStory = true;
 						}
 					}
@@ -225,23 +235,26 @@ namespace Ink.UnityIntegration {
 				Debug.Log("Ink compilation completed at "+DateTime.Now.ToLongTimeString()+listOfFiles);
 			}
 			InkLibrary.Instance.compilationStack.Clear();
+
+			InkLibrary.Save();
+			InkMetaLibrary.Save();
+
 			EditorUtility.ClearProgressBar();
 			if(EditorApplication.isPlayingOrWillChangePlaymode) {
 				Debug.LogWarning("Ink just finished recompiling while in play mode. Your runtime story may not be up to date.");
 			}
-			InkLibrary.Save();
 		}
 
 		private static void SetOutputLog (CompilationStackItem pendingFile) {
-			pendingFile.inkFile.errors.Clear();
-			pendingFile.inkFile.warnings.Clear();
-			pendingFile.inkFile.todos.Clear();
+			pendingFile.inkFile.metaInfo.errors.Clear();
+			pendingFile.inkFile.metaInfo.warnings.Clear();
+			pendingFile.inkFile.metaInfo.todos.Clear();
 			// Todo - switch this to pendingFile.inkFile.includesInkFiles
-			foreach(var childInkFile in pendingFile.inkFile.inkFilesInIncludeHierarchy) {
-				childInkFile.compileErrors.Clear();
-				childInkFile.errors.Clear();
-				childInkFile.warnings.Clear();
-				childInkFile.todos.Clear();
+			foreach(var childInkFile in pendingFile.inkFile.metaInfo.inkFilesInIncludeHierarchy) {
+				childInkFile.metaInfo.compileErrors.Clear();
+				childInkFile.metaInfo.errors.Clear();
+				childInkFile.metaInfo.warnings.Clear();
+				childInkFile.metaInfo.todos.Clear();
 			}
 
 			string[] splitOutput = pendingFile.output.Split(new string[]{"\n"}, StringSplitOptions.RemoveEmptyEntries);
@@ -278,18 +291,23 @@ namespace Ink.UnityIntegration {
 					
 					string pathAndLineNumberString = "\n"+inkFile.filePath+"("+lineNo+")";
 					if(errorType == "ERROR") {
-						inkFile.errors.Add(new InkFile.InkFileLog(message, lineNo));
+						inkFile.metaInfo.errors.Add(new InkMetaFile.InkFileLog(message, lineNo));
 						Debug.LogError("INK "+errorType+": "+message + pathAndLineNumberString);
 					} else if (errorType == "WARNING") {
-						inkFile.warnings.Add(new InkFile.InkFileLog(message, lineNo));
+						inkFile.metaInfo.warnings.Add(new InkMetaFile.InkFileLog(message, lineNo));
 						Debug.LogWarning("INK "+errorType+": "+message + pathAndLineNumberString);
 					} else if (errorType == "TODO") {
-						inkFile.todos.Add(new InkFile.InkFileLog(message, lineNo));
+						inkFile.metaInfo.todos.Add(new InkMetaFile.InkFileLog(message, lineNo));
 						Debug.Log("INK "+errorType+": "+message + pathAndLineNumberString);
 					}
 				}
 			}
 		}
+
+		private const float _timeout = 10;
+
+		private const string _usrMono = "/usr/local/bin/mono";
+		private const string _libraryMono = "/Library/Frameworks/Mono.framework/Versions/Current/Commands/mono";
 
 		private static Regex _errorRegex = new Regex(@"(?<errorType>ERROR|WARNING|TODO|RUNTIME ERROR):(?:\s(?:'(?<filename>[^']*)'\s)?line (?<lineNo>\d+):)?(?<message>.*)");
 
