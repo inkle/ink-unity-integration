@@ -1,15 +1,10 @@
 ﻿// Automatically creates JSON files from an ink placed within the Assets/Ink folder.
-using UnityEngine;
 using UnityEditor;
-using System;
 using System.IO;
 using Debug = UnityEngine.Debug;
-using System.Collections;
 using System.Collections.Generic;
 
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace Ink.UnityIntegration {
 	class InkPostProcessor : AssetPostprocessor {

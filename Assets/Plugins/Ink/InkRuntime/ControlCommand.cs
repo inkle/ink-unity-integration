@@ -1,5 +1,3 @@
-﻿using System;
-
 namespace Ink.Runtime
 {
     internal class ControlCommand : Runtime.Object

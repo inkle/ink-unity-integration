@@ -5,15 +5,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using Debug = UnityEngine.Debug;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-
-using Object = UnityEngine.Object;
 
 namespace Ink.UnityIntegration {
 	// Information about the current state of an ink file
