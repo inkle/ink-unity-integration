@@ -22,10 +22,7 @@ namespace Ink.UnityIntegration {
 		private const int maxCharacters = 16000;
 
 		public override bool IsValid(string assetPath) {
-			if(Path.GetExtension(assetPath) == InkEditorUtils.inkFileExtension) {
-				return true;
-			}
-			return false;
+			return Path.GetExtension(assetPath) == InkEditorUtils.inkFileExtension;
 		}
 
 		public override void OnHeaderGUI () {
@@ -101,7 +98,6 @@ namespace Ink.UnityIntegration {
 		void CreateIncludeList () {
 			List<DefaultAsset> includeTextAssets = inkFile.metaInfo.includes;
 			includesFileList = new ReorderableList(includeTextAssets, typeof(DefaultAsset), false, false, false, false);
-//			includesFileList.elementHeight = 16;
 			includesFileList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "Included Files");
 			};

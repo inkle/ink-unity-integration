@@ -87,14 +87,6 @@ namespace Ink.UnityIntegration {
 			return asset;
 		}
 
-		public static string[] GetAllInkFilePaths () {
-			string[] inkFilePaths = Directory.GetFiles(Application.dataPath, "*.ink", SearchOption.AllDirectories);
-			for (int i = 0; i < inkFilePaths.Length; i++) {
-				inkFilePaths [i] = InkEditorUtils.SanitizePathString(inkFilePaths [i]);
-			}
-			return inkFilePaths;
-		}
-
 		/// <summary>
 		/// Updates the ink library. Executed whenever an ink file is changed by InkToJSONPostProcessor
 		/// Can be called manually, but incurs a performance cost.
@@ -108,14 +100,14 @@ namespace Ink.UnityIntegration {
 			for (int i = 0; i < inkFilePaths.Length; i++) {
 				InkFile inkFile = GetInkFileWithAbsolutePath(inkFilePaths [i]);
 				if(inkFile == null) {
-					string localAssetPath = inkFilePaths [i].Substring(Application.dataPath.Length-6);
+					string localAssetPath = InkEditorUtils.AbsoluteToUnityRelativePath(inkFilePaths [i]);
 					DefaultAsset inkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localAssetPath);
 					// If the ink file can't be found, it might not yet have been imported. We try to manually import it to fix this.
 					if(inkFileAsset == null) {
 						AssetDatabase.ImportAsset(localAssetPath);
 						inkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localAssetPath);
 						if(inkFileAsset == null) {
-							Debug.LogWarning("Ink File Asset not found at "+localAssetPath+". This can occur if the .meta file has not yet been created. This issue should resolve itself, but if unexpected errors occur, rebuild Ink Library using  > Recompile Ink");
+							Debug.LogWarning("Ink File Asset not found at "+localAssetPath+". This can occur if the .meta file has not yet been created. This issue should resolve itself, but if unexpected errors occur, rebuild Ink Library using Assets > Recompile Ink");
 							continue;
 						}
 					}
@@ -136,6 +128,14 @@ namespace Ink.UnityIntegration {
 				inkFile.FindCompiledJSONAsset();
 			}
 			Save();
+		}
+
+		private static string[] GetAllInkFilePaths () {
+			string[] inkFilePaths = Directory.GetFiles(Application.dataPath, "*.ink", SearchOption.AllDirectories);
+			for (int i = 0; i < inkFilePaths.Length; i++) {
+				inkFilePaths [i] = InkEditorUtils.SanitizePathString(inkFilePaths [i]);
+			}
+			return inkFilePaths;
 		}
 
 		public static void Save () {

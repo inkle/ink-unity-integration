@@ -39,28 +39,30 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
+		// The file path relative to the Assets folder
+		public string filePath {
+			get {
+				if(inkAsset == null) 
+					return null;
+
+				return InkEditorUtils.SanitizePathString(AssetDatabase.GetAssetPath(inkAsset));
+			}
+		}
 
 		// The full file path
 		public string absoluteFilePath {
 			get {
 				if(inkAsset == null) 
 					return null;
-				
-				return InkEditorUtils.CombinePaths(Application.dataPath, filePath.Substring(7));
+				return InkEditorUtils.UnityRelativeToAbsolutePath(filePath);
 			}
 		}
+
 		public string absoluteFolderPath {
 			get {
 				return InkEditorUtils.SanitizePathString(Path.GetDirectoryName(absoluteFilePath));
 			}
 		}
-		// The file path relative to the Assets folder
-		public string filePath {
-			get {
-				return InkEditorUtils.SanitizePathString(AssetDatabase.GetAssetPath(inkAsset));
-			}
-		}
-
 
 		public InkFile (DefaultAsset inkAsset) {
 			Debug.Assert(inkAsset != null);
@@ -76,5 +78,4 @@ namespace Ink.UnityIntegration {
 			return string.Format ("[InkFile: filePath={0}]", filePath);
 		} 
 	}
-
 }

@@ -190,6 +190,10 @@ namespace Ink.UnityIntegration {
 			return SanitizePathString(fullPath.Substring(Application.dataPath.Length-6));
 		}
 
+		public static string UnityRelativeToAbsolutePath(string filePath) {
+			return InkEditorUtils.CombinePaths(Application.dataPath, filePath.Substring(7));
+		}
+
 		/// <summary>
 		/// Draws a property field for a story using GUILayout, allowing you to attach stories to the player window for debugging.
 		/// </summary>

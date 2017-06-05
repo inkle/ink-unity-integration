@@ -127,6 +127,7 @@ namespace Ink.UnityIntegration {
 			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
 				inkFile.metaInfo.parent = null;
 				inkFile.metaInfo.masterInkAsset = null;
+				inkFile.metaInfo.ParseContent();
 				inkFile.metaInfo.FindIncludedFiles();
 			}
 			// We now set the master file for ink files. As a file can be in an include hierarchy, we need to do this in two passes.
