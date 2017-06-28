@@ -256,11 +256,14 @@ namespace Ink.Runtime
             }
 
             copy.callStack = new CallStack (callStack);
+            if( _originalCallstack != null )
+                copy._originalCallstack = new CallStack(_originalCallstack);
 
             copy.variablesState = new VariablesState (copy.callStack, story.listDefinitions);
             copy.variablesState.CopyFrom (variablesState);
 
             copy.evaluationStack.AddRange (evaluationStack);
+            copy._originalEvaluationStackHeight = _originalEvaluationStackHeight;
 
             if (divertedTargetObject != null)
                 copy.divertedTargetObject = divertedTargetObject;
