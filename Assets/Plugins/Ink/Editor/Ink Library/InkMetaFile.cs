@@ -67,10 +67,14 @@ namespace Ink.UnityIntegration {
 
 		public bool requiresCompile {
 			get {
-				if(masterInkFileIncludingSelf.jsonAsset == null) 
+				if(masterInkFileIncludingSelf.jsonAsset == null || masterInkFileIncludingSelf.metaInfo == null) 
 					return true;
 
-				foreach(InkFile inkFile in masterInkFileIncludingSelf.metaInfo.inkFilesInIncludeHierarchy) {
+				var inkFilesInIncludeHierarchy = masterInkFileIncludingSelf.metaInfo.inkFilesInIncludeHierarchy;
+				if (inkFilesInIncludeHierarchy == null)
+					return true;
+				
+				foreach(InkFile inkFile in inkFilesInIncludeHierarchy) {
 					if(inkFile.metaInfo.hasCompileErrors) {
 						return true;
 					} else if(inkFile.metaInfo.hasErrors) {
@@ -91,7 +95,7 @@ namespace Ink.UnityIntegration {
 		/// <value>The last compile date of the story.</value>
 		public DateTime lastCompileDate {
 			get {
-				string fullJSONFilePath = InkEditorUtils.CombinePaths(Application.dataPath, AssetDatabase.GetAssetPath(masterInkFileIncludingSelf.jsonAsset).Substring(7));
+				string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(masterInkFileIncludingSelf.jsonAsset));
 				return File.GetLastWriteTime(fullJSONFilePath);
 			}
 		}
@@ -187,6 +191,8 @@ namespace Ink.UnityIntegration {
 				List<InkFile> _includesInkFiles = new List<InkFile>();
 				_includesInkFiles.Add(inkFile);
 				foreach(var child in includesInkFiles) {
+					if (child.metaInfo == null)
+						return null;
 					_includesInkFiles.AddRange(child.metaInfo.inkFilesInIncludeHierarchy);
 				}
 				return _includesInkFiles;
