@@ -83,9 +83,11 @@ namespace Ink.UnityIntegration {
 			if(inkFile == null) 
 				return;
 
-			if(inkFile.metaInfo.includes.Count > 0) {
-				CreateIncludeList();
-			}
+			if (inkFile.jsonAsset != null && inkFile.metaInfo.includes.Count > 0)
+				CreateIncludeList ();
+			else
+				includesFileList = null;
+
 			CreateErrorList();
 			CreateWarningList();
 			CreateTodoList();
