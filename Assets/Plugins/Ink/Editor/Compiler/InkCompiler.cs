@@ -166,6 +166,7 @@ namespace Ink.UnityIntegration {
 			process.StartInfo.RedirectStandardError = true;
 			process.StartInfo.RedirectStandardOutput = true;
 			process.StartInfo.UseShellExecute = false;
+			process.StartInfo.CreateNoWindow = true;
 			process.EnableRaisingEvents = true;
 			process.StartInfo.EnvironmentVariables["inkAbsoluteFilePath"] = inputPath;
 			process.ErrorDataReceived += OnProcessError;
