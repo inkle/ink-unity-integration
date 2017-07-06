@@ -156,7 +156,7 @@ namespace Ink.UnityIntegration {
 
 		private static void PostprocessInklecate (string inklecateFileLocation) {
 			Debug.Log("Inklecate updated. Recompiling all Ink files...");
-			InkCompiler.RecompileAll();
+			InkIntegrationMenuItems.RecompileAll();
 		}
 
 		private static void PostprocessInkFiles (List<string> importedInkAssets) {

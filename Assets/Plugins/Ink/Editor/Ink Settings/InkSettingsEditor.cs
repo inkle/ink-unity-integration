@@ -18,9 +18,6 @@ namespace Ink.UnityIntegration {
 		
 		public override void OnInspectorGUI() {
 			serializedObject.Update();
-			if (GUILayout.Button(new GUIContent("Recompile All", "Rebuilds the ink library and recompiles all files. Do this if you're getting unusual errors."))) {
-				InkCompiler.RecompileAll();
-			}
 
 			if(serializedObject.FindProperty("templateFile").objectReferenceValue == null) {
 				EditorGUILayout.HelpBox("Template not found. New files will be blank.", MessageType.Info);

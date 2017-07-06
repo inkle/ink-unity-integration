@@ -93,16 +93,6 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		[MenuItem("Assets/Recompile Ink", false, 60)]
-		public static void RecompileAll() {
-			InkLibrary.Rebuild();
-			List<InkFile> masterInkFiles = InkLibrary.GetMasterInkFiles ();
-			foreach(InkFile masterInkFile in masterInkFiles) {
-				if(InkSettings.Instance.compileAutomatically || masterInkFile.compileAutomatically)
-					CompileInk(masterInkFile);
-			}
-		}
-
 		/// <summary>
 		/// Starts a System.Process that compiles a master ink file, creating a playable JSON file that can be parsed by the Ink.Story class
 		/// </summary>
