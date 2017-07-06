@@ -7,7 +7,7 @@ using System.IO;
 using System.Text;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.Linq;
+
 using Debug = UnityEngine.Debug;
 
 namespace Ink.UnityIntegration {
@@ -168,11 +168,21 @@ namespace Ink.UnityIntegration {
 			process.StartInfo.UseShellExecute = false;
 			process.StartInfo.CreateNoWindow = true;
 			process.EnableRaisingEvents = true;
+			process.OutputDataReceived += OnProcessOutput;
+			// For some reason having this line enabled spams the output and error streams with null and "???" (only on OSX?)
+			// Rather than removing unhandled error detection I thought it'd be best to just catch those messages and ignore them instead.
 			process.ErrorDataReceived += OnProcessError;
 			process.Exited += OnCompileProcessComplete;
 			process.Start();
+			process.BeginOutputReadLine();
+			process.BeginErrorReadLine();
 			pendingFile.process = process;
 			// If you'd like to run this command outside of unity, you could instead run process.StartInfo.Arguments in the command line.
+		}
+
+		static void OnProcessOutput (object sender, DataReceivedEventArgs e) {
+			Process process = (Process)sender;
+			ProcessOutput(process, e.Data);
 		}
 
 		static void OnProcessError (object sender, DataReceivedEventArgs e) {
@@ -184,19 +194,24 @@ namespace Ink.UnityIntegration {
 			Process process = (Process)sender;
 			CompilationStackItem pendingFile = InkLibrary.GetCompilationStackItem(process);
 			pendingFile.state = CompilationStackItem.State.Importing;
-			pendingFile.output = process.StandardOutput.ReadToEnd().Split(new string[]{"\n"}, StringSplitOptions.RemoveEmptyEntries).ToList();
-
 			if(InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count == 0) {
 				// This event runs in another thread, preventing us from calling some UnityEditor functions directly. Instead, we delay till the next inspector update.
 				EditorApplication.delayCall += Delay;
 			}
 		}
 
-		private static void ProcessError (Process process, string error) {
-			if (error.Length == 0)
+		private static void ProcessOutput (Process process, string message) {
+			if (message == null || message.Length == 0 || message == "???")
 				return;
 			CompilationStackItem compilingFile = InkLibrary.GetCompilationStackItem(process);
-			compilingFile.errorOutput.Add(error);
+			compilingFile.output.Add(message);
+		}
+
+		private static void ProcessError (Process process, string message) {
+			if (message == null || message.Length == 0 || message == "???")
+				return;
+			CompilationStackItem compilingFile = InkLibrary.GetCompilationStackItem(process);
+			compilingFile.errorOutput.Add(message);
 		}
 
 		private static void Delay () {
@@ -214,8 +229,10 @@ namespace Ink.UnityIntegration {
 					filesCompiledLog.Append(" (With unhandled error)");
 					StringBuilder errorLog = new StringBuilder ();
 					errorLog.Append ("Unhandled error(s) occurred compiling Ink file ");
-					errorLog.Append (compilingFile.inkFile);
-					errorLog.Append ("! Please report following error(s) as a bug:");
+					errorLog.Append ("'");
+					errorLog.Append (compilingFile.inkFile.filePath);
+					errorLog.Append ("'");
+					errorLog.AppendLine ("! Please report following error(s) as a bug:");
 					foreach (var error in compilingFile.errorOutput)
 						errorLog.AppendLine (error);
 					Debug.LogError(errorLog);
@@ -283,6 +300,7 @@ namespace Ink.UnityIntegration {
 			pendingFile.inkFile.metaInfo.errors.Clear();
 			pendingFile.inkFile.metaInfo.warnings.Clear();
 			pendingFile.inkFile.metaInfo.todos.Clear();
+
 			foreach(var childInkFile in pendingFile.inkFile.metaInfo.inkFilesInIncludeHierarchy) {
 				childInkFile.metaInfo.compileErrors.Clear();
 				childInkFile.metaInfo.errors.Clear();
