@@ -4,9 +4,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-
+using System.Linq;
 using Debug = UnityEngine.Debug;
 
 namespace Ink.UnityIntegration {
@@ -35,8 +36,8 @@ namespace Ink.UnityIntegration {
 			public InkFile inkFile;
 			public string inkAbsoluteFilePath;
 			public string jsonAbsoluteFilePath;
-			public string output;
-			public string errorOutput;
+			public List<string> output = new List<string>();
+			public List<string> errorOutput = new List<string>();
 			public DateTime startTime;
 			public float timeTaken;
 
@@ -171,6 +172,7 @@ namespace Ink.UnityIntegration {
 			process.Exited += OnCompileProcessComplete;
 			process.Start();
 			pendingFile.process = process;
+			// If you'd like to run this command outside of unity, you could instead run process.StartInfo.Arguments in the command line.
 		}
 
 		static void OnProcessError (object sender, DataReceivedEventArgs e) {
@@ -180,14 +182,10 @@ namespace Ink.UnityIntegration {
 
 		static void OnCompileProcessComplete(object sender, System.EventArgs e) {
 			Process process = (Process)sender;
-			string error = process.StandardError.ReadToEnd();
-			if(error != null) {
-				ProcessError(process, error);
-			} 
 			CompilationStackItem pendingFile = InkLibrary.GetCompilationStackItem(process.StartInfo.EnvironmentVariables["inkAbsoluteFilePath"]);
 			pendingFile.state = CompilationStackItem.State.Importing;
-			pendingFile.output = process.StandardOutput.ReadToEnd();
-			
+			pendingFile.output = process.StandardOutput.ReadToEnd().Split(new string[]{"\n"}, StringSplitOptions.RemoveEmptyEntries).ToList();
+
 			if(InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count == 0) {
 				// This event runs in another thread, preventing us from calling some UnityEditor functions directly. Instead, we delay till the next inspector update.
 				EditorApplication.delayCall += Delay;
@@ -195,9 +193,11 @@ namespace Ink.UnityIntegration {
 		}
 
 		private static void ProcessError (Process process, string error) {
+			if (error.Length == 0)
+				return;
 			string inkFilePath = process.StartInfo.EnvironmentVariables["inkAbsoluteFilePath"];
 			CompilationStackItem compilingFile = InkLibrary.GetCompilationStackItem(inkFilePath);
-			compilingFile.errorOutput = error;
+			compilingFile.errorOutput.Add(error);
 		}
 
 		private static void Delay () {
@@ -207,16 +207,20 @@ namespace Ink.UnityIntegration {
 			}
 			float longestTimeTaken = 0;
 			bool errorsFound = false;
-			string listOfFiles = "\nFiles compiled:";
+			StringBuilder filesCompiledLog = new StringBuilder("Files compiled:");
 			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
-				listOfFiles += "\n";
-				listOfFiles += compilingFile.inkFile.filePath;
-				if(compilingFile.errorOutput != "") {
-					listOfFiles += " (With unhandled error)";
-					Debug.LogError("Unhandled error occurred compiling Ink file "+compilingFile.inkFile+"! Please report following error as a bug:\n"+compilingFile.errorOutput);
-					compilingFile.inkFile.metaInfo.compileErrors.Clear();
-					compilingFile.inkFile.metaInfo.compileErrors.Add(compilingFile.errorOutput);
 				longestTimeTaken = Mathf.Max (compilingFile.timeTaken);
+				filesCompiledLog.AppendLine().Append(compilingFile.inkFile.filePath);
+				if(compilingFile.errorOutput.Count > 0) {
+					filesCompiledLog.Append(" (With unhandled error)");
+					StringBuilder errorLog = new StringBuilder ();
+					errorLog.Append ("Unhandled error(s) occurred compiling Ink file ");
+					errorLog.Append (compilingFile.inkFile);
+					errorLog.Append ("! Please report following error(s) as a bug:");
+					foreach (var error in compilingFile.errorOutput)
+						errorLog.AppendLine (error);
+					Debug.LogError(errorLog);
+					compilingFile.inkFile.metaInfo.compileErrors = compilingFile.errorOutput;
 					errorsFound = true;
 				} else {
 					SetOutputLog(compilingFile);
@@ -231,7 +235,7 @@ namespace Ink.UnityIntegration {
 						}
 					}
 					if(errorsInEntireStory) {
-						listOfFiles += " (With error)";
+						filesCompiledLog.Append(" (With error)");
 						errorsFound = true;
 					} else {
 						string localJSONAssetPath = InkEditorUtils.AbsoluteToUnityRelativePath(compilingFile.jsonAbsoluteFilePath);
@@ -239,7 +243,7 @@ namespace Ink.UnityIntegration {
 						compilingFile.inkFile.jsonAsset = AssetDatabase.LoadAssetAtPath<TextAsset> (localJSONAssetPath);
 					}
 					if(warningsInEntireStory) {
-						listOfFiles += " (With warning)";
+						filesCompiledLog.Append(" (With warning)");
 					}
 				}
 			}
@@ -253,10 +257,17 @@ namespace Ink.UnityIntegration {
 				}
 			}
 
+			StringBuilder outputLog = new StringBuilder ();
 			if(errorsFound) {
-				Debug.LogWarning("Ink compilation completed with errors at "+DateTime.Now.ToLongTimeString()+listOfFiles);
+				outputLog.Append ("Ink compilation completed with errors at ");
+				outputLog.AppendLine (DateTime.Now.ToLongTimeString ());
+				outputLog.Append (filesCompiledLog.ToString());
+				Debug.LogWarning(outputLog);
 			} else {
-				Debug.Log("Ink compilation completed at "+DateTime.Now.ToLongTimeString()+listOfFiles);
+				outputLog.Append ("Ink compilation completed at ");
+				outputLog.AppendLine (DateTime.Now.ToLongTimeString ());
+				outputLog.Append (filesCompiledLog.ToString());
+				Debug.Log(outputLog);
 			}
 			InkLibrary.Instance.compilationStack.Clear();
 
@@ -273,7 +284,6 @@ namespace Ink.UnityIntegration {
 			pendingFile.inkFile.metaInfo.errors.Clear();
 			pendingFile.inkFile.metaInfo.warnings.Clear();
 			pendingFile.inkFile.metaInfo.todos.Clear();
-			// Todo - switch this to pendingFile.inkFile.includesInkFiles
 			foreach(var childInkFile in pendingFile.inkFile.metaInfo.inkFilesInIncludeHierarchy) {
 				childInkFile.metaInfo.compileErrors.Clear();
 				childInkFile.metaInfo.errors.Clear();
@@ -281,8 +291,7 @@ namespace Ink.UnityIntegration {
 				childInkFile.metaInfo.todos.Clear();
 			}
 
-			string[] splitOutput = pendingFile.output.Split(new string[]{"\n"}, StringSplitOptions.RemoveEmptyEntries);
-			foreach(string output in splitOutput) {
+			foreach(string output in pendingFile.output) {
 				var match = _errorRegex.Match(output);
 				if (match.Success) {
 					string errorType = null;
@@ -313,7 +322,7 @@ namespace Ink.UnityIntegration {
 					if(inkFile == null)
 						inkFile = pendingFile.inkFile;
 					
-					string pathAndLineNumberString = "\n"+inkFile.filePath+"("+lineNo+")";
+					string pathAndLineNumberString = "\n"+inkFile.filePath+":"+lineNo;
 					if(errorType == "ERROR") {
 						inkFile.metaInfo.errors.Add(new InkMetaFile.InkFileLog(message, lineNo));
 						Debug.LogError("INK "+errorType+": "+message + pathAndLineNumberString);
