@@ -24,7 +24,7 @@ namespace Ink.UnityIntegration {
 			}
 
 			if (GUILayout.Button(new GUIContent("Recompile All", "Rebuilds the ink library and recompiles all files."))) {
-				InkIntegrationMenuItems.RecompileAll();
+				InkEditorUtils.RecompileAll();
 			}
 
 			EditorGUILayout.HelpBox("This file caches information about ink files in your project.", MessageType.Info);
