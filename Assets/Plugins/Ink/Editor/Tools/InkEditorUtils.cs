@@ -65,12 +65,14 @@ namespace Ink.UnityIntegration {
 			InkLibrary.Rebuild();
 		}
 
-		[MenuItem("Assets/Recompile All Ink", false, 61)]
+		[MenuItem("Assets/Recompile Ink", false, 61)]
 		public static void RecompileAll() {
 			InkLibrary.Rebuild();
 			List<InkFile> masterInkFiles = InkLibrary.GetMasterInkFiles ();
-			foreach(InkFile masterInkFile in masterInkFiles)
-				InkCompiler.CompileInk(masterInkFile);
+			foreach(InkFile masterInkFile in masterInkFiles) {
+				if(InkSettings.Instance.compileAutomatically || masterInkFile.compileAutomatically)
+					InkCompiler.CompileInk(masterInkFile);
+			}
 		}
 
 
