@@ -208,12 +208,12 @@ namespace Ink.UnityIntegration {
 			return items;
 		}
 
-		public static InkCompiler.CompilationStackItem GetCompilationStackItem (string inkAbsoluteFilePath) {
+		public static InkCompiler.CompilationStackItem GetCompilationStackItem (Process process) {
 			foreach(var x in Instance.compilationStack) {
-				if(x.inkAbsoluteFilePath == inkAbsoluteFilePath) 
+				if(x.process == process) 
 					return x;
 			}
-			Debug.LogError("Fatal Error compiling Ink! No file found! Please report this as a bug. "+inkAbsoluteFilePath);
+			Debug.LogError("Fatal Error compiling Ink! No file found! Please report this as a bug. "+process);
 			return null;
 		}
 

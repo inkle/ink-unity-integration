@@ -147,7 +147,7 @@ namespace Ink.UnityIntegration {
 			InkLibrary.Instance.compilationStack.Add(pendingFile);
 			InkLibrary.Save();
 
-			var process = new Process();
+			Process process = new Process();
 			if( InkSettings.Instance.customInklecateOptions.runInklecateWithMono && Application.platform != RuntimePlatform.WindowsEditor ) {
 				if(File.Exists(_libraryMono)) {
 					process.StartInfo.FileName = _libraryMono;
@@ -182,7 +182,7 @@ namespace Ink.UnityIntegration {
 
 		static void OnCompileProcessComplete(object sender, System.EventArgs e) {
 			Process process = (Process)sender;
-			CompilationStackItem pendingFile = InkLibrary.GetCompilationStackItem(process.StartInfo.EnvironmentVariables["inkAbsoluteFilePath"]);
+			CompilationStackItem pendingFile = InkLibrary.GetCompilationStackItem(process);
 			pendingFile.state = CompilationStackItem.State.Importing;
 			pendingFile.output = process.StandardOutput.ReadToEnd().Split(new string[]{"\n"}, StringSplitOptions.RemoveEmptyEntries).ToList();
 
@@ -195,8 +195,7 @@ namespace Ink.UnityIntegration {
 		private static void ProcessError (Process process, string error) {
 			if (error.Length == 0)
 				return;
-			string inkFilePath = process.StartInfo.EnvironmentVariables["inkAbsoluteFilePath"];
-			CompilationStackItem compilingFile = InkLibrary.GetCompilationStackItem(inkFilePath);
+			CompilationStackItem compilingFile = InkLibrary.GetCompilationStackItem(process);
 			compilingFile.errorOutput.Add(error);
 		}
 
