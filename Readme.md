@@ -28,11 +28,11 @@ This package has been designed to be modular. You can delete many of the folders
 
 You should never delete the DLL folder (although you may delete the windows/mac dlls if you are sure no team members are on a certain platform)
 
-## Using ink in game your game. 
+## Using ink in game your game. 
 
 The **ink player** is the core feature of this package; the minimal requirements to actually run a compiled JSON story file is the `ink-engine.dll` library.
 
-## Ink Player
+## Ink Player
 
 The Ink Player (**Ink > Player Window**) allows you to play stories in an editor window, and provides functionality to edit variables on the fly, save and load states, and divert.
 
