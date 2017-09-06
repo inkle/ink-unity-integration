@@ -1,11 +1,9 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Ink.Runtime;
-using Debug = UnityEngine.Debug;
 
 namespace Ink.UnityIntegration {
 
