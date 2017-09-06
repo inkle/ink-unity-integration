@@ -32,8 +32,44 @@ namespace Ink.UnityIntegration {
 		}
 	}
 
+	[InitializeOnLoad]
 	public static class InkEditorUtils {
 		public const string inkFileExtension = ".ink";
+		const string lastCompileTimeKey = "InkIntegrationLastCompileTime";
+
+		static InkEditorUtils () {
+			float lastCompileTime = LoadAndSaveLastCompileTime();
+			if(EditorApplication.timeSinceStartup < lastCompileTime)
+				OnOpenUnityEditor();
+		}
+
+		static float LoadAndSaveLastCompileTime () {
+			float lastCompileTime = 0;
+			if(EditorPrefs.HasKey(lastCompileTimeKey))
+				lastCompileTime = EditorPrefs.GetFloat(lastCompileTimeKey);
+			EditorPrefs.SetFloat(lastCompileTimeKey, (float)EditorApplication.timeSinceStartup);
+			return lastCompileTime;
+		}
+
+		static void OnOpenUnityEditor () {
+			InkLibrary.Rebuild();
+		}
+
+		[MenuItem("Assets/Rebuild Ink Library", false, 60)]
+		public static void RebuildLibrary() {
+			InkLibrary.Rebuild();
+		}
+
+		[MenuItem("Assets/Recompile Ink", false, 61)]
+		public static void RecompileAll() {
+			InkLibrary.Rebuild();
+			List<InkFile> masterInkFiles = InkLibrary.GetMasterInkFiles ();
+			foreach(InkFile masterInkFile in masterInkFiles) {
+				if(InkSettings.Instance.compileAutomatically || masterInkFile.compileAutomatically)
+					InkCompiler.CompileInk(masterInkFile);
+			}
+		}
+
 
 		[MenuItem("Assets/Create/Ink", false, 120)]
 		public static void CreateNewInkFile () {
@@ -183,6 +219,10 @@ namespace Ink.UnityIntegration {
 
 		public static string AbsoluteToUnityRelativePath(string fullPath) {
 			return SanitizePathString(fullPath.Substring(Application.dataPath.Length-6));
+		}
+
+		public static string UnityRelativeToAbsolutePath(string filePath) {
+			return InkEditorUtils.CombinePaths(Application.dataPath, filePath.Substring(7));
 		}
 
 		/// <summary>

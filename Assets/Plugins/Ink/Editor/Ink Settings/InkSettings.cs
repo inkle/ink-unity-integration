@@ -35,6 +35,8 @@ namespace Ink.UnityIntegration {
 		public bool compileAutomatically = true;
 		public bool handleJSONFilesAutomatically = true;
 
+		public int compileTimeout = 6;
+
 		public CustomInklecateOptions customInklecateOptions = new CustomInklecateOptions();
 		[System.Serializable]
 		public class CustomInklecateOptions {

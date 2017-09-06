@@ -152,6 +152,12 @@ namespace Ink.Runtime
             }
         }
 
+		public int depth {
+			get {
+				return elements.Count;
+			}
+		}
+
         public Element currentElement { 
             get { 
                 return callStack [callStack.Count - 1];
