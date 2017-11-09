@@ -46,7 +46,11 @@ namespace Ink.UnityIntegration {
 		}
 
 		static InkCompiler () {
-			EditorApplication.playmodeStateChanged += OnPlayModeChange;
+			#if UNITY_2017_2_OR_NEWER
+				EditorApplication.playModeStateChanged += (state) => OnPlayModeChange();
+			#else
+				EditorApplication.playmodeStateChanged += OnPlayModeChange;
+			#endif
 			EditorApplication.update += Update;
 		}
 
