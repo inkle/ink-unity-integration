@@ -102,6 +102,23 @@ namespace Ink.Runtime
         /// 
         /// </summary>
         public StoryState state { get { return _state; } }
+
+        /// <summary>
+        /// Start recording ink profiling information during calls to Continue on Story.
+        /// Return a Profiler instance that you can request a report from when you're finished.
+        /// </summary>
+		public Profiler StartProfiling() {
+			_profiler = new Profiler();
+			return _profiler;
+		}
+
+        /// <summary>
+        /// Stop recording ink profiling information during calls to Continue on Story.
+        /// To generate a report from the profiler, call 
+        /// </summary>
+		public void EndProfiling() {
+			_profiler = null;
+		}
             
         // Warning: When creating a Story using this constructor, you need to
         // call ResetState on it before use. Intended for compiler use only.
@@ -236,9 +253,13 @@ namespace Ink.Runtime
 
         string ContinueInternal()
 		{
-            if (!canContinue) {
+			bool canContinue_cached = canContinue;
+			if (!canContinue_cached) {
                 throw new StoryException ("Can't continue - should check canContinue before calling Continue");
             }
+
+			if( _profiler != null )
+				_profiler.PreContinue();
 
             _state.ResetOutput ();
 
@@ -267,13 +288,24 @@ namespace Ink.Runtime
 
                 do {
 
+					if( _profiler != null )
+						_profiler.PreStep();
+
                     // Run main step function (walks through content)
                     Step();
 
+					if( _profiler != null )
+						_profiler.PostStep();
+
                     // Run out of content and we have a default invisible choice that we can follow?
-                    if( !canContinue ) {
+					canContinue_cached = canContinue;
+					if( !canContinue_cached ) {
                         TryFollowDefaultInvisibleChoice();
+						canContinue_cached = canContinue;
                     }
+
+					if( _profiler != null )
+						_profiler.PreSnapshot();
 
                     // Don't save/rewind during string evaluation, which is e.g. used for choices
                     if( !state.inStringEvaluation ) {
@@ -318,7 +350,7 @@ namespace Ink.Runtime
                             // Create a snapshot in case we need to rewind.
                             // We're going to continue stepping in case we see glue or some
                             // non-text content such as choices.
-                            if( canContinue ) {
+							if( canContinue_cached ) {
 
 								// Don't bother to record the state beyond the current newline.
 								// e.g.:
@@ -338,11 +370,22 @@ namespace Ink.Runtime
 
                     }
 
-                } while(canContinue);
+					if( _profiler != null )
+						_profiler.PostSnapshot();
+
+				} while(canContinue_cached);
+
 
                 // Need to rewind, due to evaluating further than we should?
                 if( stateAtLastNewline != null ) {
+
+					if( _profiler != null )
+						_profiler.PreRestore();
+					
                     RestoreStateSnapshot(stateAtLastNewline);
+
+					if( _profiler != null )
+						_profiler.PostRestore();
                 }
 
                 // Finished a section of content / reached a choice point?
@@ -375,6 +418,9 @@ namespace Ink.Runtime
 
                 _state.variablesState.batchObservingVariableChanges = false;
             }
+
+			if( _profiler != null )
+				_profiler.PostContinue();
 
             return currentText;
 		}
@@ -451,6 +497,10 @@ namespace Ink.Runtime
                 currentContainer = currentContentObj as Container;
             }
             currentContainer = state.callStack.currentElement.currentContainer;
+
+			if( _profiler != null ) {
+				_profiler.Step(state.callStack);
+			}
 
             // Is the current content object:
             //  - Normal content
@@ -956,10 +1006,14 @@ namespace Ink.Runtime
                     var intVal = state.PopEvaluationStack () as IntValue;
                     var listNameVal = state.PopEvaluationStack () as StringValue;
 
+					if (intVal == null) { 
+						throw new StoryException ("Passed non-integer when creating a list element from a numerical value."); 
+					}
+
                     ListValue generatedListValue = null;
 
                     ListDefinition foundListDef;
-                    if (listDefinitions.TryGetDefinition (listNameVal.value, out foundListDef)) {
+                    if (listDefinitions.TryListGetDefinition (listNameVal.value, out foundListDef)) {
                         InkListItem foundItem;
                         if (foundListDef.TryGetItemWithValue (intVal.value, out foundItem)) {
                             generatedListValue = new ListValue (foundItem, intVal.value);
@@ -1593,6 +1647,9 @@ namespace Ink.Runtime
             if (_variableObservers == null)
                 _variableObservers = new Dictionary<string, VariableObserver> ();
 
+			if( !state.variablesState.GlobalVariableExistsWithName(variableName) ) 
+				throw new StoryException("Cannot observe variable '"+variableName+"' because it wasn't declared in the ink story.");
+
             if (_variableObservers.ContainsKey (variableName)) {
                 _variableObservers[variableName] += observer;
             } else {
@@ -1952,8 +2009,9 @@ namespace Ink.Runtime
             if (dm != null) {
                 int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
                 message = string.Format ("RUNTIME ERROR: '{0}' line {1}: {2}", dm.fileName, lineNum, message);
-            }
-            else {
+            } else if( state.currentPath != null  ) {
+				message = string.Format ("RUNTIME ERROR: ({0}): {1}", state.currentPath, message);
+			} else {
                 message = "RUNTIME ERROR: " + message;
             }
 
@@ -2045,6 +2103,8 @@ namespace Ink.Runtime
         Container _temporaryEvaluationContainer;
 
         StoryState _state;
+
+		Profiler _profiler;
 	}
 }
 

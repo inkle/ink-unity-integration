@@ -1,13 +1,9 @@
 using UnityEngine;
 using UnityEditor;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
-using UnityEditorInternal;
 using Debug = UnityEngine.Debug;
-using Ink.Runtime;
 
 /// <summary>
 /// Holds a reference to an InkFile object for every .ink file detected in the Assets folder.
@@ -209,12 +205,12 @@ namespace Ink.UnityIntegration {
 			return items;
 		}
 
-		public static InkCompiler.CompilationStackItem GetCompilationStackItem (string inkAbsoluteFilePath) {
+		public static InkCompiler.CompilationStackItem GetCompilationStackItem (Process process) {
 			foreach(var x in Instance.compilationStack) {
-				if(x.inkAbsoluteFilePath == inkAbsoluteFilePath) 
+				if(x.process == process) 
 					return x;
 			}
-			Debug.LogError("Fatal Error compiling Ink! No file found! Please report this as a bug. "+inkAbsoluteFilePath);
+			Debug.LogError("Fatal Error compiling Ink! No file found! Please report this as a bug. "+process);
 			return null;
 		}
 

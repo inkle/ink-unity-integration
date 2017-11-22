@@ -239,7 +239,7 @@ namespace Ink.Runtime
         // Warning: Any Runtime.Object content referenced within the StoryState will
         // be re-referenced rather than cloned. This is generally okay though since
         // Runtime.Objects are treated as immutable after they've been set up.
-        // (e.g. we don't edit a Runtime.Text after it's been created an added.)
+        // (e.g. we don't edit a Runtime.StringValue after it's been created an added.)
         // I wonder if there's a sensible way to enforce that..??
         internal StoryState Copy()
         {
@@ -732,17 +732,16 @@ namespace Ink.Runtime
                 
                 // Update origin when list is has something to indicate the list origin
                 var rawList = listValue.value;
-                var names = rawList.originNames;
-                if (names != null) {
-                    var origins = new List<ListDefinition> ();
-                    foreach (var n in names) {
+				if (rawList.originNames != null) {
+					if( rawList.origins == null ) rawList.origins = new List<ListDefinition>();
+					rawList.origins.Clear();
+
+					foreach (var n in rawList.originNames) {
                         ListDefinition def = null;
-                        story.listDefinitions.TryGetDefinition (n, out def);
-                        if( !origins.Contains(def) )
-                            origins.Add (def);
+                        story.listDefinitions.TryListGetDefinition (n, out def);
+						if( !rawList.origins.Contains(def) )
+							rawList.origins.Add (def);
                     }
-                        
-                    rawList.origins = origins;
                 }
             }
 
