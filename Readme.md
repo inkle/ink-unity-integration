@@ -34,10 +34,9 @@ The **ink player** is the core feature of this package; the minimal requirements
 
 ## Ink Player
 
-The Ink Player (**Ink > Player Window**) allows you to play stories in an editor window, and provides functionality to edit variables on the fly, save and load states, and divert.
+The Ink Player (**Ink > Player Window**) allows you to play stories in an editor window, and provides functionality to edit variables on the fly, test functions, profile, save and load states, and divert.
 
-To play a story, drag in a compiled ink story TextAsset.
-
+To play a story, click the "play" button shown on the inspector of a compiled ink file, or drag a compiled ink story TextAsset into the window.
 
 ## Automatic compilation
 	
@@ -45,15 +44,21 @@ Ink files must be compiled to JSON before they can be used in-game.
 	
 This package provides tools to automate this process when a .ink file is edited. 
 
-**Disabling auto-compilation**: You might want to have manual control over ink compilation. If this is the case, you can safely delete the InkPostProcessor class.
+**Disabling auto-compilation**: You might want to have manual control over ink compilation. If this is the case, you can disable "Compile ink automatically" in the InkSettings file or delete the InkPostProcessor class.
 
-**Manual compilation**: If you have disabled auto-compilation, you can manually compile ink using the **Ink > Compile All** menu item, via the inspector of an ink file, or using the functions in the InkCompiler class.
+**Manual compilation**: If you have disabled auto-compilation, you can manually compile ink using the **Assets > Recompile Ink** menu item, via the inspector of an ink file, or using the functions in the InkCompiler class.
+
+**Play mode delay**: By default, ink does not compile while in play mode. This can be disabled in the InkSettings file.
 
 ## Inspector Tools
 
 This package also replaces the icon for ink files to make them easier to spot, and populates the inspector for a selected ink file.
 
 **The Inspector**: To replace the inspector for ink files, we've created a system that allows you to provide a custom inspector for any file. If this conflicts with existing behaviour in your project, you can delete the Ink Inspector folder altogether.
+
+## Advanced
+
+**Editor Attaching**: It can be handy to attach the InkStory instance used by your game to the Ink Player window. You can do this in a single line using the InkEditorUtils.DrawStoryPropertyField function in an editor class.
 
 ## Updating Ink manually
 
