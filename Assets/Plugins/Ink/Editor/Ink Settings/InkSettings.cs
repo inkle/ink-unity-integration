@@ -33,6 +33,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		public bool compileAutomatically = true;
+		public bool delayInPlayMode = true;
 		public bool handleJSONFilesAutomatically = true;
 
 		public int compileTimeout = 6;
@@ -50,45 +51,12 @@ namespace Ink.UnityIntegration {
 			Selection.activeObject = Instance;
 		}
 
-		private static InkSettings FindSettings () {
-			if(EditorPrefs.HasKey(pathPlayerPrefsKey)) {
-				InkSettings settings = AssetDatabase.LoadAssetAtPath<InkSettings>(EditorPrefs.GetString(pathPlayerPrefsKey));
-				if(settings != null) return settings;
-				else EditorPrefs.DeleteKey(pathPlayerPrefsKey);
-			}
-
-			string[] GUIDs = AssetDatabase.FindAssets("t:"+typeof(InkSettings).Name);
-			if(GUIDs.Length > 0) {
-				if(GUIDs.Length > 1) {
-					for(int i = 1; i < GUIDs.Length; i++) {
-						AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(GUIDs[i]));
-					}
-					Debug.LogWarning("More than one InkSettings was found. Deleted excess asset instances.");
-				}
-				string path = AssetDatabase.GUIDToAssetPath(GUIDs[0]);
-				EditorPrefs.SetString(pathPlayerPrefsKey, path);
-				return AssetDatabase.LoadAssetAtPath<InkSettings>(path);
-			}
-			return null;
+		static InkSettings FindSettings () {
+			return InkEditorUtils.FastFindAndEnforceSingletonScriptableObjectOfType<InkSettings>(pathPlayerPrefsKey);
 		}
 
-		private static InkSettings FindOrCreateSettings () {
-			InkSettings tmpSettings = FindSettings();
-			// If we couldn't find the asset in the project, create a new one.
-			if(tmpSettings == null) {
-				tmpSettings = CreateInkSettings ();
-				Debug.Log("Created a new InkSettings file at "+defaultPath+" because one was not found.");
-			}
-			return tmpSettings;
-		}
-		
-		private static InkSettings CreateInkSettings () {
-			var asset = ScriptableObject.CreateInstance<InkSettings>();
-			AssetDatabase.CreateAsset (asset, defaultPath);
-			AssetDatabase.SaveAssets ();
-			AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(asset));
-			EditorPrefs.SetString(pathPlayerPrefsKey, defaultPath);
-			return asset;
+		static InkSettings FindOrCreateSettings () {
+			return InkEditorUtils.FindOrCreateSingletonScriptableObjectOfType<InkSettings>(defaultPath, pathPlayerPrefsKey);
 		}
 
 		private static void Save () {

@@ -63,12 +63,18 @@ namespace Ink.UnityIntegration {
 
 		[MenuItem("Assets/Recompile Ink", false, 61)]
 		public static void RecompileAll() {
-			InkLibrary.Rebuild();
 			List<InkFile> masterInkFiles = InkLibrary.GetMasterInkFiles ();
+			List<string> compiledFiles = new List<string>();
 			foreach(InkFile masterInkFile in masterInkFiles) {
-				if(InkSettings.Instance.compileAutomatically || masterInkFile.compileAutomatically)
+				if(InkSettings.Instance.compileAutomatically || masterInkFile.compileAutomatically) {
 					InkCompiler.CompileInk(masterInkFile);
+					compiledFiles.Add(Path.GetFileName(masterInkFile.filePath));
+				}
 			}
+			string logString = compiledFiles.Count == 0 ? 
+				"No valid ink found. Note that only files with 'Compile Automatic' checked are compiled if not set to compile all files automatically in InkSettings file." :
+				"Recompile All will compile "+string.Join(", ", compiledFiles.ToArray());
+			Debug.Log(logString);
 		}
 
 
@@ -235,7 +241,7 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.PrefixLabel(label);
 			if(EditorApplication.isPlaying && story != null) {
-				if(EditorWindow.focusedWindow is InkPlayerWindow) {
+				if(InkPlayerWindow.isOpen) {
 					InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
 					if(window.attached && window.story == story) {
 						if(GUILayout.Button("Detach")) {
@@ -283,6 +289,80 @@ namespace Ink.UnityIntegration {
 				GUI.Button(position, "Enter play mode to attach to editor");
 				EditorGUI.EndDisabledGroup();
 			}
+		}
+
+		public static T FindOrCreateSingletonScriptableObjectOfType<T> (string defaultPath, string playerPrefsKeyOfSavedLocation) where T : ScriptableObject {
+			T tmpSettings = FastFindAndEnforceSingletonScriptableObjectOfType<T>(playerPrefsKeyOfSavedLocation);
+			// If we couldn't find the asset in the project, create a new one.
+			if(tmpSettings == null) {
+				tmpSettings = CreateScriptableObject<T> (defaultPath, playerPrefsKeyOfSavedLocation);
+				Debug.Log("Created a new "+typeof(T).Name+" file at "+defaultPath+" because one was not found.");
+			}
+			return tmpSettings;
+		}
+		
+		static T CreateScriptableObject<T> (string defaultPath, string playerPrefsKeyOfSavedLocation) where T : ScriptableObject {
+			var asset = ScriptableObject.CreateInstance<T>();
+			AssetDatabase.CreateAsset (asset, defaultPath);
+			AssetDatabase.SaveAssets ();
+			AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(asset));
+			EditorPrefs.SetString(playerPrefsKeyOfSavedLocation, defaultPath);
+			return asset;
+		}
+
+		public static T FastFindAndEnforceSingletonScriptableObjectOfType<T> (string playerPrefsKeyOfSavedLocation) where T : ScriptableObject {
+			var storedAsset = FindStoredSingletonScriptableObjectOfType<T>(playerPrefsKeyOfSavedLocation);
+			if(storedAsset != null) return storedAsset;
+			return FindAndEnforceSingletonScriptableObjectOfType<T>(playerPrefsKeyOfSavedLocation);
+		}
+
+		static T FindStoredSingletonScriptableObjectOfType<T> (string playerPrefsKeyOfSavedLocation) where T : ScriptableObject {
+			if(EditorPrefs.HasKey(playerPrefsKeyOfSavedLocation)) {
+				T settings = AssetDatabase.LoadAssetAtPath<T>(EditorPrefs.GetString(playerPrefsKeyOfSavedLocation));
+				if(settings != null) return settings;
+				else EditorPrefs.DeleteKey(playerPrefsKeyOfSavedLocation);
+			}
+			return null;
+		}
+
+		static T FindAndEnforceSingletonScriptableObjectOfType<T> (string playerPrefsKeyOfSavedLocation) where T : ScriptableObject {
+			string typeName = typeof(T).Name;
+			string[] GUIDs = AssetDatabase.FindAssets("t:"+typeName);
+			if(GUIDs.Length > 0) {
+				string path = AssetDatabase.GUIDToAssetPath(GUIDs[0]);
+				if(GUIDs.Length > 1) {
+					var remainingGUID = DeleteAllButOldestScriptableObjects(GUIDs, typeName);
+					path = AssetDatabase.GUIDToAssetPath(remainingGUID);
+				}
+				EditorPrefs.SetString(playerPrefsKeyOfSavedLocation, path);
+				return AssetDatabase.LoadAssetAtPath<T>(path);
+			} else {
+				EditorPrefs.DeleteKey(playerPrefsKeyOfSavedLocation);
+			}
+			return null;
+		}
+
+		public static string DeleteAllButOldestScriptableObjects (string[] GUIDs, string typeName) {
+			if(GUIDs.Length == 0) return null;
+			if(GUIDs.Length == 1) return GUIDs[0];
+			int oldestIndex = -1;
+			DateTime oldestTime = DateTime.Now;
+			for(int i = 0; i < GUIDs.Length; i++) {
+				var path = AssetDatabase.GUIDToAssetPath(GUIDs[i]);
+				var absolutePath = UnityRelativeToAbsolutePath(path);
+				var lastWriteTime = File.GetLastWriteTime(absolutePath);
+				if(oldestIndex == -1 || lastWriteTime < oldestTime) {
+					oldestTime = lastWriteTime;
+					oldestIndex = i;
+				}
+			}
+			for(int i = 0; i < GUIDs.Length; i++) {
+				if(i == oldestIndex) continue;
+				var path = AssetDatabase.GUIDToAssetPath(GUIDs[i]);
+				AssetDatabase.DeleteAsset(path);
+			}
+			Debug.LogWarning("More than one "+typeName+" was found. Deleted newer excess asset instances.");
+			return GUIDs[oldestIndex];
 		}
 	}
 }

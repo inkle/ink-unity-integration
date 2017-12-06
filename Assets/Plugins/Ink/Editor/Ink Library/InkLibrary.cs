@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
 
@@ -28,6 +29,7 @@ namespace Ink.UnityIntegration {
 		public const string pathPlayerPrefsKey = "InkLibraryAssetPath";
 
 		public List<InkFile> inkLibrary = new List<InkFile>();
+		public List<string> pendingCompilationStack = new List<string>();
 		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
 
 		/// <summary>
@@ -41,46 +43,12 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		private static InkLibrary FindLibrary () {
-			if(EditorPrefs.HasKey(pathPlayerPrefsKey)) {
-				InkLibrary library = AssetDatabase.LoadAssetAtPath<InkLibrary>(EditorPrefs.GetString(pathPlayerPrefsKey));
-				if(library != null) return library;
-				else EditorPrefs.DeleteKey(pathPlayerPrefsKey);
-			}
-
-			string[] GUIDs = AssetDatabase.FindAssets("t:"+typeof(InkLibrary).Name);
-			if(GUIDs.Length > 0) {
-				if(GUIDs.Length > 1) {
-					for(int i = 1; i < GUIDs.Length; i++) {
-						AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(GUIDs[i]));
-					}
-					Debug.LogWarning("More than one InkLibrary was found. Deleted excess asset instances.");
-				}
-				string path = AssetDatabase.GUIDToAssetPath(GUIDs[0]);
-				EditorPrefs.SetString(pathPlayerPrefsKey, path);
-				return AssetDatabase.LoadAssetAtPath<InkLibrary>(path);
-			}
-			return null;
+		static InkLibrary FindLibrary () {
+			return InkEditorUtils.FastFindAndEnforceSingletonScriptableObjectOfType<InkLibrary>(pathPlayerPrefsKey);
 		}
 
-		private static InkLibrary FindOrCreateLibrary () {
-			InkLibrary tmpSettings = FindLibrary();
-			// If we couldn't find the asset in the project, create a new one.
-			if(tmpSettings == null) {
-				tmpSettings = CreateInkLibrary ();
-				Debug.Log("Created a new InkLibrary file at "+defaultPath+" because one was not found.");
-				InkLibrary.Rebuild();
-			}
-			return tmpSettings;
-		}
-		
-		private static InkLibrary CreateInkLibrary () {
-			var asset = ScriptableObject.CreateInstance<InkLibrary>();
-			AssetDatabase.CreateAsset (asset, defaultPath);
-			AssetDatabase.SaveAssets ();
-			AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(asset));
-			EditorPrefs.SetString(pathPlayerPrefsKey, defaultPath);
-			return asset;
+		static InkLibrary FindOrCreateLibrary () {
+			return InkEditorUtils.FindOrCreateSingletonScriptableObjectOfType<InkLibrary>(defaultPath, pathPlayerPrefsKey);
 		}
 
 		/// <summary>
@@ -88,14 +56,14 @@ namespace Ink.UnityIntegration {
 		/// Can be called manually, but incurs a performance cost.
 		/// </summary>
 		public static void Rebuild () {
-			Debug.Log("Rebuilding Ink Library...");
-
 			string[] inkFilePaths = GetAllInkFilePaths();
 
+			bool inkLibraryChanged = false;
 			List<InkFile> newInkLibrary = new List<InkFile>(inkFilePaths.Length);
 			for (int i = 0; i < inkFilePaths.Length; i++) {
 				InkFile inkFile = GetInkFileWithAbsolutePath(inkFilePaths [i]);
 				if(inkFile == null) {
+					inkLibraryChanged = true;
 					string localAssetPath = InkEditorUtils.AbsoluteToUnityRelativePath(inkFilePaths [i]);
 					DefaultAsset inkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localAssetPath);
 					// If the ink file can't be found, it might not yet have been imported. We try to manually import it to fix this.
@@ -111,19 +79,35 @@ namespace Ink.UnityIntegration {
 				}
 				newInkLibrary.Add(inkFile);
 			}
+			if(inkLibraryChanged)
+				Instance.inkLibrary = newInkLibrary;
 
-			Instance.inkLibrary = newInkLibrary;
+			var metaFiles = Instance.inkLibrary.Select(x => x.metaInfo).ToList();
+			bool metaFilesChanged = InkMetaLibrary.Instance.metaLibrary.SequenceEqual(metaFiles);
+			if(metaFilesChanged) InkMetaLibrary.Instance.metaLibrary = metaFiles;
 
-			InkMetaLibrary.Instance.metaLibrary.Clear();
-			foreach (InkFile inkFile in Instance.inkLibrary) {
-				InkMetaLibrary.Instance.metaLibrary.Add(inkFile.metaInfo);
-			}
 			InkMetaLibrary.RebuildInkFileConnections();
 
-			foreach (InkFile inkFile in Instance.inkLibrary) {
-				inkFile.FindCompiledJSONAsset();
-			}
+			foreach (InkFile inkFile in Instance.inkLibrary) inkFile.FindCompiledJSONAsset();
 			Save();
+
+			Debug.Log("Ink Library was rebuilt.");
+		}
+
+		public static void CreateOrReadUpdatedInkFiles (List<string> importedInkAssets) {
+			foreach (var importedAssetPath in importedInkAssets) {
+				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
+				if(inkFile == null) {
+					DefaultAsset asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(importedAssetPath);
+					inkFile = new InkFile(asset);
+					Instance.inkLibrary.Add(inkFile);
+					InkMetaLibrary.Instance.metaLibrary.Add(new InkMetaFile(inkFile));
+				} else {
+					inkFile.metaInfo.ParseContent();
+				}
+			}
+			// Now we've updated all the include paths for the ink library we can create master/child references between them.
+			InkMetaLibrary.RebuildInkFileConnections();
 		}
 
 		private static string[] GetAllInkFilePaths () {
@@ -158,7 +142,7 @@ namespace Ink.UnityIntegration {
 		/// <param name="path">Path.</param>
 		public static InkFile GetInkFileWithFile (DefaultAsset file) {
 			if(InkLibrary.Instance.inkLibrary == null) return null;
-			foreach(InkFile inkFile in InkLibrary.Instance.inkLibrary) {
+			foreach(InkFile inkFile in Instance.inkLibrary) {
 				if(inkFile.inkAsset == file) {
 					return inkFile;
 				}
@@ -188,7 +172,7 @@ namespace Ink.UnityIntegration {
 		/// <param name="path">Path.</param>
 		public static InkFile GetInkFileWithAbsolutePath (string absolutePath) {
 			if(InkLibrary.Instance.inkLibrary == null) return null;
-			foreach(InkFile inkFile in InkLibrary.Instance.inkLibrary) {
+			foreach(InkFile inkFile in Instance.inkLibrary) {
 				if(inkFile.absoluteFilePath == absolutePath) {
 					return inkFile;
 				}

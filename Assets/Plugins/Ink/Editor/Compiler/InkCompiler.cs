@@ -64,6 +64,7 @@ namespace Ink.UnityIntegration {
 							compilingFile.process.Kill ();
 						}
 						InkLibrary.Instance.compilationStack.RemoveAt(i);
+						InkLibrary.Save();
 						if(InkLibrary.Instance.compilationStack.Count == 0) EditorUtility.ClearProgressBar();
 						Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+".\n. Compilation should never take more than a few seconds, but for large projects or slow computers you may want to increase the timeout time in the InkSettings file.\nIf this persists there may be another issue; or else check an ink file exists at this path and try Assets/Recompile Ink, else please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+compilingFile.errorOutput);
 					}
@@ -71,11 +72,12 @@ namespace Ink.UnityIntegration {
 					// This covers a rare bug that I've not pinned down
 					var timeTaken = (float)((DateTime.Now - compilingFile.startTime).TotalSeconds);
 					if (timeTaken > InkSettings.Instance.compileTimeout + 2) {
-						if (compilingFile.process != null) {	
+						if (compilingFile.process != null && !compilingFile.process.HasExited) {
 							compilingFile.process.Exited -= OnCompileProcessComplete;
 							compilingFile.process.Kill ();
 						}
 						InkLibrary.Instance.compilationStack.RemoveAt(i);
+						InkLibrary.Save();
 						if(InkLibrary.Instance.compilationStack.Count == 0) EditorUtility.ClearProgressBar();
 						Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+" while the file was importing.\n. Please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+compilingFile.errorOutput);
 					}
@@ -97,10 +99,15 @@ namespace Ink.UnityIntegration {
 		}
 
 		private static void OnPlayModeChange () {
-			if(EditorApplication.isPlayingOrWillChangePlaymode) {
-				if(compiling)
-					Debug.LogWarning("Entered Play Mode while Ink was still compiling. Recommend exiting and re-entering play mode.");
+			if(!EditorApplication.isPlayingOrWillChangePlaymode && EditorApplication.isPlaying && InkLibrary.Instance.pendingCompilationStack.Count > 0) {
+				InkLibrary.CreateOrReadUpdatedInkFiles (InkLibrary.Instance.pendingCompilationStack);
+				foreach (var pendingFile in GetUniqueMasterInkFilesToCompile(InkLibrary.Instance.pendingCompilationStack))
+					InkCompiler.CompileInk(pendingFile);
+				InkLibrary.Instance.pendingCompilationStack.Clear();
 			}
+
+			if(EditorApplication.isPlayingOrWillChangePlaymode && EditorApplication.isPlaying && compiling)
+				Debug.LogWarning("Entered Play Mode while Ink was still compiling. Recommend exiting and re-entering play mode.");
 		}
 
 		/// <summary>
@@ -285,8 +292,8 @@ namespace Ink.UnityIntegration {
 				outputLog.Append (filesCompiledLog.ToString());
 				Debug.Log(outputLog);
 			}
-			InkLibrary.Instance.compilationStack.Clear();
 
+			InkLibrary.Instance.compilationStack.Clear();
 			InkLibrary.Save();
 			InkMetaLibrary.Save();
 
@@ -371,6 +378,17 @@ namespace Ink.UnityIntegration {
 			process.EnableRaisingEvents = true;
 			process.Start();
 			process.WaitForExit();
+		}
+
+		public static List<InkFile> GetUniqueMasterInkFilesToCompile (List<string> importedInkAssets) {
+			List<InkFile> masterInkFiles = new List<InkFile>();
+			foreach (var importedAssetPath in importedInkAssets) {
+				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
+				if(!masterInkFiles.Contains(inkFile.metaInfo.masterInkFileIncludingSelf) && (InkSettings.Instance.compileAutomatically || inkFile.metaInfo.masterInkFileIncludingSelf.compileAutomatically)) {
+					masterInkFiles.Add(inkFile.metaInfo.masterInkFileIncludingSelf);
+				}
+			}
+			return masterInkFiles;
 		}
 	}
 }
