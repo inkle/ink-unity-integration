@@ -23,9 +23,9 @@ namespace Ink.UnityIntegration {
 			get {
 				if(_inkFileIcon == null) {
 					if(isRetina) {
-						_inkFileIcon = Resources.Load<Texture2D>("InkFileIcon-retina");
+						_inkFileIcon = (Texture2D)EditorGUIUtility.Load("InkFileIcon-retina.psd");
 					} else {
-						_inkFileIcon = Resources.Load<Texture2D>("InkFileIcon");
+						_inkFileIcon = (Texture2D)EditorGUIUtility.Load("InkFileIcon.psd");
 					}
 				}
 				return _inkFileIcon;
@@ -35,7 +35,7 @@ namespace Ink.UnityIntegration {
 		public static Texture2D inkFileIconLarge {
 			get {
 				if(_inkFileIconLarge == null) {
-					_inkFileIconLarge = Resources.Load<Texture2D>("InkFileIcon-large");
+					_inkFileIconLarge = (Texture2D)EditorGUIUtility.Load("InkFileIcon-large.psd");
 				}
 				return _inkFileIconLarge;
 			}
@@ -44,7 +44,7 @@ namespace Ink.UnityIntegration {
 		public static Texture2D errorIcon {
 			get {
 				if(_errorIcon == null) {
-					_errorIcon = Resources.Load<Texture2D>("InkErrorIcon");
+					_errorIcon = (Texture2D)EditorGUIUtility.Load("InkErrorIcon.psd");
 				}
 				return _errorIcon;
 			}
@@ -53,7 +53,7 @@ namespace Ink.UnityIntegration {
 		public static Texture2D warningIcon {
 			get {
 				if(_warningIcon == null) {
-					_warningIcon = Resources.Load<Texture2D>("InkWarningIcon");
+					_warningIcon = (Texture2D)EditorGUIUtility.Load("InkWarningIcon.psd");
 				}
 				return _warningIcon;
 			}
@@ -62,7 +62,7 @@ namespace Ink.UnityIntegration {
 		public static Texture2D todoIcon {
 			get {
 				if(_todoIcon == null) {
-					_todoIcon = Resources.Load<Texture2D>("InkTodoIcon");
+					_todoIcon = (Texture2D)EditorGUIUtility.Load("InkTodoIcon.psd");
 				}
 				return _todoIcon;
 			}
@@ -71,7 +71,7 @@ namespace Ink.UnityIntegration {
 		public static Texture2D manualIcon {
 			get {
 				if(_manualIcon == null) {
-					_manualIcon = Resources.Load<Texture2D>("InkCompileManualIcon");
+					_manualIcon = (Texture2D)EditorGUIUtility.Load("InkCompileManualIcon.psd");
 				}
 				return _manualIcon;
 			}
@@ -80,7 +80,7 @@ namespace Ink.UnityIntegration {
 		public static Texture2D childIcon {
 			get {
 				if(_childIcon == null) {
-					_childIcon = Resources.Load<Texture2D>("InkChildIcon");
+					_childIcon = (Texture2D)EditorGUIUtility.Load("InkChildIcon.psd");
 				}
 				return _childIcon;
 			}
@@ -89,7 +89,7 @@ namespace Ink.UnityIntegration {
 		public static Texture2D childIconLarge {
 			get {
 				if(_childIconLarge == null) {
-					_childIconLarge = Resources.Load<Texture2D>("InkChildIcon-Large");
+					_childIconLarge = (Texture2D)EditorGUIUtility.Load("InkChildIcon-Large.psd");
 				}
 				return _childIconLarge;
 			}
@@ -98,7 +98,7 @@ namespace Ink.UnityIntegration {
 		public static Texture2D unknownFileIcon {
 			get {
 				if(_unknownFileIcon == null) {
-					_unknownFileIcon = Resources.Load<Texture2D>("InkUnknownFileIcon");
+					_unknownFileIcon = (Texture2D)EditorGUIUtility.Load("InkUnknownFileIcon.psd");
 				}
 				return _unknownFileIcon;
 			}
