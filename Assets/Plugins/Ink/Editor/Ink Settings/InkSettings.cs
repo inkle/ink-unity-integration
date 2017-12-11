@@ -32,7 +32,9 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		public bool compileAutomatically = true;
+        public DefaultAsset defaultJsonAssetPath;
+
+        public bool compileAutomatically = true;
 		public bool delayInPlayMode = true;
 		public bool handleJSONFilesAutomatically = true;
 
