@@ -42,6 +42,11 @@ namespace Ink.UnityIntegration {
 		[System.Serializable]
 		public class CustomInklecateOptions {
 			public bool runInklecateWithMono;
+			public string[] monoPaths = {
+				"/usr/bin/mono", 
+				"/usr/local/bin/mono", 
+				"/Library/Frameworks/Mono.framework/Versions/Current/Commands/mono"
+			};
 			public string additionalCompilerOptions;
 			public DefaultAsset inklecate;
 		}

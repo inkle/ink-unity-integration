@@ -156,12 +156,13 @@ namespace Ink.UnityIntegration {
 
 			Process process = new Process();
 			if( InkSettings.Instance.customInklecateOptions.runInklecateWithMono && Application.platform != RuntimePlatform.WindowsEditor ) {
-				if(File.Exists(_libraryMono)) {
-					process.StartInfo.FileName = _libraryMono;
-				} else if(File.Exists(_usrMono)) {
-					process.StartInfo.FileName = _usrMono;
-				} else {
-					Debug.LogError("Mono was not found on machine");
+				foreach (var path in InkSettings.Instance.customInklecateOptions.monoPaths) {
+					if (File.Exists(path)) {
+						process.StartInfo.FileName = path;
+					}
+				}
+				if (process.StartInfo.FileName == null) {
+					Debug.LogError("Mono was not found on machine, please edit the mono paths in settings to include a valid one for your machine.");
 					return;
 				}
 				process.StartInfo.Arguments = inklecatePath + " " + inkArguments;
@@ -360,9 +361,6 @@ namespace Ink.UnityIntegration {
 				}
 			}
 		}
-
-		private const string _usrMono = "/usr/local/bin/mono";
-		private const string _libraryMono = "/Library/Frameworks/Mono.framework/Versions/Current/Commands/mono";
 
 		private static Regex _errorRegex = new Regex(@"(?<errorType>ERROR|WARNING|TODO|RUNTIME ERROR):(?:\s(?:'(?<filename>[^']*)'\s)?line (?<lineNo>\d+):)?(?<message>.*)");
 
