@@ -46,10 +46,10 @@ namespace Ink.UnityIntegration {
 		}
 
 		static InkCompiler () {
-			#if UNITY_2017_2_OR_NEWER
-				EditorApplication.playModeStateChanged += (state) => OnPlayModeChange();
+			#if UNITY_2017
+			EditorApplication.playModeStateChanged += OnPlayModeChange;
 			#else
-				EditorApplication.playmodeStateChanged += OnPlayModeChange;
+//			EditorApplication.playmodeStateChanged += LegacyOnPlayModeChange;
 			#endif
 			EditorApplication.update += Update;
 		}
@@ -102,7 +102,22 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		private static void OnPlayModeChange () {
+		#if UNITY_2017
+		static void OnPlayModeChange (PlayModeStateChange mode) {
+			if(mode == PlayModeStateChange.EnteredEditMode && InkLibrary.Instance.pendingCompilationStack.Count > 0) {
+				InkLibrary.CreateOrReadUpdatedInkFiles (InkLibrary.Instance.pendingCompilationStack);
+				foreach (var pendingFile in GetUniqueMasterInkFilesToCompile(InkLibrary.Instance.pendingCompilationStack))
+					InkCompiler.CompileInk(pendingFile);
+				InkLibrary.Instance.pendingCompilationStack.Clear();
+			}
+
+			if(mode == PlayModeStateChange.EnteredPlayMode && compiling)
+				Debug.LogWarning("Entered Play Mode while Ink was still compiling. Recommend exiting and re-entering play mode.");
+		}
+		
+		#else
+		
+		static void LegacyOnPlayModeChange () {
 			if(!EditorApplication.isPlayingOrWillChangePlaymode && EditorApplication.isPlaying && InkLibrary.Instance.pendingCompilationStack.Count > 0) {
 				InkLibrary.CreateOrReadUpdatedInkFiles (InkLibrary.Instance.pendingCompilationStack);
 				foreach (var pendingFile in GetUniqueMasterInkFilesToCompile(InkLibrary.Instance.pendingCompilationStack))
@@ -113,7 +128,7 @@ namespace Ink.UnityIntegration {
 			if(EditorApplication.isPlayingOrWillChangePlaymode && EditorApplication.isPlaying && compiling)
 				Debug.LogWarning("Entered Play Mode while Ink was still compiling. Recommend exiting and re-entering play mode.");
 		}
-
+		#endif
 		/// <summary>
 		/// Starts a System.Process that compiles a master ink file, creating a playable JSON file that can be parsed by the Ink.Story class
 		/// </summary>
@@ -147,7 +162,7 @@ namespace Ink.UnityIntegration {
 				Debug.LogWarning("Inklecate path should not contain a space. This might lead to compilation failing. Path is '"+inklecatePath+"'. If you don't see any compilation errors, you can ignore this warning.");
 			}*/
 			string inputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileName(inkFile.filePath));
-			string outputPath = InkEditorUtils.UnityRelativeToAbsolutePath(inkFile.jsonPath);
+			string outputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileNameWithoutExtension(Path.GetFileName(inkFile.filePath))) + ".json";
 			string inkArguments = InkSettings.Instance.customInklecateOptions.additionalCompilerOptions + " -c -o " + "\"" + outputPath + "\" \"" + inputPath + "\"";
 
 			CompilationStackItem pendingFile = new CompilationStackItem();
@@ -219,8 +234,12 @@ namespace Ink.UnityIntegration {
 		}
 
 		private static void ProcessError (Process process, string message) {
-			if (message == null || message.Length == 0 || message == "???")
+			message = message.Trim();
+			if (InkEditorUtils.IsNullOrWhiteSpace(message) || message == "???")
 				return;
+			Debug.Log(message[0]);
+			Debug.Log(char.IsWhiteSpace(message[0]));
+			Debug.Log((int)(message[0]));
 			CompilationStackItem compilingFile = InkLibrary.GetCompilationStackItem(process);
 			compilingFile.errorOutput.Add(message);
 		}
