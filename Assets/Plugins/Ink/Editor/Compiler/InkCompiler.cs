@@ -69,7 +69,11 @@ namespace Ink.UnityIntegration {
 						}
 						InkLibrary.Instance.compilationStack.RemoveAt(i);
 						InkLibrary.Save();
+						// Progress bar prevents delayCall callback from firing in Linux Editor, locking the
+						// compilation until it times out. Let's just not show progress bars in Linux Editor
+						#if !UNITY_EDITOR_LINUX
 						if(InkLibrary.Instance.compilationStack.Count == 0) EditorUtility.ClearProgressBar();
+						#endif
 						Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+".\n. Compilation should never take more than a few seconds, but for large projects or slow computers you may want to increase the timeout time in the InkSettings file.\nIf this persists there may be another issue; or else check an ink file exists at this path and try Assets/Recompile Ink, else please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+compilingFile.errorOutput);
 					}
 				} else if (compilingFile.state == CompilationStackItem.State.Importing) {
@@ -82,11 +86,16 @@ namespace Ink.UnityIntegration {
 						}
 						InkLibrary.Instance.compilationStack.RemoveAt(i);
 						InkLibrary.Save();
+						#if !UNITY_EDITOR_LINUX
 						if(InkLibrary.Instance.compilationStack.Count == 0) EditorUtility.ClearProgressBar();
+						#endif
 						Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+" while the file was importing.\n. Please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+compilingFile.errorOutput);
 					}
 				}
 			}
+
+			// If we're not showing a progress bar in Linux this whole step is superfluous
+			#if !UNITY_EDITOR_LINUX
 			if(InkLibrary.Instance.compilationStack.Count > 0) {
 				int numCompiling = InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count;
 				string message = "Compiling .Ink File "+(InkLibrary.Instance.compilationStack.Count-numCompiling)+" of "+InkLibrary.Instance.compilationStack.Count;
@@ -98,8 +107,11 @@ namespace Ink.UnityIntegration {
 						progress += 1;
 				}
 				progress /= InkLibrary.Instance.compilationStack.Count;
+
 				EditorUtility.DisplayProgressBar("Compiling Ink...", message, progress);
+
 			}
+			#endif
 		}
 
 		#if UNITY_2017
@@ -321,7 +333,9 @@ namespace Ink.UnityIntegration {
 			InkLibrary.Save();
 			InkMetaLibrary.Save();
 
+			#if !UNITY_EDITOR_LINUX
 			EditorUtility.ClearProgressBar();
+			#endif
 			if(EditorApplication.isPlayingOrWillChangePlaymode) {
 				Debug.LogWarning("Ink just finished recompiling while in play mode. Your runtime story may not be up to date.");
 			}
