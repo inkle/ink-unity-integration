@@ -49,7 +49,7 @@ namespace Ink.UnityIntegration {
 			#if UNITY_2017
 			EditorApplication.playModeStateChanged += OnPlayModeChange;
 			#else
-//			EditorApplication.playmodeStateChanged += LegacyOnPlayModeChange;
+			EditorApplication.playmodeStateChanged += LegacyOnPlayModeChange;
 			#endif
 			EditorApplication.update += Update;
 		}
