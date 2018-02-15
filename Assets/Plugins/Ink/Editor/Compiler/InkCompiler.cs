@@ -18,6 +18,7 @@ namespace Ink.UnityIntegration {
 				return InkLibrary.Instance.compilationStack.Count > 0;
 			}
 		}
+		static bool playModeBlocked = false;
 
 		public delegate void OnCompileInkEvent (InkFile inkFile);
 		public static event OnCompileInkEvent OnCompileInk;
@@ -96,56 +97,88 @@ namespace Ink.UnityIntegration {
 
 			// If we're not showing a progress bar in Linux this whole step is superfluous
 			#if !UNITY_EDITOR_LINUX
-			if(InkLibrary.Instance.compilationStack.Count > 0) {
-				int numCompiling = InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count;
-				string message = "Compiling .Ink File "+(InkLibrary.Instance.compilationStack.Count-numCompiling)+" of "+InkLibrary.Instance.compilationStack.Count;
-				float progress = 0;
-				foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
-					if (compilingFile.state == CompilationStackItem.State.Compiling)
-						progress += compilingFile.timeTaken / InkSettings.Instance.compileTimeout;
-					if (compilingFile.state == CompilationStackItem.State.Importing)
-						progress += 1;
-				}
-				progress /= InkLibrary.Instance.compilationStack.Count;
-
-				EditorUtility.DisplayProgressBar("Compiling Ink...", message, progress);
-
-			}
+			UpdateProgressBar();
 			#endif
+		}
+
+		static void UpdateProgressBar () {
+			if(InkLibrary.Instance.compilationStack.Count == 0) return;
+			int numCompiling = InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count;
+			string message = "Compiling .Ink File "+(InkLibrary.Instance.compilationStack.Count-numCompiling)+" of "+InkLibrary.Instance.compilationStack.Count;
+			if(playModeBlocked) message += "\nWill enter play mode when complete.";
+			if(playModeBlocked) EditorUtility.DisplayProgressBar("Compiling Ink...", message, GetEstimatedCompilationProgress());
+			else EditorUtility.ClearProgressBar();
+		}
+
+		static float GetEstimatedCompilationProgress () {
+			float progress = 0;
+			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
+				if (compilingFile.state == CompilationStackItem.State.Compiling)
+					progress += compilingFile.timeTaken / InkSettings.Instance.compileTimeout;
+				if (compilingFile.state == CompilationStackItem.State.Importing)
+					progress += 1;
+			}
+			progress /= InkLibrary.Instance.compilationStack.Count;
+			return progress;
 		}
 
 		#if UNITY_2017
 		static void OnPlayModeChange (PlayModeStateChange mode) {
-			if(mode == PlayModeStateChange.EnteredEditMode && InkLibrary.Instance.pendingCompilationStack.Count > 0) {
-				InkLibrary.CreateOrReadUpdatedInkFiles (InkLibrary.Instance.pendingCompilationStack);
-				foreach (var pendingFile in GetUniqueMasterInkFilesToCompile(InkLibrary.Instance.pendingCompilationStack))
-					InkCompiler.CompileInk(pendingFile);
-				InkLibrary.Instance.pendingCompilationStack.Clear();
-			}
-
+			if(mode == PlayModeStateChange.EnteredEditMode && InkLibrary.Instance.pendingCompilationStack.Count > 0)
+				CompilePendingFiles();
+			if(mode == PlayModeStateChange.ExitingEditMode && compiling)
+				BlockPlayMode();
 			if(mode == PlayModeStateChange.EnteredPlayMode && compiling)
-				Debug.LogWarning("Entered Play Mode while Ink was still compiling. Recommend exiting and re-entering play mode.");
+				EnteredPlayModeWhenCompiling();
 		}
 		
 		#else
 		
 		static void LegacyOnPlayModeChange () {
-			if(!EditorApplication.isPlayingOrWillChangePlaymode && EditorApplication.isPlaying && InkLibrary.Instance.pendingCompilationStack.Count > 0) {
-				InkLibrary.CreateOrReadUpdatedInkFiles (InkLibrary.Instance.pendingCompilationStack);
-				foreach (var pendingFile in GetUniqueMasterInkFilesToCompile(InkLibrary.Instance.pendingCompilationStack))
-					InkCompiler.CompileInk(pendingFile);
-				InkLibrary.Instance.pendingCompilationStack.Clear();
-			}
-
+			if(!EditorApplication.isPlayingOrWillChangePlaymode && EditorApplication.isPlaying && InkLibrary.Instance.pendingCompilationStack.Count > 0) 
+				CompilePendingFiles();
+			if(EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying && compiling)
+				BlockPlayMode();
 			if(EditorApplication.isPlayingOrWillChangePlaymode && EditorApplication.isPlaying && compiling)
-				Debug.LogWarning("Entered Play Mode while Ink was still compiling. Recommend exiting and re-entering play mode.");
+				EnteredPlayModeWhenCompiling();
 		}
 		#endif
+
+		static void CompilePendingFiles () {
+			InkLibrary.CreateOrReadUpdatedInkFiles (InkLibrary.Instance.pendingCompilationStack);
+			foreach (var pendingFile in GetUniqueMasterInkFilesToCompile(InkLibrary.Instance.pendingCompilationStack))
+				InkCompiler.CompileInk(pendingFile);
+			InkLibrary.Instance.pendingCompilationStack.Clear();
+		}
+
+		static void BlockPlayMode () {
+			EditorApplication.isPlaying = false;
+			var percentage = String.Format("{0:P0}.", GetEstimatedCompilationProgress());
+			Debug.LogWarning("Delayed entering play mode because Ink is still compiling ("+percentage+"). Will enter play mode on completion.");
+			playModeBlocked = true;
+		}
+
+		static void EnteredPlayModeWhenCompiling () {
+			Debug.LogError("Entered Play Mode while Ink was still compiling. Story will not be up to date. This should never happen. Recommend exiting and re-entering play mode.");
+		}
+
+		public static void CompileInk (params InkFile[] inkFiles) {
+			StringBuilder filesCompiledLog = new StringBuilder("Files compiled:");
+			foreach (var inkFile in inkFiles) filesCompiledLog.AppendLine().Append(inkFile.filePath);
+			
+			StringBuilder outputLog = new StringBuilder ();
+			outputLog.Append ("Ink compilation started at ");
+			outputLog.AppendLine (DateTime.Now.ToLongTimeString ());
+			outputLog.Append (filesCompiledLog.ToString());
+
+			foreach(var inkFile in inkFiles) CompileInkInternal (inkFile);
+		}
+
 		/// <summary>
 		/// Starts a System.Process that compiles a master ink file, creating a playable JSON file that can be parsed by the Ink.Story class
 		/// </summary>
 		/// <param name="inkFile">Ink file.</param>
-		public static void CompileInk (InkFile inkFile) {
+		internal static void CompileInkInternal (InkFile inkFile) {
 			if(inkFile == null) {
 				Debug.LogError("Tried to compile ink file "+inkFile.filePath+", but input was null.");
 				return;
@@ -235,7 +268,7 @@ namespace Ink.UnityIntegration {
 			pendingFile.state = CompilationStackItem.State.Importing;
 			if(InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count == 0) {
 				// This event runs in another thread, preventing us from calling some UnityEditor functions directly. Instead, we delay till the next inspector update.
-				EditorApplication.delayCall += Delay;
+				EditorApplication.delayCall += DelayedComplete;
 			}
 		}
 
@@ -257,7 +290,7 @@ namespace Ink.UnityIntegration {
 			compilingFile.errorOutput.Add(message);
 		}
 
-		private static void Delay () {
+		private static void DelayedComplete () {
 			if(InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count > 0) {
 				Debug.LogWarning("Delayed, but a file is now compiling! You can ignore this warning.");
 				return;
@@ -338,6 +371,18 @@ namespace Ink.UnityIntegration {
 			#endif
 			if(EditorApplication.isPlayingOrWillChangePlaymode) {
 				Debug.LogWarning("Ink just finished recompiling while in play mode. Your runtime story may not be up to date.");
+			}
+
+			if(playModeBlocked) {
+				if(!errorsFound) {
+					// Delaying gives the editor a frame to clear the progress bar.
+					EditorApplication.delayCall += () => {
+						Debug.Log("Compilation completed, entering play mode.");
+						EditorApplication.isPlaying = true;
+					};
+				} else {
+					Debug.LogWarning("Play mode not entered after ink compilation because ink had errors.");
+				}
 			}
 		}
 
