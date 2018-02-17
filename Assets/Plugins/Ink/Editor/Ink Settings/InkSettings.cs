@@ -18,6 +18,7 @@ namespace Ink.UnityIntegration {
 			get {
 				if(_Instance == null)
 					_Instance = FindOrCreateSettings();
+				Debug.Assert(_Instance != null, "InkSettings could not be created! This is a bug.");
 				return _Instance;
 			}
 		}
