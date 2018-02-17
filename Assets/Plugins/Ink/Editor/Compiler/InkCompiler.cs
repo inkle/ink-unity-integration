@@ -66,7 +66,10 @@ namespace Ink.UnityIntegration {
 					if (compilingFile.timeTaken > InkSettings.Instance.compileTimeout) {
 						if (compilingFile.process != null) {	
 							compilingFile.process.Exited -= OnCompileProcessComplete;
-							compilingFile.process.Kill ();
+							// Was sometimes getting errors where the process couldn't exit because it had finished. 
+							// This might fix that? If it doesnt, I'll try a try/catch.
+							if(!compilingFile.process.HasExited)
+								compilingFile.process.Kill ();
 						}
 						InkLibrary.Instance.compilationStack.RemoveAt(i);
 						InkLibrary.Save();
