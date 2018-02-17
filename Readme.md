@@ -70,7 +70,7 @@ If you're interested in keeping up-to-date with cutting edge features, you can d
 
 * Is the Linux Unity Editor supported?
 
-  *We haven't implemented it, although it should be easy enough by running inklecate.exe with mono. Take a look at `InkCompiler.cs` if you want to add it.*
+  *Yes!*
   
 * What happened to Newtonsoft.Json.Net? Do I still need my API compatibility set to .NET 2.0?
 
