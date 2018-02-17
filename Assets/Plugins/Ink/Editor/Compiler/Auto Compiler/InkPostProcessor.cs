@@ -168,9 +168,9 @@ namespace Ink.UnityIntegration {
 						InkLibrary.Instance.pendingCompilationStack.Add(fileToImport);
 				}
 			} else {
+				InkLibrary.CreateOrReadUpdatedInkFiles (importedInkAssets);
 				foreach (var inkAssetToCompile in InkCompiler.GetUniqueMasterInkFilesToCompile (importedInkAssets))
 					InkCompiler.CompileInk(inkAssetToCompile);
-				InkLibrary.CreateOrReadUpdatedInkFiles (importedInkAssets);
 			}
 		}
 	}
