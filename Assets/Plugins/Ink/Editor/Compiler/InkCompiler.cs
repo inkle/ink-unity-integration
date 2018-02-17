@@ -467,6 +467,7 @@ namespace Ink.UnityIntegration {
 			List<InkFile> masterInkFiles = new List<InkFile>();
 			foreach (var importedAssetPath in importedInkAssets) {
 				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
+				Debug.Assert(inkFile != null, "File at path "+importedAssetPath+" does not exist! Rebuild Ink Library using Assets > Recompile Ink");
 				if(!masterInkFiles.Contains(inkFile.metaInfo.masterInkFileIncludingSelf) && (InkSettings.Instance.compileAutomatically || inkFile.metaInfo.masterInkFileIncludingSelf.compileAutomatically)) {
 					masterInkFiles.Add(inkFile.metaInfo.masterInkFileIncludingSelf);
 				}
