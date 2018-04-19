@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Diagnostics;
 
 namespace Ink.Runtime
 {
@@ -15,7 +16,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the ink story file format.
         /// </summary>
-        public const int inkVersionCurrent = 17;
+        public const int inkVersionCurrent = 18;
 
         // Version numbers are for engine itself and story file, rather
         // than the story state save format (which is um, currently nonexistant)
@@ -32,7 +33,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The minimum legacy version of ink that can be loaded by the current version of the code.
         /// </summary>
-        const int inkVersionMinimumCompatible = 16;
+        const int inkVersionMinimumCompatible = 18;
 
         /// <summary>
         /// The list of Choice objects available at the current point in
@@ -48,7 +49,7 @@ namespace Ink.Runtime
                 // Don't include invisible choices for external usage.
                 var choices = new List<Choice>();
                 foreach (var c in _state.currentChoices) {
-                    if (!c.choicePoint.isInvisibleDefault) {
+                    if (!c.isInvisibleDefault) {
                         c.index = choices.Count;
                         choices.Add (c);
                     }
@@ -60,13 +61,23 @@ namespace Ink.Runtime
         /// <summary>
         /// The latest line of text to be generated from a Continue() call.
         /// </summary>
-		public string currentText { get  { return state.currentText; } }
+		public string currentText { 
+            get  { 
+                IfAsyncWeCant ("call currentText since it's a work in progress");
+                return state.currentText; 
+            } 
+        }
 
         /// <summary>
         /// Gets a list of tags as defined with '#' in source that were seen
         /// during the latest Continue() call.
         /// </summary>
-        public List<string> currentTags { get { return state.currentTags; } }
+        public List<string> currentTags { 
+            get { 
+                IfAsyncWeCant ("call currentTags since it's a work in progress");
+                return state.currentTags; 
+            } 
+        }
 
         /// <summary>
         /// Any errors generated during evaluation of the Story.
@@ -74,9 +85,19 @@ namespace Ink.Runtime
         public List<string> currentErrors { get { return state.currentErrors; } }
 
         /// <summary>
+        /// Any warnings generated during evaluation of the Story.
+        /// </summary>
+        public List<string> currentWarnings { get { return state.currentWarnings; } }
+
+        /// <summary>
         /// Whether the currentErrors list contains any errors.
         /// </summary>
         public bool hasError { get { return state.hasError; } }
+
+        /// <summary>
+        /// Whether the currentWarnings list contains any warnings.
+        /// </summary>
+        public bool hasWarning { get { return state.hasWarning; } }
 
         /// <summary>
         /// The VariablesState object contains all the global variables in the story.
@@ -108,6 +129,7 @@ namespace Ink.Runtime
         /// Return a Profiler instance that you can request a report from when you're finished.
         /// </summary>
 		public Profiler StartProfiling() {
+            IfAsyncWeCant ("start profiling");
 			_profiler = new Profiler();
 			return _profiler;
 		}
@@ -190,6 +212,9 @@ namespace Ink.Runtime
         /// </summary>
         public void ResetState()
         {
+            // TODO: Could make this possible
+            IfAsyncWeCant ("ResetState");
+
             _state = new StoryState (this);
             _state.variablesState.variableChangedEvent += VariableStateDidChangeEvent;
 
@@ -197,7 +222,7 @@ namespace Ink.Runtime
         }
 
         /// <summary>
-        /// Reset the runtime error list within the state.
+        /// Reset the runtime error and warning list within the state.
         /// </summary>
         public void ResetErrors()
         {
@@ -214,22 +239,26 @@ namespace Ink.Runtime
         /// </summary>
         public void ResetCallstack()
         {
+            IfAsyncWeCant ("ResetCallstack");
+
             _state.ForceEnd ();
         }
 
         void ResetGlobals()
         {
             if (_mainContentContainer.namedContent.ContainsKey ("global decl")) {
-                var originalPath = state.currentPath;
+                var originalPointer = state.currentPointer;
 
-                ChoosePathString ("global decl");
+                ChoosePathString ("global decl", resetCallstack: false);
 
                 // Continue, but without validating external bindings,
                 // since we may be doing this reset at initialisation time.
                 ContinueInternal ();
 
-                state.currentPath = originalPath;
+                state.currentPointer = originalPointer;
             }
+
+            state.variablesState.SnapshotDefaultGlobals ();
         }
 
         /// <summary>
@@ -241,201 +270,282 @@ namespace Ink.Runtime
         /// <returns>The line of text content.</returns>
         public string Continue()
         {
-            // TODO: Should we leave this to the client, since it could be
-            // slow to iterate through all the content an extra time?
-            if( !_hasValidatedExternals )
-                ValidateExternalBindings ();
-
-
-            return ContinueInternal ();
+            ContinueAsync(0);
+            return currentText;
         }
 
-
-        string ContinueInternal()
-		{
-			bool canContinue_cached = canContinue;
-			if (!canContinue_cached) {
-                throw new StoryException ("Can't continue - should check canContinue before calling Continue");
-            }
-
-			if( _profiler != null )
-				_profiler.PreContinue();
-
-            _state.ResetOutput ();
-
-            _state.didSafeExit = false;
-
-            _state.variablesState.batchObservingVariableChanges = true;
-
-            //_previousContainer = null;
-
-            try {
-
-                StoryState stateAtLastNewline = null;
-
-                // The basic algorithm here is:
-                //
-                //     do { Step() } while( canContinue && !outputStreamEndsInNewline );
-                //
-                // But the complexity comes from:
-                //  - Stepping beyond the newline in case it'll be absorbed by glue later
-                //  - Ensuring that non-text content beyond newlines are generated - i.e. choices,
-                //    which are actually built out of text content.
-                // So we have to take a snapshot of the state, continue prospectively,
-                // and rewind if necessary.
-                // This code is slightly fragile :-/ 
-                //
-
-                do {
-
-					if( _profiler != null )
-						_profiler.PreStep();
-
-                    // Run main step function (walks through content)
-                    Step();
-
-					if( _profiler != null )
-						_profiler.PostStep();
-
-                    // Run out of content and we have a default invisible choice that we can follow?
-					canContinue_cached = canContinue;
-					if( !canContinue_cached ) {
-                        TryFollowDefaultInvisibleChoice();
-						canContinue_cached = canContinue;
-                    }
-
-					if( _profiler != null )
-						_profiler.PreSnapshot();
-
-                    // Don't save/rewind during string evaluation, which is e.g. used for choices
-                    if( !state.inStringEvaluation ) {
-
-                        // We previously found a newline, but were we just double checking that
-                        // it wouldn't immediately be removed by glue?
-                        if( stateAtLastNewline != null ) {
-
-                            // Cover cases that non-text generated content was evaluated last step
-                            string currText = currentText;
-                            int prevTextLength = stateAtLastNewline.currentText.Length;
-
-                            // Take tags into account too, so that a tag following a content line:
-                            //   Content
-                            //   # tag
-                            // ... doesn't cause the tag to be wrongly associated with the content above.
-                            int prevTagCount = stateAtLastNewline.currentTags.Count;
-
-                            // Output has been extended?
-                            if( !currText.Equals(stateAtLastNewline.currentText) || prevTagCount != currentTags.Count ) {
-
-                                // Original newline still exists?
-                                if( currText.Length >= prevTextLength && currText[prevTextLength-1] == '\n' ) {
-                                    
-                                    RestoreStateSnapshot(stateAtLastNewline);
-                                    break;
-                                }
-
-                                // Newline that previously existed is no longer valid - e.g.
-                                // glue was encounted that caused it to be removed.
-                                else {
-                                    stateAtLastNewline = null;
-                                }
-                            }
-
-                        }
-
-                        // Current content ends in a newline - approaching end of our evaluation
-                        if( state.outputStreamEndsInNewline ) {
-
-                            // If we can continue evaluation for a bit:
-                            // Create a snapshot in case we need to rewind.
-                            // We're going to continue stepping in case we see glue or some
-                            // non-text content such as choices.
-							if( canContinue_cached ) {
-
-								// Don't bother to record the state beyond the current newline.
-								// e.g.:
-								// Hello world\n			// record state at the end of here
-								// ~ complexCalculation()   // don't actually need this unless it generates text
-								if( stateAtLastNewline == null )
-                                	stateAtLastNewline = StateSnapshot();
-                            } 
-
-                            // Can't continue, so we're about to exit - make sure we
-                            // don't have an old state hanging around.
-                            else {
-                                stateAtLastNewline = null;
-                            }
-
-                        }
-
-                    }
-
-					if( _profiler != null )
-						_profiler.PostSnapshot();
-
-				} while(canContinue_cached);
-
-
-                // Need to rewind, due to evaluating further than we should?
-                if( stateAtLastNewline != null ) {
-
-					if( _profiler != null )
-						_profiler.PreRestore();
-					
-                    RestoreStateSnapshot(stateAtLastNewline);
-
-					if( _profiler != null )
-						_profiler.PostRestore();
-                }
-
-                // Finished a section of content / reached a choice point?
-                if( !canContinue ) {
-
-                    if( state.callStack.canPopThread ) {
-                        Error("Thread available to pop, threads should always be flat by the end of evaluation?");
-                    }
-
-					if( state.generatedChoices.Count == 0 && !state.didSafeExit && _temporaryEvaluationContainer == null ) {
-                        if( state.callStack.CanPop(PushPopType.Tunnel) ) {
-                            Error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
-                        } else if( state.callStack.CanPop(PushPopType.Function) ) {
-                            Error("unexpectedly reached end of content. Do you need a '~ return'?");
-                        } else if( !state.callStack.canPop ) {
-                            Error("ran out of content. Do you need a '-> DONE' or '-> END'?");
-                        } else {
-                            Error("unexpectedly reached end of content for unknown reason. Please debug compiler!");
-                        }
-                    }
-
-                }
-
-
-            } catch(StoryException e) {
-                AddError (e.Message, e.useEndLineNumber);
-            } finally {
-                
-                state.didSafeExit = false;
-
-                _state.variablesState.batchObservingVariableChanges = false;
-            }
-
-			if( _profiler != null )
-				_profiler.PostContinue();
-
-            return currentText;
-		}
 
         /// <summary>
         /// Check whether more content is available if you were to call <c>Continue()</c> - i.e.
         /// are we mid story rather than at a choice point or at the end.
         /// </summary>
         /// <value><c>true</c> if it's possible to call <c>Continue()</c>.</value>
-        public bool canContinue
-        {
-            get {
-				return state.canContinue;
+        public bool canContinue {
+        	get {
+                return state.canContinue;
             }
         }
+
+        /// <summary>
+        /// If ContinueAsync was called (with milliseconds limit > 0) then this property
+        /// will return false if the ink evaluation isn't yet finished, and you need to call 
+        /// it again in order for the Continue to fully complete.
+        /// </summary>
+        public bool asyncContinueComplete {
+            get {
+                return !_asyncContinueActive;
+            }
+        }
+
+        /// <summary>
+        /// An "asnychronous" version of Continue that only partially evaluates the ink,
+        /// with a budget of a certain time limit. It will exit ink evaluation early if
+        /// the evaluation isn't complete within the time limit, with the
+        /// asyncContinueComplete property being false.
+        /// This is useful if ink evaluation takes a long time, and you want to distribute
+        /// it over multiple game frames for smoother animation.
+        /// If you pass a limit of zero, then it will fully evaluate the ink in the same
+        /// way as calling Continue (and in fact, this exactly what Continue does internally).
+        /// </summary>
+        public void ContinueAsync (float millisecsLimitAsync)
+        {
+            if( !_hasValidatedExternals )
+                ValidateExternalBindings ();
+
+            ContinueInternal (millisecsLimitAsync);
+        }
+
+        void ContinueInternal (float millisecsLimitAsync = 0)
+        {
+            if( _profiler != null )
+                _profiler.PreContinue();
+            
+            var isAsyncTimeLimited = millisecsLimitAsync > 0;
+
+            _recursiveContinueCount++;
+
+            // Doing either:
+            //  - full run through non-async (so not active and don't want to be)
+            //  - Starting async run-through
+            if (!_asyncContinueActive) {
+                _asyncContinueActive = isAsyncTimeLimited;
+				
+                if (!canContinue) {
+                    throw new StoryException ("Can't continue - should check canContinue before calling Continue");
+                }
+
+                _state.didSafeExit = false;
+                _state.ResetOutput ();
+
+                // It's possible for ink to call game to call ink to call game etc
+                // In this case, we only want to batch observe variable changes
+                // for the outermost call.
+                if (_recursiveContinueCount == 1)
+                    _state.variablesState.batchObservingVariableChanges = true;
+            }
+
+            // Start timing
+            var durationStopwatch = new Stopwatch ();
+            durationStopwatch.Start ();
+
+            bool outputStreamEndsInNewline = false;
+            do {
+
+                try {
+                    outputStreamEndsInNewline = ContinueSingleStep ();
+                } catch(StoryException e) {
+                    AddError (e.Message, useEndLineNumber:e.useEndLineNumber);
+                    break;
+                }
+                
+                if (outputStreamEndsInNewline) 
+                    break;
+
+                // Run out of async time?
+                if (_asyncContinueActive && durationStopwatch.ElapsedMilliseconds > millisecsLimitAsync) {
+                    break;
+                }
+
+            } while(canContinue);
+
+            durationStopwatch.Stop ();
+
+            // 4 outcomes:
+            //  - got newline (so finished this line of text)
+            //  - can't continue (e.g. choices or ending)
+            //  - ran out of time during evaluation
+            //  - error
+            //
+            // Successfully finished evaluation in time (or in error)
+            if (outputStreamEndsInNewline || !canContinue) {
+
+                // Need to rewind, due to evaluating further than we should?
+                if( _stateAtLastNewline != null ) {
+    				RestoreStateSnapshot (_stateAtLastNewline);
+                    _stateAtLastNewline = null;
+                }
+
+                // Finished a section of content / reached a choice point?
+                if( !canContinue ) {
+					if (state.callStack.canPopThread)
+                        AddError ("Thread available to pop, threads should always be flat by the end of evaluation?");
+
+                    if (state.generatedChoices.Count == 0 && !state.didSafeExit && _temporaryEvaluationContainer == null) {
+                        if (state.callStack.CanPop (PushPopType.Tunnel))
+                            AddError ("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
+                        else if (state.callStack.CanPop (PushPopType.Function))
+                            AddError ("unexpectedly reached end of content. Do you need a '~ return'?");
+                        else if (!state.callStack.canPop)
+                            AddError ("ran out of content. Do you need a '-> DONE' or '-> END'?");
+                        else
+                            AddError ("unexpectedly reached end of content for unknown reason. Please debug compiler!");
+                    }
+                }
+
+                state.didSafeExit = false;
+
+                if (_recursiveContinueCount == 1)
+                    _state.variablesState.batchObservingVariableChanges = false;
+
+                _asyncContinueActive = false;
+            }
+
+            _recursiveContinueCount--;
+
+            if( _profiler != null )
+                _profiler.PostContinue();
+        }
+
+        bool ContinueSingleStep ()
+        {
+            if (_profiler != null)
+                _profiler.PreStep ();
+
+            // Run main step function (walks through content)
+            Step ();
+
+            if (_profiler != null)
+                _profiler.PostStep ();
+
+            // Run out of content and we have a default invisible choice that we can follow?
+			if (!canContinue && !state.callStack.elementIsEvaluateFromGame) {
+                TryFollowDefaultInvisibleChoice ();
+            }
+
+            if (_profiler != null)
+                _profiler.PreSnapshot ();
+
+            // Don't save/rewind during string evaluation, which is e.g. used for choices
+            if (!state.inStringEvaluation) {
+
+                // We previously found a newline, but were we just double checking that
+                // it wouldn't immediately be removed by glue?
+                if (_stateAtLastNewline != null) {
+
+                    // Has proper text or a tag been added? Then we know that the newline
+                    // that was previously added is definitely the end of the line.
+                    var change = CalculateNewlineOutputStateChange (
+                        _stateAtLastNewline.currentText,       state.currentText, 
+                        _stateAtLastNewline.currentTags.Count, state.currentTags.Count
+                    );
+
+                    // The last time we saw a newline, it was definitely the end of the line, so we
+                    // want to rewind to that point.
+                    if (change == OutputStateChange.ExtendedBeyondNewline) {
+                        RestoreStateSnapshot (_stateAtLastNewline);
+
+                        // Hit a newline for sure, we're done
+                        return true;
+                    } 
+
+                    // Newline that previously existed is no longer valid - e.g.
+                    // glue was encounted that caused it to be removed.
+                    else if (change == OutputStateChange.NewlineRemoved) {
+                        _stateAtLastNewline = null;
+                    }
+                }
+
+                // Current content ends in a newline - approaching end of our evaluation
+                if (state.outputStreamEndsInNewline) {
+
+                    // If we can continue evaluation for a bit:
+                    // Create a snapshot in case we need to rewind.
+                    // We're going to continue stepping in case we see glue or some
+                    // non-text content such as choices.
+                    if (canContinue) {
+
+                        // Don't bother to record the state beyond the current newline.
+                        // e.g.:
+                        // Hello world\n            // record state at the end of here
+                        // ~ complexCalculation()   // don't actually need this unless it generates text
+                        if (_stateAtLastNewline == null)
+                            _stateAtLastNewline = StateSnapshot ();
+                    }
+
+                    // Can't continue, so we're about to exit - make sure we
+                    // don't have an old state hanging around.
+                    else {
+                        _stateAtLastNewline = null;
+                    }
+
+                }
+
+            }
+
+            if (_profiler != null)
+                _profiler.PostSnapshot ();
+
+            // outputStreamEndsInNewline = false
+            return false;
+        }
+
+
+
+
+        // Assumption: prevText is the snapshot where we saw a newline, and we're checking whether we're really done
+        //             with that line. Therefore prevText will definitely end in a newline.
+        //
+        // We take tags into account too, so that a tag following a content line:
+        //   Content
+        //   # tag
+        // ... doesn't cause the tag to be wrongly associated with the content above.
+        enum OutputStateChange
+        {
+        	NoChange,
+        	ExtendedBeyondNewline,
+        	NewlineRemoved
+        }
+        OutputStateChange CalculateNewlineOutputStateChange (string prevText, string currText, int prevTagCount, int currTagCount)
+        {
+            // Simple case: nothing's changed, and we still have a newline
+            // at the end of the current content
+            var newlineStillExists = currText.Length >= prevText.Length && currText [prevText.Length - 1] == '\n';
+            if (prevTagCount == currTagCount && prevText.Length == currText.Length 
+                && newlineStillExists)
+                return OutputStateChange.NoChange;
+
+            // Old newline has been removed, it wasn't the end of the line after all
+            if (!newlineStillExists) {
+                return OutputStateChange.NewlineRemoved;
+            }
+
+            // Tag added - definitely the start of a new line
+            if (currTagCount > prevTagCount)
+                return OutputStateChange.ExtendedBeyondNewline;
+
+            // There must be new content - check whether it's just whitespace
+            for (int i = prevText.Length; i < currText.Length; i++) {
+                var c = currText [i];
+                if (c != ' ' && c != '\t') {
+                    return OutputStateChange.ExtendedBeyondNewline;
+                }
+            }
+
+            // There's new text but it's just spaces and tabs, so there's still the potential
+            // for glue to kill the newline.
+            return OutputStateChange.NoChange;
+        }
+
 
         /// <summary>
         /// Continue the story until the next choice point or until it runs out of content.
@@ -445,6 +555,8 @@ namespace Ink.Runtime
         /// <returns>The resulting text evaluated by the ink engine, concatenated together.</returns>
         public string ContinueMaximally()
         {
+            IfAsyncWeCant ("ContinueMaximally");
+
             var sb = new StringBuilder ();
 
             while (canContinue) {
@@ -454,9 +566,47 @@ namespace Ink.Runtime
             return sb.ToString ();
         }
 
-        internal Runtime.Object ContentAtPath(Path path)
+        internal SearchResult ContentAtPath(Path path)
         {
             return mainContentContainer.ContentAtPath (path);
+        }
+
+        internal Runtime.Container KnotContainerWithName (string name)
+        {
+            INamedContent namedContainer;
+            if (mainContentContainer.namedContent.TryGetValue (name, out namedContainer))
+                return namedContainer as Container;
+            else
+                return null;
+        }
+
+        internal Pointer PointerAtPath (Path path)
+        {
+            if (path.length == 0)
+                return Pointer.Null;
+
+            var p = new Pointer ();
+
+            int pathLengthToUse = path.length;
+
+            SearchResult result;
+            if( path.lastComponent.isIndex ) {
+                pathLengthToUse = path.length - 1;
+                result = mainContentContainer.ContentAtPath (path, pathLengthToUse);
+                p.container = result.container;
+                p.index = path.lastComponent.index;
+            } else {
+                result = mainContentContainer.ContentAtPath (path);
+                p.container = result.container;
+                p.index = -1;
+            }
+
+            if (result.obj == null || result.obj == mainContentContainer && pathLengthToUse > 0)
+                Error ("Failed to find content at path '" + path + "', and no approximation of it was possible.");
+            else if (result.approximate)
+                Warning ("Failed to find content at path '" + path + "', so it was approximated to: '"+result.obj.path+"'.");
+
+            return p;
         }
 
         StoryState StateSnapshot()
@@ -474,29 +624,27 @@ namespace Ink.Runtime
             bool shouldAddToStream = true;
 
             // Get current content
-            var currentContentObj = state.currentContentObject;
-            if (currentContentObj == null) {
+            var pointer = state.currentPointer;
+            if (pointer.isNull) {
                 return;
             }
-                
+
             // Step directly to the first element of content in a container (if necessary)
-            Container currentContainer = currentContentObj as Container;
-            while(currentContainer) {
+            Container containerToEnter = pointer.Resolve () as Container;
+            while(containerToEnter) {
 
                 // Mark container as being entered
-                VisitContainer (currentContainer, atStart:true);
+                VisitContainer (containerToEnter, atStart:true);
 
                 // No content? the most we can do is step past it
-                if (currentContainer.content.Count == 0)
+                if (containerToEnter.content.Count == 0)
                     break;
 
-                currentContentObj = currentContainer.content [0];
-                state.callStack.currentElement.currentContentIndex = 0;
-                state.callStack.currentElement.currentContainer = currentContainer;
 
-                currentContainer = currentContentObj as Container;
+                pointer = Pointer.StartOf (containerToEnter);
+                containerToEnter = pointer.Resolve() as Container;
             }
-            currentContainer = state.callStack.currentElement.currentContainer;
+            state.currentPointer = pointer;
 
 			if( _profiler != null ) {
 				_profiler.Step(state.callStack);
@@ -507,10 +655,11 @@ namespace Ink.Runtime
             //  - Or a logic/flow statement - if so, do it
             // Stop flow if we hit a stack pop when we're unable to pop (e.g. return/done statement in knot
             // that was diverted to rather than called as a function)
+            var currentContentObj = pointer.Resolve ();
             bool isLogicOrFlowControl = PerformLogicAndFlowControl (currentContentObj);
 
             // Has flow been forced to end by flow control above?
-            if (state.currentContentObject == null) {
+            if (state.currentPointer.isNull) {
                 return;
             }
 
@@ -583,31 +732,36 @@ namespace Ink.Runtime
             }
         }
 
-		HashSet<Container> _prevContainerSet;
+        List<Container> _prevContainers = new List<Container>();
         void VisitChangedContainersDueToDivert()
         {
-            var previousContentObject = state.previousContentObject;
-            var newContentObject = state.currentContentObject;
+            var previousPointer = state.previousPointer;
+            var pointer = state.currentPointer;
 
-            if (!newContentObject)
+            // Unless we're pointing *directly* at a piece of content, we don't do
+            // counting here. Otherwise, the main stepping function will do the counting.
+            if (pointer.isNull || pointer.index == -1)
                 return;
             
             // First, find the previously open set of containers
-			if( _prevContainerSet == null ) _prevContainerSet = new HashSet<Container> ();
-			_prevContainerSet.Clear();
-            if (previousContentObject) {
-                Container prevAncestor = previousContentObject as Container ?? previousContentObject.parent as Container;
+			_prevContainers.Clear();
+            if (!previousPointer.isNull) {
+                Container prevAncestor = previousPointer.Resolve() as Container ?? previousPointer.container as Container;
                 while (prevAncestor) {
-					_prevContainerSet.Add (prevAncestor);
+					_prevContainers.Add (prevAncestor);
                     prevAncestor = prevAncestor.parent as Container;
                 }
             }
 
             // If the new object is a container itself, it will be visited automatically at the next actual
             // content step. However, we need to walk up the new ancestry to see if there are more new containers
-            Runtime.Object currentChildOfContainer = newContentObject;
+            Runtime.Object currentChildOfContainer = pointer.Resolve();
+
+            // Invalid pointer? May happen if attemptingto 
+            if (currentChildOfContainer == null) return;
+
             Container currentContainerAncestor = currentChildOfContainer.parent as Container;
-			while (currentContainerAncestor && !_prevContainerSet.Contains(currentContainerAncestor)) {
+			while (currentContainerAncestor && !_prevContainers.Contains(currentContainerAncestor)) {
 
                 // Check whether this ancestor container is being entered at the start,
                 // by checking whether the child object is the first.
@@ -654,9 +808,6 @@ namespace Ink.Runtime
                     showChoice = false;
                 }
             }
-                
-            var choice = new Choice (choicePoint);
-            choice.threadAtGeneration = state.callStack.currentThread.Copy ();
 
             // We go through the full process of creating the choice above so
             // that we consume the content for it, since otherwise it'll
@@ -664,6 +815,12 @@ namespace Ink.Runtime
             if (!showChoice) {
                 return null;
             }
+
+            var choice = new Choice ();
+            choice.targetPath = choicePoint.pathOnChoice;
+            choice.sourcePath = choicePoint.path.ToString ();
+            choice.isInvisibleDefault = choicePoint.isInvisibleDefault;
+            choice.threadAtGeneration = state.callStack.currentThread.Copy ();
 
             // Set final text for the choice
             choice.text = startText + choiceOnlyText;
@@ -720,7 +877,10 @@ namespace Ink.Runtime
 
                     var varContents = state.variablesState.GetVariableWithName (varName);
 
-                    if (!(varContents is DivertTargetValue)) {
+                    if (varContents == null) {
+                        Error ("Tried to divert using a target from a variable that could not be found (" + varName + ")");
+                    }
+                    else if (!(varContents is DivertTargetValue)) {
 
                         var intContent = varContents as IntValue;
 
@@ -735,20 +895,23 @@ namespace Ink.Runtime
                     }
 
                     var target = (DivertTargetValue)varContents;
-                    state.divertedTargetObject = ContentAtPath(target.targetPath);
+                    state.divertedPointer = PointerAtPath(target.targetPath);
 
                 } else if (currentDivert.isExternal) {
                     CallExternalFunction (currentDivert.targetPathString, currentDivert.externalArgs);
                     return true;
                 } else {
-                    state.divertedTargetObject = currentDivert.targetContent;
+                    state.divertedPointer = currentDivert.targetPointer;
                 }
 
                 if (currentDivert.pushesToStack) {
-                    state.callStack.Push (currentDivert.stackPushType);
+                    state.callStack.Push (
+                        currentDivert.stackPushType, 
+                        outputStreamLengthWithPushed:state.outputStream.Count
+                    );
                 }
 
-                if (state.divertedTargetObject == null && !currentDivert.isExternal) {
+                if (state.divertedPointer.isNull && !currentDivert.isExternal) {
 
                     // Human readable name available - runtime divert is part of a hard-written divert that to missing content
                     if (currentDivert && currentDivert.debugMetadata.sourceName != null) {
@@ -825,7 +988,7 @@ namespace Ink.Runtime
                         }
                     }
 
-                    if (state.TryExitExternalFunctionEvaluation ()) {
+                    if (state.TryExitFunctionEvaluationFromGame ()) {
                         break;
                     }
                     else if (state.callStack.currentElement.type != popType || !state.callStack.canPop) {
@@ -845,11 +1008,11 @@ namespace Ink.Runtime
                     } 
 
                     else {
-                        state.callStack.Pop ();
+                        state.PopCallstack ();
 
                         // Does tunnel onwards override by diverting to a new ->-> target?
                         if( overrideTunnelReturnTarget )
-                            state.divertedTargetObject = ContentAtPath (overrideTunnelReturnTarget.targetPath);
+                            state.divertedPointer = PointerAtPath (overrideTunnelReturnTarget.targetPath);
                     }
 
                     break;
@@ -884,7 +1047,7 @@ namespace Ink.Runtime
                     }
 
                     // Consume the content that was produced for this string
-                    state.outputStream.RemoveRange (state.outputStream.Count - outputCountConsumed, outputCountConsumed);
+                    state.PopFromOutputStream (outputCountConsumed);
 
                     // Build string out of the content we collected
                     var sb = new StringBuilder ();
@@ -914,13 +1077,22 @@ namespace Ink.Runtime
                     }
                         
                     var divertTarget = target as DivertTargetValue;
-                    var container = ContentAtPath (divertTarget.targetPath) as Container;
+                    var container = ContentAtPath (divertTarget.targetPath).correctObj as Container;
 
                     int eitherCount;
-                    if (evalCommand.commandType == ControlCommand.CommandType.TurnsSince)
-                        eitherCount = TurnsSinceForContainer (container);
-                    else
-                        eitherCount = VisitCountForContainer (container);
+                    if (container != null) {
+                        if (evalCommand.commandType == ControlCommand.CommandType.TurnsSince)
+                            eitherCount = TurnsSinceForContainer (container);
+                        else
+                            eitherCount = VisitCountForContainer (container);
+                    } else {
+                        if (evalCommand.commandType == ControlCommand.CommandType.TurnsSince)
+                            eitherCount = -1; // turn count, default to never/unknown
+                        else
+                            eitherCount = 0; // visit count, assume 0 to default to allowing entry
+
+                        Warning ("Failed to find container for " + evalCommand.ToString () + " lookup at " + divertTarget.targetPath.ToString ());
+                    }
                     
                     state.PushEvaluationStack (new IntValue (eitherCount));
                     break;
@@ -965,7 +1137,7 @@ namespace Ink.Runtime
                     break;
 
                 case ControlCommand.CommandType.VisitIndex:
-                    var count = VisitCountForContainer(state.currentContainer) - 1; // index not count
+                    var count = VisitCountForContainer(state.currentPointer.container) - 1; // index not count
                     state.PushEvaluationStack (new IntValue (count));
                     break;
 
@@ -992,7 +1164,7 @@ namespace Ink.Runtime
                         state.didSafeExit = true;
 
                         // Stop flow in current thread
-                        state.currentContentObject = null;
+                        state.currentPointer = Pointer.Null;
                     }
 
                     break;
@@ -1120,8 +1292,18 @@ namespace Ink.Runtime
                     foundValue = state.variablesState.GetVariableWithName (varRef.name);
 
                     if (foundValue == null) {
-                        Error("Uninitialised variable: " + varRef.name);
-                        foundValue = new IntValue (0);
+                        var defaultVal = state.variablesState.TryGetDefaultVariableValue (varRef.name);
+                        if (defaultVal != null) {
+                            Warning ("Variable not found in save state: '" + varRef.name + "', but seems to have been newly created. Assigning value from latest ink's declaration: " + defaultVal);
+                            foundValue = defaultVal;
+
+                            // Save for future usage, preventing future errors
+                            // Only do this for variables that are known to be globals, not those that may be missing temps.
+                            state.variablesState.SetGlobal(varRef.name, foundValue);
+                        } else {
+                            Warning ("Variable not found: '" + varRef.name + "'. Using default value of 0 (false). This can happen with temporary variables if the declaration hasn't yet been hit.");
+                            foundValue = new IntValue (0);
+                        }
                     }
                 }
 
@@ -1144,8 +1326,9 @@ namespace Ink.Runtime
         }
 
         /// <summary>
-        /// Change the current position of the story to the given path.
-        /// From here you can call Continue() to evaluate the next line.
+        /// Change the current position of the story to the given path. From here you can 
+        /// call Continue() to evaluate the next line.
+        /// 
         /// The path string is a dot-separated path as used internally by the engine.
         /// These examples should work:
         /// 
@@ -1158,15 +1341,54 @@ namespace Ink.Runtime
         /// 
         /// ...because of the way that content is nested within a weave structure.
         /// 
+        /// By default this will reset the callstack beforehand, which means that any
+        /// tunnels, threads or functions you were in at the time of calling will be
+        /// discarded. This is different from the behaviour of ChooseChoiceIndex, which
+        /// will always keep the callstack, since the choices are known to come from the
+        /// correct state, and known their source thread.
+        /// 
+        /// You have the option of passing false to the resetCallstack parameter if you
+        /// don't want this behaviour, and will leave any active threads, tunnels or
+        /// function calls in-tact.
+        /// 
+        /// This is potentially dangerous! If you're in the middle of a tunnel,
+        /// it'll redirect only the inner-most tunnel, meaning that when you tunnel-return
+        /// using '->->', it'll return to where you were before. This may be what you
+        /// want though. However, if you're in the middle of a function, ChoosePathString
+        /// will throw an exception.
+        /// 
         /// </summary>
         /// <param name="path">A dot-separted path string, as specified above.</param>
+        /// <param name="resetCallstack">Whether to reset the callstack first (see summary description).</param>
         /// <param name="arguments">Optional set of arguments to pass, if path is to a knot that takes them.</param>
-        public void ChoosePathString (string path, params object [] arguments)
+        public void ChoosePathString (string path, bool resetCallstack = true, params object [] arguments)
         {
+            IfAsyncWeCant ("call ChoosePathString right now");
+
+            if (resetCallstack) {
+                ResetCallstack ();
+            } else {
+                // ChoosePathString is potentially dangerous since you can call it when the stack is
+                // pretty much in any state. Let's catch one of the worst offenders.
+                if (state.callStack.currentElement.type == PushPopType.Function) {
+                    string funcDetail = "";
+                    var container = state.callStack.currentElement.currentPointer.container;
+                    if (container != null) {
+                        funcDetail = "("+container.path.ToString ()+") ";
+                    }
+                    throw new System.Exception ("Story was running a function "+funcDetail+"when you called ChoosePathString("+path+") - this is almost certainly not not what you want! Full stack trace: \n"+state.callStack.callStackTrace);
+                }
+            }
+
             state.PassArgumentsToEvaluationStack (arguments);
             ChoosePath (new Path (path));
         }
 
+        void IfAsyncWeCant (string activityStr)
+        {
+            if (_asyncContinueActive)
+                throw new System.Exception ("Can't " + activityStr + ". Story is in the middle of a ContinueAsync(). Make more ContinueAsync() calls or a single Continue() call beforehand.");
+        }
             
         internal void ChoosePath(Path p)
         {
@@ -1194,7 +1416,7 @@ namespace Ink.Runtime
             var choiceToChoose = choices [choiceIdx];
             state.callStack.currentThread = choiceToChoose.threadAtGeneration;
 
-            ChoosePath (choiceToChoose.choicePoint.choiceTarget.path);
+            ChoosePath (choiceToChoose.targetPath);
         }
 
         /// <summary>
@@ -1205,7 +1427,7 @@ namespace Ink.Runtime
         public bool HasFunction (string functionName)
         {
             try {
-                return ContentAtPath (new Path (functionName)) is Runtime.Container;
+                return KnotContainerWithName (functionName) != null;
             } catch {
                 return false;
             }
@@ -1233,6 +1455,8 @@ namespace Ink.Runtime
         /// <param name="arguments">The arguments that the ink function takes, if any. Note that we don't (can't) do any validation on the number of arguments right now, so make sure you get it right!</param>
         public object EvaluateFunction (string functionName, out string textOutput, params object [] arguments)
         {
+            IfAsyncWeCant ("evaluate a function");
+
 			if(functionName == null) {
 				throw new System.Exception ("Function is null");
 			} else if(functionName == string.Empty || functionName.Trim() == string.Empty) {
@@ -1240,18 +1464,16 @@ namespace Ink.Runtime
 			}
 
             // Get the content that we need to run
-            Runtime.Container funcContainer = null;
-            try {
-                funcContainer = ContentAtPath (new Path (functionName)) as Runtime.Container;
-            } catch (StoryException e) {
-                if (e.Message.Contains ("not found"))
-                    throw new System.Exception ("Function doesn't exist: '" + functionName + "'");
-                else
-                    throw e;
-            }
+            var funcContainer = KnotContainerWithName (functionName);
+            if( funcContainer == null )
+                throw new System.Exception ("Function doesn't exist: '" + functionName + "'");
+
+            // Snapshot the output stream
+            var outputStreamBefore = new List<Runtime.Object>(state.outputStream);
+            _state.ResetOutput ();
 
             // State will temporarily replace the callstack in order to evaluate
-            state.StartExternalFunctionEvaluation (funcContainer, arguments);
+            state.StartFunctionEvaluationFromGame (funcContainer, arguments);
 
             // Evaluate the function, and collect the string output
             var stringOutput = new StringBuilder ();
@@ -1260,8 +1482,12 @@ namespace Ink.Runtime
             }
             textOutput = stringOutput.ToString ();
 
+            // Restore the output stream in case this was called
+            // during main story evaluation.
+            _state.ResetOutput (outputStreamBefore);
+
             // Finish evaluation, and see whether anything was produced
-            var result = state.CompleteExternalFunctionEvaluation ();
+            var result = state.CompleteFunctionEvaluationFromGame ();
             return result;
         }
 
@@ -1287,7 +1513,7 @@ namespace Ink.Runtime
             // have auto-popped, but just in case we didn't for some reason,
             // manually pop to restore the state (including currentPath).
             if (state.callStack.elements.Count > startCallStackHeight) {
-                state.callStack.Pop ();
+                state.PopCallstack ();
             }
 
             int endStackHeight = state.evaluationStack.Count;
@@ -1317,12 +1543,15 @@ namespace Ink.Runtime
             // Try to use fallback function?
             if (!foundExternal) {
                 if (allowExternalFunctionFallbacks) {
-                    fallbackFunctionContainer = ContentAtPath (new Path (funcName)) as Container;
+                    fallbackFunctionContainer = KnotContainerWithName (funcName);
                     Assert (fallbackFunctionContainer != null, "Trying to call EXTERNAL function '" + funcName + "' which has not been bound, and fallback ink function could not be found.");
 
                     // Divert direct into fallback function and we're done
-                    state.callStack.Push (PushPopType.Function);
-                    state.divertedTargetObject = fallbackFunctionContainer;
+                    state.callStack.Push (
+                        PushPopType.Function, 
+                        outputStreamLengthWithPushed:state.outputStream.Count
+                    );
+                    state.divertedPointer = Pointer.StartOf(fallbackFunctionContainer);
                     return;
 
                 } else {
@@ -1373,6 +1602,7 @@ namespace Ink.Runtime
         /// <param name="func">The C# function to bind.</param>
         public void BindExternalFunctionGeneral(string funcName, ExternalFunction func)
         {
+            IfAsyncWeCant ("bind an external function");
             Assert (!_externals.ContainsKey (funcName), "Function '" + funcName + "' has already been bound.");
             _externals [funcName] = func;
         }
@@ -1556,6 +1786,7 @@ namespace Ink.Runtime
         /// </summary>
         public void UnbindExternalFunction(string funcName)
         {
+            IfAsyncWeCant ("unbind an external a function");
             Assert (_externals.ContainsKey (funcName), "Function '" + funcName + "' has not been bound.");
             _externals.Remove (funcName);
         }
@@ -1644,6 +1875,8 @@ namespace Ink.Runtime
         /// <param name="observer">A delegate function to call when the variable changes.</param>
         public void ObserveVariable(string variableName, VariableObserver observer)
         {
+            IfAsyncWeCant ("observe a new variable");
+
             if (_variableObservers == null)
                 _variableObservers = new Dictionary<string, VariableObserver> ();
 
@@ -1681,6 +1914,8 @@ namespace Ink.Runtime
         /// <param name="specificVariableName">(Optional) Specific variable name to stop observing.</param>
         public void RemoveVariableObserver(VariableObserver observer, string specificVariableName = null)
         {
+            IfAsyncWeCant ("remove a variable observer");
+
             if (_variableObservers == null)
                 return;
 
@@ -1743,7 +1978,7 @@ namespace Ink.Runtime
             var path = new Runtime.Path (pathString);
 
             // Expected to be global story, knot or stitch
-            var flowContainer = ContentAtPath (path) as Container;
+            var flowContainer = ContentAtPath (path).container;
             while(true) {
                 var firstContent = flowContainer.content [0];
                 if (firstContent is Container)
@@ -1775,7 +2010,7 @@ namespace Ink.Runtime
         {
             var sb = new StringBuilder ();
 
-            mainContentContainer.BuildStringOfHierarchy (sb, 0, state.currentContentObject);
+            mainContentContainer.BuildStringOfHierarchy (sb, 0, state.currentPointer.Resolve());
 
             return sb.ToString ();
         }
@@ -1784,7 +2019,7 @@ namespace Ink.Runtime
         {
         	var sb = new StringBuilder ();
 
-        	container.BuildStringOfHierarchy (sb, 0, state.currentContentObject);
+            container.BuildStringOfHierarchy (sb, 0, state.currentPointer.Resolve());
 
         	return sb.ToString();
         }
@@ -1792,19 +2027,19 @@ namespace Ink.Runtime
 		private void NextContent()
 		{
             // Setting previousContentObject is critical for VisitChangedContainersDueToDivert
-            state.previousContentObject = state.currentContentObject;
+            state.previousPointer = state.currentPointer;
 
 			// Divert step?
-			if (state.divertedTargetObject != null) {
+			if (!state.divertedPointer.isNull) {
 
-                state.currentContentObject = state.divertedTargetObject;
-                state.divertedTargetObject = null;
+                state.currentPointer = state.divertedPointer;
+                state.divertedPointer = Pointer.Null;
 
                 // Internally uses state.previousContentObject and state.currentContentObject
                 VisitChangedContainersDueToDivert ();
 
                 // Diverted location has valid content?
-                if (state.currentContentObject != null) {
+                if (!state.currentPointer.isNull) {
                     return;
                 }
 				
@@ -1823,9 +2058,9 @@ namespace Ink.Runtime
                 bool didPop = false;
 
                 if (state.callStack.CanPop (PushPopType.Function)) {
-                    
+
                     // Pop from the call stack
-                    state.callStack.Pop (PushPopType.Function);
+                    state.PopCallstack (PushPopType.Function);
 
                     // This pop was due to dropping off the end of a function that didn't return anything,
                     // so in this case, we make sure that the evaluator has something to chomp on if it needs it
@@ -1839,11 +2074,11 @@ namespace Ink.Runtime
 
                     didPop = true;
                 } else {
-                    state.TryExitExternalFunctionEvaluation ();
+                    state.TryExitFunctionEvaluationFromGame ();
                 }
 
                 // Step past the point where we last called out
-                if (didPop && state.currentContentObject != null) {
+                if (didPop && !state.currentPointer.isNull) {
                     NextContent ();
                 }
 			}
@@ -1853,33 +2088,36 @@ namespace Ink.Runtime
         {
             bool successfulIncrement = true;
 
-            var currEl = state.callStack.currentElement;
-            currEl.currentContentIndex++;
+            var pointer = state.callStack.currentElement.currentPointer;
+            pointer.index++;
 
             // Each time we step off the end, we fall out to the next container, all the
             // while we're in indexed rather than named content
-            while (currEl.currentContentIndex >= currEl.currentContainer.content.Count) {
+            while (pointer.index >= pointer.container.content.Count) {
 
                 successfulIncrement = false;
 
-                Container nextAncestor = currEl.currentContainer.parent as Container;
+                Container nextAncestor = pointer.container.parent as Container;
                 if (!nextAncestor) {
                     break;
                 }
 
-                var indexInAncestor = nextAncestor.content.IndexOf (currEl.currentContainer);
+                var indexInAncestor = nextAncestor.content.IndexOf (pointer.container);
                 if (indexInAncestor == -1) {
                     break;
                 }
 
-                currEl.currentContainer = nextAncestor;
-                currEl.currentContentIndex = indexInAncestor + 1;
+                pointer = new Pointer (nextAncestor, indexInAncestor);
+
+                // Increment to next content in outer container
+                pointer.index++;
 
                 successfulIncrement = true;
             }
 
-            if (!successfulIncrement)
-                currEl.currentContainer = null;
+            if (!successfulIncrement) pointer = Pointer.Null;
+
+            state.callStack.currentElement.currentPointer = pointer;
 
             return successfulIncrement;
         }
@@ -1889,13 +2127,13 @@ namespace Ink.Runtime
             var allChoices = _state.currentChoices;
 
             // Is a default invisible choice the ONLY choice?
-            var invisibleChoices = allChoices.Where (c => c.choicePoint.isInvisibleDefault).ToList();
+            var invisibleChoices = allChoices.Where (c => c.isInvisibleDefault).ToList();
             if (invisibleChoices.Count == 0 || allChoices.Count > invisibleChoices.Count)
                 return false;
 
             var choice = invisibleChoices [0];
 
-            ChoosePath (choice.choicePoint.choiceTarget.path);
+            ChoosePath (choice.targetPath);
 
             return true;
         }
@@ -1954,7 +2192,7 @@ namespace Ink.Runtime
                 return 0;
             }
 
-            var seqContainer = state.currentContainer;
+            var seqContainer = state.currentPointer.container;
 
             int numElements = numElementsIntVal.value;
 
@@ -1995,30 +2233,38 @@ namespace Ink.Runtime
 
         // Throw an exception that gets caught and causes AddError to be called,
         // then exits the flow.
-        void Error(string message, bool useEndLineNumber = false)
+        internal void Error(string message, bool useEndLineNumber = false)
         {
             var e = new StoryException (message);
             e.useEndLineNumber = useEndLineNumber;
             throw e;
         }
 
-        void AddError (string message, bool useEndLineNumber)
+        internal void Warning (string message)
+        {
+            AddError (message, isWarning:true);
+        }
+
+        void AddError (string message, bool isWarning = false, bool useEndLineNumber = false)
         {
             var dm = currentDebugMetadata;
 
+            var errorTypeStr = isWarning ? "WARNING" : "ERROR";
+
             if (dm != null) {
                 int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
-                message = string.Format ("RUNTIME ERROR: '{0}' line {1}: {2}", dm.fileName, lineNum, message);
-            } else if( state.currentPath != null  ) {
-				message = string.Format ("RUNTIME ERROR: ({0}): {1}", state.currentPath, message);
+                message = string.Format ("RUNTIME {0}: '{1}' line {2}: {3}", errorTypeStr, dm.fileName, lineNum, message);
+            } else if( !state.currentPointer.isNull  ) {
+                message = string.Format ("RUNTIME {0}: ({1}): {2}", errorTypeStr, state.currentPointer.path, message);
 			} else {
-                message = "RUNTIME ERROR: " + message;
+                message = "RUNTIME "+errorTypeStr+": " + message;
             }
 
-            state.AddError (message);
+            state.AddError (message, isWarning);
 
             // In a broken state don't need to know about any other errors.
-            state.ForceEnd ();
+            if( !isWarning )
+                state.ForceEnd ();
         }
 
         void Assert(bool condition, string message = null, params object[] formatParams)
@@ -2041,9 +2287,9 @@ namespace Ink.Runtime
                 DebugMetadata dm;
 
                 // Try to get from the current path first
-                var currentContent = state.currentContentObject;
-                if (currentContent) {
-                    dm = currentContent.debugMetadata;
+                var pointer = state.currentPointer;
+                if (!pointer.isNull) {
+                    dm = pointer.Resolve().debugMetadata;
                     if (dm != null) {
                         return dm;
                     }
@@ -2051,9 +2297,12 @@ namespace Ink.Runtime
                     
                 // Move up callstack if possible
                 for (int i = state.callStack.elements.Count - 1; i >= 0; --i) {
-                    var currentObj = state.callStack.elements [i].currentObject;
-                    if (currentObj && currentObj.debugMetadata != null) {
-                        return currentObj.debugMetadata;
+                    pointer = state.callStack.elements [i].currentPointer;
+                    if (!pointer.isNull && pointer.Resolve() != null) {
+                        dm = pointer.Resolve().debugMetadata;
+                        if (dm != null) {
+                            return dm;
+                        }
                     }
                 }
 
@@ -2103,6 +2352,11 @@ namespace Ink.Runtime
         Container _temporaryEvaluationContainer;
 
         StoryState _state;
+
+        bool _asyncContinueActive;
+        StoryState _stateAtLastNewline = null;
+
+        int _recursiveContinueCount = 0;
 
 		Profiler _profiler;
 	}
