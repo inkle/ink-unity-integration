@@ -592,7 +592,7 @@ namespace Ink.Runtime
             SearchResult result;
             if( path.lastComponent.isIndex ) {
                 pathLengthToUse = path.length - 1;
-                result = mainContentContainer.ContentAtPath (path, pathLengthToUse);
+                result = mainContentContainer.ContentAtPath (path, partialPathLength:pathLengthToUse);
                 p.container = result.container;
                 p.index = path.lastComponent.index;
             } else {
@@ -823,7 +823,7 @@ namespace Ink.Runtime
             choice.threadAtGeneration = state.callStack.currentThread.Copy ();
 
             // Set final text for the choice
-            choice.text = startText + choiceOnlyText;
+            choice.text = (startText + choiceOnlyText).Trim(' ', '\t');
 
             return choice;
         }
