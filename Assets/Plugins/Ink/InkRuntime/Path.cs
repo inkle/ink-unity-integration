@@ -77,12 +77,6 @@ namespace Ink.Runtime
             }
 		}
 
-		public int componentCount {
-			get {
-				return _components.Count;
-			}
-		}
-
 		public Component GetComponent(int index)
 		{
 			return _components[index];
@@ -196,6 +190,14 @@ namespace Ink.Runtime
 
 			return p;
 		}
+
+        public Path PathByAppendingComponent (Component c)
+        {
+            Path p = new Path ();
+            p._components.AddRange (_components);
+            p._components.Add (c);
+            return p;
+        }
 
         public string componentsString {
             get {
