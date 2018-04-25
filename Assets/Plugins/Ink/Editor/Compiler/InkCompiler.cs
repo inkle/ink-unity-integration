@@ -173,7 +173,8 @@ namespace Ink.UnityIntegration {
 			outputLog.Append ("Ink compilation started at ");
 			outputLog.AppendLine (DateTime.Now.ToLongTimeString ());
 			outputLog.Append (filesCompiledLog.ToString());
-
+			Debug.Log(outputLog);
+			
 			foreach(var inkFile in inkFiles) CompileInkInternal (inkFile);
 		}
 
