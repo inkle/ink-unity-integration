@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using Ink.Runtime;
 using UnityEditor.ProjectWindowCallback;
+using UnityEditor.Callbacks;
 
 namespace Ink.UnityIntegration {
 
@@ -111,6 +112,18 @@ namespace Ink.UnityIntegration {
 		[MenuItem("Help/Ink/API Documentation...")]
 		public static void OpenWritingDocumentation() {
 			Application.OpenURL("https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md");
+		}
+
+		[MenuItem("Help/Ink/Donate...")]
+		public static void Donate() {
+			Application.OpenURL("https://www.patreon.com/inkle");
+		}
+
+		[PostProcessBuildAttribute(-1)]
+		public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject) {
+			if(!Debug.isDebugBuild) {
+				Debug.Log("<color=blue>Thanks for using ink, and best of luck with your release!\nIf you're doing well, please help fund the project via Patreon https://www.patreon.com/inkle</color>");
+			}
 		}
 
 		public static TextAsset CreateStoryStateTextFile (string jsonStoryState, string defaultPath = "Assets/Ink", string defaultName = "storyState") {
