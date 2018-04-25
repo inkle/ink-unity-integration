@@ -324,9 +324,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		public static T FastFindAndEnforceSingletonScriptableObjectOfType<T> (string playerPrefsKeyOfSavedLocation) where T : ScriptableObject {
-			var storedAsset = FindStoredSingletonScriptableObjectOfType<T>(playerPrefsKeyOfSavedLocation);
-			if(storedAsset != null) return storedAsset;
-			return FindAndEnforceSingletonScriptableObjectOfType<T>(playerPrefsKeyOfSavedLocation);
+			return FindStoredSingletonScriptableObjectOfType<T>(playerPrefsKeyOfSavedLocation) ?? FindAndEnforceSingletonScriptableObjectOfType<T>(playerPrefsKeyOfSavedLocation);
 		}
 
 		static T FindStoredSingletonScriptableObjectOfType<T> (string playerPrefsKeyOfSavedLocation) where T : ScriptableObject {
