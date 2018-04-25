@@ -59,6 +59,11 @@ namespace Ink.UnityIntegration {
 			if(!InkLibrary.created) 
 				return;
 
+			// When all files have compiled, run the complete function.
+			if(compiling && InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count == 0) {
+				DelayedComplete();
+			}
+
 			for (int i = InkLibrary.Instance.compilationStack.Count - 1; i >= 0; i--) {
 				var compilingFile = InkLibrary.Instance.compilationStack [i];
 				if (compilingFile.state == CompilationStackItem.State.Compiling) {
@@ -66,34 +71,24 @@ namespace Ink.UnityIntegration {
 					if (compilingFile.timeTaken > InkSettings.Instance.compileTimeout) {
 						if (compilingFile.process != null) {	
 							compilingFile.process.Exited -= OnCompileProcessComplete;
-							// Was sometimes getting errors where the process couldn't exit because it had finished. 
-							// This might fix that? If it doesnt, I'll try a try/catch.
-							if(!compilingFile.process.HasExited)
-								compilingFile.process.Kill ();
+							compilingFile.process.Kill ();
 						}
-						InkLibrary.Instance.compilationStack.RemoveAt(i);
-						InkLibrary.Save();
-						// Progress bar prevents delayCall callback from firing in Linux Editor, locking the
-						// compilation until it times out. Let's just not show progress bars in Linux Editor
-						#if !UNITY_EDITOR_LINUX
-						if(InkLibrary.Instance.compilationStack.Count == 0) EditorUtility.ClearProgressBar();
-						#endif
-						Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+".\n. Compilation should never take more than a few seconds, but for large projects or slow computers you may want to increase the timeout time in the InkSettings file.\nIf this persists there may be another issue; or else check an ink file exists at this path and try Assets/Recompile Ink, else please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+compilingFile.errorOutput);
+						RemoveCompilingFile(i);
+						Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+".\nCompilation should never take more than a few seconds, but for large projects or slow computers you may want to increase the timeout time in the InkSettings file.\nIf this persists there may be another issue; or else check an ink file exists at this path and try Assets/Recompile Ink, else please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+string.Join("\n",compilingFile.errorOutput.ToArray()));
 					}
 				} else if (compilingFile.state == CompilationStackItem.State.Importing) {
-					// This covers a rare bug that I've not pinned down
+					// This covers a rare bug that I've not pinned down. It seems to happen when importing new assets.
+					// DOES THIS STILL OCCUR? I FIXED A BUG.
 					var timeTaken = (float)((DateTime.Now - compilingFile.startTime).TotalSeconds);
 					if (timeTaken > InkSettings.Instance.compileTimeout + 2) {
 						if (compilingFile.process != null && !compilingFile.process.HasExited) {
 							compilingFile.process.Exited -= OnCompileProcessComplete;
 							compilingFile.process.Kill ();
 						}
-						InkLibrary.Instance.compilationStack.RemoveAt(i);
-						InkLibrary.Save();
-						#if !UNITY_EDITOR_LINUX
-						if(InkLibrary.Instance.compilationStack.Count == 0) EditorUtility.ClearProgressBar();
-						#endif
-						Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+" while the file was importing.\n. Please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+compilingFile.errorOutput);
+						// Can remove this if it never fires
+						Debug.Assert(InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count != 0);
+						RemoveCompilingFile(i);
+						Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+" while the file was importing.\nPlease report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+compilingFile.errorOutput);
 					}
 				}
 			}
@@ -104,11 +99,21 @@ namespace Ink.UnityIntegration {
 			#endif
 		}
 
+		static void RemoveCompilingFile (int index) {
+			InkLibrary.Instance.compilationStack.RemoveAt(index);
+			InkLibrary.Save();
+			// Progress bar prevents delayCall callback from firing in Linux Editor, locking the
+			// compilation until it times out. Let's just not show progress bars in Linux Editor	
+			#if !UNITY_EDITOR_LINUX
+			if (InkLibrary.Instance.compilationStack.Count == 0) EditorUtility.ClearProgressBar();
+			#endif
+		}
+
 		static void UpdateProgressBar () {
 			if(InkLibrary.Instance.compilationStack.Count == 0) return;
 			int numCompiling = InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count;
-			string message = "Compiling .Ink File "+(InkLibrary.Instance.compilationStack.Count-numCompiling)+" of "+InkLibrary.Instance.compilationStack.Count;
-			if(playModeBlocked) message += "\nWill enter play mode when complete.";
+			string message = "Compiling .Ink File "+(InkLibrary.Instance.compilationStack.Count-numCompiling)+" of "+InkLibrary.Instance.compilationStack.Count+".";
+			if(playModeBlocked) message += " Will enter play mode when complete.";
 			if(playModeBlocked) EditorUtility.DisplayProgressBar("Compiling Ink...", message, GetEstimatedCompilationProgress());
 			else EditorUtility.ClearProgressBar();
 		}
@@ -270,10 +275,6 @@ namespace Ink.UnityIntegration {
 			Process process = (Process)sender;
 			CompilationStackItem pendingFile = InkLibrary.GetCompilationStackItem(process);
 			pendingFile.state = CompilationStackItem.State.Importing;
-			if(InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count == 0) {
-				// This event runs in another thread, preventing us from calling some UnityEditor functions directly. Instead, we delay till the next inspector update.
-				EditorApplication.delayCall += DelayedComplete;
-			}
 		}
 
 		private static void ProcessOutput (Process process, string message) {
@@ -294,6 +295,7 @@ namespace Ink.UnityIntegration {
 			compilingFile.errorOutput.Add(message);
 		}
 
+		// When all files in stack have been compiled. This is called via update because Process events run in another thread.
 		private static void DelayedComplete () {
 			if(InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count > 0) {
 				Debug.LogWarning("Delayed, but a file is now compiling! You can ignore this warning.");
@@ -468,8 +470,14 @@ namespace Ink.UnityIntegration {
 			List<InkFile> masterInkFiles = new List<InkFile>();
 			foreach (var importedAssetPath in importedInkAssets) {
 				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
-				Debug.Assert(inkFile != null, "File at path "+importedAssetPath+" does not exist! Rebuild Ink Library using Assets > Recompile Ink");
-				if(!masterInkFiles.Contains(inkFile.metaInfo.masterInkFileIncludingSelf) && (InkSettings.Instance.compileAutomatically || inkFile.metaInfo.masterInkFileIncludingSelf.compileAutomatically)) {
+				// Trying to catch a rare (and not especially important) bug that seems to happen occasionally when opening a project
+				// It's probably this - I've noticed it before in another context.
+				Debug.Assert(InkSettings.Instance != null, "No ink settings file. This is a bug. For now you should be able to fix this via Assets > Rebuild Ink Library");
+				// I've caught it here before
+				Debug.Assert(inkFile != null, "No internal InkFile reference at path "+importedAssetPath+". This is a bug. For now you can fix this via Assets > Rebuild Ink Library");
+				Debug.Assert(inkFile.metaInfo != null);
+				Debug.Assert(inkFile.metaInfo.masterInkFileIncludingSelf != null);
+				if (!masterInkFiles.Contains(inkFile.metaInfo.masterInkFileIncludingSelf) && (InkSettings.Instance.compileAutomatically || inkFile.metaInfo.masterInkFileIncludingSelf.compileAutomatically)) {
 					masterInkFiles.Add(inkFile.metaInfo.masterInkFileIncludingSelf);
 				}
 			}
