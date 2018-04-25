@@ -12,18 +12,18 @@ namespace Ink.UnityIntegration {
 
 	class CreateInkAssetAction : EndNameEditAction {
 		public override void Action(int instanceId, string pathName, string resourceFile) {
-			UnityEngine.Object asset = CreateScriptAssetFromTemplate(pathName, resourceFile);
-			ProjectWindowUtil.ShowCreatedAsset(asset);
-		}
-		
-		internal static UnityEngine.Object CreateScriptAssetFromTemplate(string pathName, string templateFilePath) {
-			string fullPath = Path.GetFullPath(pathName);
-			string text = "";
-			if(File.Exists(templateFilePath)) {
-				StreamReader streamReader = new StreamReader(templateFilePath);
+			var text = "";
+			if(File.Exists(resourceFile)) {
+				StreamReader streamReader = new StreamReader(resourceFile);
 				text = streamReader.ReadToEnd();
 				streamReader.Close();
 			}
+			UnityEngine.Object asset = CreateScriptAsset(pathName, text);
+			ProjectWindowUtil.ShowCreatedAsset(asset);
+		}
+		
+		internal static UnityEngine.Object CreateScriptAsset(string pathName, string text) {
+			string fullPath = Path.GetFullPath(pathName);
 			UTF8Encoding encoding = new UTF8Encoding(true, false);
 			bool append = false;
 			StreamWriter streamWriter = new StreamWriter(fullPath, append, encoding);
@@ -91,16 +91,16 @@ namespace Ink.UnityIntegration {
 		}
 
 		private static string GetSelectedPathOrFallback() {
-	         string path = "Assets";
-	         foreach (UnityEngine.Object obj in Selection.GetFiltered(typeof(UnityEngine.Object), SelectionMode.Assets)) {
-	             path = AssetDatabase.GetAssetPath(obj);
-	             if (!string.IsNullOrEmpty(path) && File.Exists(path)) {
-	                 path = Path.GetDirectoryName(path);
-	                 break;
-	             }
-	         }
-	         return path;
-	     }
+			string path = "Assets";
+			foreach (UnityEngine.Object obj in Selection.GetFiltered(typeof(UnityEngine.Object), SelectionMode.Assets)) {
+				path = AssetDatabase.GetAssetPath(obj);
+				if (!string.IsNullOrEmpty(path) && File.Exists(path)) {
+					path = Path.GetDirectoryName(path);
+					break;
+	        	}
+			}
+			return path;
+		}
 
 		
 
