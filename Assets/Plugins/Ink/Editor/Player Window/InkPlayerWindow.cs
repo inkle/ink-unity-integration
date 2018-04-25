@@ -279,7 +279,16 @@ namespace Ink.UnityIntegration {
 
 		void SaveStoryState (string storyStateJSON) {
 			storyHistory.Add(new InkPlayerHistoryContentItem("Saved state", InkPlayerHistoryContentItem.ContentType.DebugNote));
-			storyStateTextAsset = InkEditorUtils.CreateStoryStateTextFile(storyStateJSON, System.IO.Path.GetDirectoryName(AssetDatabase.GetAssetPath(storyJSONTextAsset)), storyJSONTextAsset.name+"_SaveState");
+
+			// Text asset can be null if we attached to an existing story rather than loading our own
+			string dirPath = "";
+			string storyName = "story";
+			if( storyJSONTextAsset != null ) {
+				dirPath = System.IO.Path.GetDirectoryName(AssetDatabase.GetAssetPath(storyJSONTextAsset));
+				storyName = storyJSONTextAsset.name;
+			}
+
+			storyStateTextAsset = InkEditorUtils.CreateStoryStateTextFile(storyStateJSON, dirPath, storyName+"_SaveState");
 		}
 
 		void LoadStoryState (string storyStateJSON) {
@@ -890,6 +899,7 @@ namespace Ink.UnityIntegration {
 
 						Debug.Log(_currentStoryProfiler.StepLengthReport());
 
+						_previousStoryProfiler = _currentStoryProfiler;
 						_currentStoryProfiler = null;
 					}
 				}
@@ -903,6 +913,18 @@ namespace Ink.UnityIntegration {
 
 			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
 			showingProfileData = EditorGUILayout.Foldout(showingProfileData, "Profiler data");
+			GUILayout.FlexibleSpace();
+			if( _previousStoryProfiler != null && GUILayout.Button("Save mega log", EditorStyles.toolbarButton) ) {
+
+				var path = EditorUtility.SaveFilePanel(
+					"Save mega log",
+					"",
+					"megalog.txt",
+					"txt");
+				if( path != null && path.Length > 0 ) 
+					File.WriteAllText(path, _previousStoryProfiler.Megalog());
+
+			}
 			EditorGUILayout.EndHorizontal();
 
 			if( showingProfileData ) {
@@ -952,6 +974,7 @@ namespace Ink.UnityIntegration {
 
 		ProfileNode _profilerResultRootNode;
 		Ink.Runtime.Profiler _currentStoryProfiler;
+		Ink.Runtime.Profiler _previousStoryProfiler;
 	}
 
 	public class ObservedVariable {
