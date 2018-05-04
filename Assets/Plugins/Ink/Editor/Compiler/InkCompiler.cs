@@ -47,7 +47,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		static InkCompiler () {
-			#if UNITY_2017
+			#if UNITY_2017_1_OR_NEWER
 			EditorApplication.playModeStateChanged += OnPlayModeChange;
 			#else
 			EditorApplication.playmodeStateChanged += LegacyOnPlayModeChange;
@@ -130,7 +130,7 @@ namespace Ink.UnityIntegration {
 			return progress;
 		}
 
-		#if UNITY_2017
+		#if UNITY_2017_1_OR_NEWER
 		static void OnPlayModeChange (PlayModeStateChange mode) {
 			if(mode == PlayModeStateChange.EnteredEditMode && InkLibrary.Instance.pendingCompilationStack.Count > 0)
 				CompilePendingFiles();
