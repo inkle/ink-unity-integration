@@ -130,15 +130,29 @@ namespace Ink.UnityIntegration {
 			EditorApplication.RepaintProjectWindow();
 		}
 
-		public static List<InkFile> GetMasterInkFiles () {
-			List<InkFile> masterInkFiles = new List<InkFile>();
-			if(Instance.inkLibrary == null) return masterInkFiles;
+		// All the master files
+		public static IEnumerable<InkFile> GetMasterInkFiles () {
+			if(Instance.inkLibrary == null) yield break;
 			foreach (InkFile inkFile in Instance.inkLibrary) {
-				if(inkFile.metaInfo.isMaster) {
-					masterInkFiles.Add(inkFile);
-				}
+				if(inkFile.metaInfo.isMaster) 
+					yield return inkFile;
 			}
-			return masterInkFiles;
+		}
+
+		// All the master files which are dirty and are set to compile
+		public static IEnumerable<InkFile> GetFilesRequiringRecompile () {
+			foreach(InkFile inkFile in InkLibrary.GetMasterInkFiles ()) {
+				if(inkFile.metaInfo.requiresCompile && (InkSettings.Instance.compileAutomatically || inkFile.compileAutomatically)) 
+					yield return inkFile;
+			}
+		}
+
+		// All the master files which are set to compile
+		public static IEnumerable<InkFile> FilesCompiledByRecompileAll () {
+			foreach(InkFile inkFile in InkLibrary.GetMasterInkFiles ()) {
+				if(InkSettings.Instance.compileAutomatically || inkFile.compileAutomatically) 
+					yield return inkFile;
+			}
 		}
 
 		/// <summary>
