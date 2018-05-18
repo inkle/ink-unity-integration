@@ -118,7 +118,8 @@ namespace Ink.UnityIntegration {
 			else EditorUtility.ClearProgressBar();
 		}
 
-		static float GetEstimatedCompilationProgress () {
+		public static float GetEstimatedCompilationProgress () {
+			if(!compiling) return 1;
 			float progress = 0;
 			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
 				if (compilingFile.state == CompilationStackItem.State.Compiling)
