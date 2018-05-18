@@ -64,13 +64,10 @@ namespace Ink.UnityIntegration {
 
 		[MenuItem("Assets/Recompile Ink", false, 61)]
 		public static void RecompileAll() {
-			List<InkFile> masterInkFiles = InkLibrary.GetMasterInkFiles ();
 			List<string> compiledFiles = new List<string>();
-			foreach(InkFile masterInkFile in masterInkFiles) {
-				if(InkSettings.Instance.compileAutomatically || masterInkFile.compileAutomatically) {
-					InkCompiler.CompileInk(masterInkFile);
-					compiledFiles.Add(Path.GetFileName(masterInkFile.filePath));
-				}
+			foreach(InkFile masterInkFile in InkLibrary.FilesCompiledByRecompileAll()) {
+				InkCompiler.CompileInk(masterInkFile);
+				compiledFiles.Add(Path.GetFileName(masterInkFile.filePath));
 			}
 			string logString = compiledFiles.Count == 0 ? 
 				"No valid ink found. Note that only files with 'Compile Automatic' checked are compiled if not set to compile all files automatically in InkSettings file." :
@@ -97,7 +94,7 @@ namespace Ink.UnityIntegration {
 				if (!string.IsNullOrEmpty(path) && File.Exists(path)) {
 					path = Path.GetDirectoryName(path);
 					break;
-	        	}
+				}
 			}
 			return path;
 		}
@@ -304,39 +301,28 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		public static T FindOrCreateSingletonScriptableObjectOfType<T> (string defaultPath, string playerPrefsKeyOfSavedLocation) where T : ScriptableObject {
-			T tmpSettings = FastFindAndEnforceSingletonScriptableObjectOfType<T>(playerPrefsKeyOfSavedLocation);
+		public static bool FindOrCreateSingletonScriptableObjectOfType<T>(string defaultPath, out T obj) where T : ScriptableObject {
+			obj = FastFindAndEnforceSingletonScriptableObjectOfType<T>();
+			if (obj != null) return false;
 			// If we couldn't find the asset in the project, create a new one.
-			if(tmpSettings == null) {
-				tmpSettings = CreateScriptableObject<T> (defaultPath, playerPrefsKeyOfSavedLocation);
-				Debug.Log("Created a new "+typeof(T).Name+" file at "+defaultPath+" because one was not found.");
-			}
-			return tmpSettings;
+			obj = CreateScriptableObject<T>(defaultPath);
+			Debug.Log("Created a new " + typeof(T).Name + " file at " + defaultPath + " because one was not found.");
+			return true;
 		}
-		
-		static T CreateScriptableObject<T> (string defaultPath, string playerPrefsKeyOfSavedLocation) where T : ScriptableObject {
+
+		static T CreateScriptableObject<T> (string defaultPath) where T : ScriptableObject {
 			var asset = ScriptableObject.CreateInstance<T>();
 			AssetDatabase.CreateAsset (asset, defaultPath);
 			AssetDatabase.SaveAssets ();
-			AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(asset));
-			EditorPrefs.SetString(playerPrefsKeyOfSavedLocation, defaultPath);
+			AssetDatabase.Refresh ();
 			return asset;
 		}
 
-		public static T FastFindAndEnforceSingletonScriptableObjectOfType<T> (string playerPrefsKeyOfSavedLocation) where T : ScriptableObject {
-			return FindStoredSingletonScriptableObjectOfType<T>(playerPrefsKeyOfSavedLocation) ?? FindAndEnforceSingletonScriptableObjectOfType<T>(playerPrefsKeyOfSavedLocation);
+		public static T FastFindAndEnforceSingletonScriptableObjectOfType<T> () where T : ScriptableObject {
+			return FindAndEnforceSingletonScriptableObjectOfType<T>();
 		}
 
-		static T FindStoredSingletonScriptableObjectOfType<T> (string playerPrefsKeyOfSavedLocation) where T : ScriptableObject {
-			if(EditorPrefs.HasKey(playerPrefsKeyOfSavedLocation)) {
-				T settings = AssetDatabase.LoadAssetAtPath<T>(EditorPrefs.GetString(playerPrefsKeyOfSavedLocation));
-				if(settings != null) return settings;
-				else EditorPrefs.DeleteKey(playerPrefsKeyOfSavedLocation);
-			}
-			return null;
-		}
-
-		static T FindAndEnforceSingletonScriptableObjectOfType<T> (string playerPrefsKeyOfSavedLocation) where T : ScriptableObject {
+		static T FindAndEnforceSingletonScriptableObjectOfType<T> () where T : ScriptableObject {
 			string typeName = typeof(T).Name;
 			string[] GUIDs = AssetDatabase.FindAssets("t:"+typeName);
 			if(GUIDs.Length > 0) {
@@ -345,11 +331,8 @@ namespace Ink.UnityIntegration {
 					var remainingGUID = DeleteAllButOldestScriptableObjects(GUIDs, typeName);
 					path = AssetDatabase.GUIDToAssetPath(remainingGUID);
 				}
-				EditorPrefs.SetString(playerPrefsKeyOfSavedLocation, path);
 				return AssetDatabase.LoadAssetAtPath<T>(path);
-			} else {
-				EditorPrefs.DeleteKey(playerPrefsKeyOfSavedLocation);
-			}
+			} 
 			return null;
 		}
 

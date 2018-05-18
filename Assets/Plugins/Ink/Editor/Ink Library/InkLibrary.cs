@@ -14,23 +14,34 @@ namespace Ink.UnityIntegration {
 	public class InkLibrary : ScriptableObject {
 		public static bool created {
 			get {
-				return _Instance != null || FindLibrary() != null;
+				// If it's null, there's no InkLibrary asset in the project
+				return _Instance != null;
 			}
 		}
 		private static InkLibrary _Instance;
 		public static InkLibrary Instance {
 			get {
-				if(_Instance == null)
-					_Instance = FindOrCreateLibrary();
+				if(_Instance == null) {
+					if(InkEditorUtils.FindOrCreateSingletonScriptableObjectOfType<InkLibrary>(defaultPath, out _Instance)) {
+						Rebuild();
+					}
+				}
 				return _Instance;
 			}
 		}
 		public const string defaultPath = "Assets/InkLibrary.asset";
-		public const string pathPlayerPrefsKey = "InkLibraryAssetPath";
 
 		public List<InkFile> inkLibrary = new List<InkFile>();
 		public List<string> pendingCompilationStack = new List<string>();
 		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
+
+		private void OnEnable() {
+			_Instance = this;
+		}
+
+		private void OnDisable() {
+			_Instance = null;
+		}
 
 		/// <summary>
 		/// Removes and null references in the library
@@ -41,14 +52,6 @@ namespace Ink.UnityIntegration {
 				if (inkFile.inkAsset == null)
 					InkLibrary.Instance.inkLibrary.RemoveAt(i);
 			}
-		}
-
-		static InkLibrary FindLibrary () {
-			return InkEditorUtils.FastFindAndEnforceSingletonScriptableObjectOfType<InkLibrary>(pathPlayerPrefsKey);
-		}
-
-		static InkLibrary FindOrCreateLibrary () {
-			return InkEditorUtils.FindOrCreateSingletonScriptableObjectOfType<InkLibrary>(defaultPath, pathPlayerPrefsKey);
 		}
 
 		/// <summary>

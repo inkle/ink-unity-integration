@@ -10,20 +10,20 @@ namespace Ink.UnityIntegration {
 	public class InkSettings : ScriptableObject {
 		public static bool created {
 			get {
-				return _Instance != null || FindSettings() != null;
-			}
+                // If it's null, there's just no InkSettings asset in the project
+                return _Instance != null;
+            }
 		}
 		private static InkSettings _Instance;
 		public static InkSettings Instance {
 			get {
-				if(_Instance == null)
-					_Instance = FindOrCreateSettings();
+				if(_Instance == null) 
+					InkEditorUtils.FindOrCreateSingletonScriptableObjectOfType<InkSettings>(defaultPath, out _Instance);
 				Debug.Assert(_Instance != null, "InkSettings could not be created! This is a bug.");
 				return _Instance;
 			}
 		}
 		public const string defaultPath = "Assets/InkSettings.asset";
-		public const string pathPlayerPrefsKey = "InkSettingsAssetPath";
 
 		public TextAsset templateFile;
 		public string templateFilePath {
@@ -63,15 +63,11 @@ namespace Ink.UnityIntegration {
 			Selection.activeObject = Instance;
 		}
 
-		static InkSettings FindSettings () {
-			return InkEditorUtils.FastFindAndEnforceSingletonScriptableObjectOfType<InkSettings>(pathPlayerPrefsKey);
-		}
+	    private void OnEnable() {
+	        _Instance = this;
+	    }
 
-		static InkSettings FindOrCreateSettings () {
-			return InkEditorUtils.FindOrCreateSingletonScriptableObjectOfType<InkSettings>(defaultPath, pathPlayerPrefsKey);
-		}
-
-		private static void Save () {
+        private static void Save () {
 			EditorUtility.SetDirty(Instance);
 			AssetDatabase.SaveAssets();
 			EditorApplication.RepaintProjectWindow();
