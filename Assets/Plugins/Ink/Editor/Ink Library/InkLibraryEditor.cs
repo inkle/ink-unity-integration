@@ -45,8 +45,10 @@ namespace Ink.UnityIntegration {
 				EditorGUILayout.EndVertical();
 				GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 			} else {
-				if(InkLibrary.GetFilesRequiringRecompile().Any()) {
-					EditorGUILayout.HelpBox("Some Ink files marked to compile automatically are not compiled!", MessageType.Warning);
+				var filesRequiringRecompile = InkLibrary.GetFilesRequiringRecompile();
+				if(filesRequiringRecompile.Any()) {
+					var files = string.Join("\n", filesRequiringRecompile.Select(x => x.filePath).ToArray());
+					EditorGUILayout.HelpBox("Some Ink files marked to compile automatically are not compiled! Check they don't have compile errors, or else try compiling now.\n"+files, MessageType.Warning);
 				}  else {
 					EditorGUILayout.HelpBox("All Ink files marked to compile automatically are compiled", MessageType.Info);
 				}

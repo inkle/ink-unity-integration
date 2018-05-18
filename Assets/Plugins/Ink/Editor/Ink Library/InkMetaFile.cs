@@ -59,19 +59,17 @@ namespace Ink.UnityIntegration {
 
 		public bool requiresCompile {
 			get {
+				// If no compiled file is found
 				if(masterInkFileIncludingSelf.jsonAsset == null || masterInkFileIncludingSelf.metaInfo == null) 
 					return true;
 
 				var inkFilesInIncludeHierarchy = masterInkFileIncludingSelf.metaInfo.inkFilesInIncludeHierarchy;
+				// This should never happen, but would indicate that the meta file isn't properly loaded by the system.
 				if (inkFilesInIncludeHierarchy == null)
 					return true;
 				
 				foreach(InkFile inkFile in inkFilesInIncludeHierarchy) {
 					if(inkFile.metaInfo.hasCompileErrors) {
-						return true;
-					} else if(inkFile.metaInfo.hasErrors) {
-						return true;
-					} else if(inkFile.metaInfo.hasWarnings) {
 						return true;
 					} else if(inkFile.metaInfo.lastEditDate > lastCompileDate) {
 						return true;
