@@ -55,6 +55,7 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
+		// The path of any compiled json file. Relative to assets folder.
         public string jsonPath {
 			get {
                 DefaultAsset jsonFolder = jsonAssetPath;

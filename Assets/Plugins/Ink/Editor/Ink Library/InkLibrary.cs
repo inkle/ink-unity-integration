@@ -32,7 +32,10 @@ namespace Ink.UnityIntegration {
 		public const string defaultPath = "Assets/InkLibrary.asset";
 
 		public List<InkFile> inkLibrary = new List<InkFile>();
+		// If InkSettings' delayInPlayMode option is true, dirty files are added here when they're changed in play mode
+		// This ensures they're remembered when you exit play mode and can be compiled
 		public List<string> pendingCompilationStack = new List<string>();
+		// The state of files currently being compiled. You can ignore this!
 		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
 
 		private void OnEnable() {
