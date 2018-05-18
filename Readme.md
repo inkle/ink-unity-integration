@@ -66,6 +66,12 @@ The ink git repo is updated far more frequently than this asset store package.
 
 If you're interested in keeping up-to-date with cutting edge features, you can download the [latest releases from the GitHub repo](https://github.com/inkle/ink/releases).
 
+## Plugins
+
+There's unofficial support for PlayMaker at this link. 
+https://github.com/inkle/ink-unity-integration/issues/22
+We'd love to see this supported more if you'd like to assist the effort!
+
 ## FAQ
 
 * Is the Linux Unity Editor supported?
