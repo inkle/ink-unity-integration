@@ -81,6 +81,14 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
+		public string absoluteJSONPath {
+			get {
+				if(inkAsset == null) 
+					return null;
+				return InkEditorUtils.UnityRelativeToAbsolutePath(jsonPath);
+			}
+		}
+
 		public InkFile (DefaultAsset inkAsset) {
 			Debug.Assert(inkAsset != null);
 			this.inkAsset = inkAsset;
