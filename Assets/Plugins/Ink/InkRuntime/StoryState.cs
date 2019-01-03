@@ -172,32 +172,39 @@ namespace Ink.Runtime
         }
 		string _currentText;
 
-        string CleanOutputWhitespace (string str)
+        // Cleans inline whitespace in the following way:
+        //  - Removes all whitespace from the start and end of line (including just before a \n)
+        //  - Turns all consecutive space and tab runs into single spaces (HTML style)
+        string CleanOutputWhitespace(string str)
         {
-        	var sb = new StringBuilder (str.Length);
+            var sb = new StringBuilder(str.Length);
 
-        	int currentWhitespaceStart = -1;
+            int currentWhitespaceStart = -1;
+            int startOfLine = 0;
 
-        	for (int i = 0; i < str.Length; i++) {
-        		var c = str [i];
+            for (int i = 0; i < str.Length; i++) {
+                var c = str[i];
 
-        		bool isInlineWhitespace = c == ' ' || c == '\t';
+                bool isInlineWhitespace = c == ' ' || c == '\t';
 
-        		if (isInlineWhitespace && currentWhitespaceStart == -1)
-        			currentWhitespaceStart = i;
+                if (isInlineWhitespace && currentWhitespaceStart == -1)
+                    currentWhitespaceStart = i;
 
-        		if (!isInlineWhitespace) {
-        			if (c != '\n' && currentWhitespaceStart > 0) {
-        				sb.Append (str.Substring (currentWhitespaceStart, i - currentWhitespaceStart));
-        			}
-        			currentWhitespaceStart = -1;
-        		}
+                if (!isInlineWhitespace) {
+                    if (c != '\n' && currentWhitespaceStart > 0 && currentWhitespaceStart != startOfLine) {
+                        sb.Append(' ');
+                    }
+                    currentWhitespaceStart = -1;
+                }
 
-        		if (!isInlineWhitespace)
-        			sb.Append (c);
-        	}
+                if (c == '\n')
+                    startOfLine = i + 1;
 
-        	return sb.ToString ();
+                if (!isInlineWhitespace)
+                    sb.Append(c);
+            }
+
+            return sb.ToString();
         }
 
         internal List<string> currentTags 
@@ -240,7 +247,7 @@ namespace Ink.Runtime
 
             evaluationStack = new List<Runtime.Object> ();
 
-            callStack = new CallStack (story.rootContentContainer);
+            callStack = new CallStack (story);
             variablesState = new VariablesState (callStack, story.listDefinitions);
 
             visitCounts = new Dictionary<string, int> ();
@@ -401,7 +408,7 @@ namespace Ink.Runtime
 				foreach (var c in _currentChoices) {
 					var foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
 					if( foundActiveThread != null ) {
-						c.threadAtGeneration = foundActiveThread;
+                        c.threadAtGeneration = foundActiveThread.Copy ();
 					} else {
 						var jSavedChoiceThread = (Dictionary <string, object>) jChoiceThreads[c.originalThreadIndex.ToString()];
 						c.threadAtGeneration = new CallStack.Thread(jSavedChoiceThread, story);
@@ -802,11 +809,7 @@ namespace Ink.Runtime
         /// </summary>
         public void ForceEnd()
         {
-            while (callStack.canPopThread)
-                callStack.PopThread ();
-
-            while (callStack.canPop)
-                PopCallstack ();
+            callStack.Reset();
 
 			_currentChoices.Clear();
 
@@ -859,7 +862,7 @@ namespace Ink.Runtime
         }
 
         // Don't make public since the method need to be wrapped in Story for visit counting
-        internal void SetChosenPath(Path path)
+        internal void SetChosenPath(Path path, bool incrementingTurnIndex)
         {
             // Changing direction, assume we need to clear current set of choices
 			_currentChoices.Clear ();
@@ -870,7 +873,8 @@ namespace Ink.Runtime
 
             currentPointer = newPointer;
 
-            currentTurnIndex++;
+            if( incrementingTurnIndex )
+                currentTurnIndex++;
         }
 
         internal void StartFunctionEvaluationFromGame (Container funcContainer, params object[] arguments)
