@@ -157,6 +157,7 @@ namespace Ink.UnityIntegration {
 			InkLibrary.CreateOrReadUpdatedInkFiles (InkLibrary.Instance.pendingCompilationStack);
 			foreach (var pendingFile in GetUniqueMasterInkFilesToCompile(InkLibrary.Instance.pendingCompilationStack))
 				InkCompiler.CompileInk(pendingFile);
+			// Files are removed when they're compiled, but we clear the list now just in case.
 			InkLibrary.Instance.pendingCompilationStack.Clear();
 		}
 
@@ -181,7 +182,10 @@ namespace Ink.UnityIntegration {
 			outputLog.Append (filesCompiledLog.ToString());
 			Debug.Log(outputLog);
 			
-			foreach(var inkFile in inkFiles) CompileInkInternal (inkFile);
+			foreach(var inkFile in inkFiles) {
+				CompileInkInternal (inkFile);
+				InkLibrary.Instance.pendingCompilationStack.Remove(inkFile.filePath);
+			}
 		}
 
 		/// <summary>
@@ -217,6 +221,7 @@ namespace Ink.UnityIntegration {
 				Debug.LogWarning("Inklecate path should not contain a space. This might lead to compilation failing. Path is '"+inklecatePath+"'. If you don't see any compilation errors, you can ignore this warning.");
 			}*/
 			string inputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileName(inkFile.filePath));
+			Debug.Assert(inkFile.absoluteFilePath == inputPath);
 			string outputPath = inkFile.absoluteJSONPath;
 			string inkArguments = InkSettings.Instance.customInklecateOptions.additionalCompilerOptions + " -c -o " + "\"" + outputPath + "\" \"" + inputPath + "\"";
 
@@ -376,8 +381,8 @@ namespace Ink.UnityIntegration {
 			#if !UNITY_EDITOR_LINUX
 			EditorUtility.ClearProgressBar();
 			#endif
-			if(EditorApplication.isPlayingOrWillChangePlaymode) {
-				Debug.LogWarning("Ink just finished recompiling while in play mode. Your runtime story may not be up to date.");
+			if(EditorApplication.isPlayingOrWillChangePlaymode && InkSettings.Instance.delayInPlayMode) {
+				Debug.LogError("Ink just finished recompiling while in play mode. This should never happen when InkSettings.Instance.delayInPlayMode is true!");
 			}
 
 			if(playModeBlocked) {
@@ -439,13 +444,13 @@ namespace Ink.UnityIntegration {
 					string pathAndLineNumberString = "\n"+inkFile.filePath+":"+lineNo;
 					if(errorType == "ERROR") {
 						inkFile.metaInfo.errors.Add(new InkMetaFile.InkFileLog(message, lineNo));
-						Debug.LogError("INK "+errorType+": "+message + pathAndLineNumberString);
+						Debug.LogError("INK "+errorType+": "+message + pathAndLineNumberString, inkFile.inkAsset);
 					} else if (errorType == "WARNING") {
 						inkFile.metaInfo.warnings.Add(new InkMetaFile.InkFileLog(message, lineNo));
-						Debug.LogWarning("INK "+errorType+": "+message + pathAndLineNumberString);
+						Debug.LogWarning("INK "+errorType+": "+message + pathAndLineNumberString, inkFile.inkAsset);
 					} else if (errorType == "TODO") {
 						inkFile.metaInfo.todos.Add(new InkMetaFile.InkFileLog(message, lineNo));
-						Debug.Log("INK "+errorType+": "+message + pathAndLineNumberString);
+						Debug.Log("INK "+errorType+": "+message + pathAndLineNumberString, inkFile.inkAsset);
 					}
 				}
 			}

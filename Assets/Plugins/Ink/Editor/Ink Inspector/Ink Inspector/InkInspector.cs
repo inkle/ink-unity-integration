@@ -147,7 +147,7 @@ namespace Ink.UnityIntegration {
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
 				if(GUI.Button(buttonRect, openLabel)) {
 					UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(inkFile.filePath, log.lineNumber);
-//					AssetDatabase.OpenAsset(masterInkFile.inkFile, lineNumber);
+					// AssetDatabase.OpenAsset(inkFile.inkAsset, log.lineNumber);
 				}
 			};
 		}
@@ -167,7 +167,7 @@ namespace Ink.UnityIntegration {
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
 				if(GUI.Button(buttonRect, openLabel)) {
 					UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(inkFile.filePath, log.lineNumber);
-//					AssetDatabase.OpenAsset(masterInkFile.inkFile, lineNumber);
+					// AssetDatabase.OpenAsset(inkFile.inkAsset, log.lineNumber);
 				}
 			};
 		}
@@ -187,7 +187,7 @@ namespace Ink.UnityIntegration {
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
 				if(GUI.Button(buttonRect, openLabel)) {
 					UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(inkFile.filePath, log.lineNumber);
-//					AssetDatabase.OpenAsset(masterInkFile.inkFile, lineNumber);
+					// AssetDatabase.OpenAsset(inkFile.inkAsset, log.lineNumber);
 				}
 			};
 		}

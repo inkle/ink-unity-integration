@@ -119,7 +119,8 @@ namespace Ink.UnityIntegration {
 		[PostProcessBuildAttribute(-1)]
 		public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject) {
 			if(!Debug.isDebugBuild) {
-				Debug.Log("<color=blue>Thanks for using ink, and best of luck with your release!\nIf you're doing well, please help fund the project via Patreon https://www.patreon.com/inkle</color>");
+				var color = EditorGUIUtility.isProSkin ? "#3498db" : "blue";
+				Debug.Log("<color="+color+">Thanks for using ink, and best of luck with your release!\nIf you're doing well, please help fund the project via Patreon https://www.patreon.com/inkle</color>");
 			}
 		}
 
@@ -250,22 +251,28 @@ namespace Ink.UnityIntegration {
 		public static void DrawStoryPropertyField (Story story, GUIContent label) {
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.PrefixLabel(label);
-			if(EditorApplication.isPlaying && story != null) {
-				if(InkPlayerWindow.isOpen) {
-					InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
-					if(window.attached && window.story == story) {
-						if(GUILayout.Button("Detach")) {
-							InkPlayerWindow.Detach();
+			if(EditorApplication.isPlaying) {
+				if(story != null) {
+					if(InkPlayerWindow.isOpen) {
+						InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
+						if(window.attached && window.story == story) {
+							if(GUILayout.Button("Detach")) {
+								InkPlayerWindow.Detach();
+							}
+						} else {
+							if(GUILayout.Button("Attach")) {
+								InkPlayerWindow.Attach(story);
+							}
 						}
 					} else {
-						if(GUILayout.Button("Attach")) {
-							InkPlayerWindow.Attach(story);
+						if(GUILayout.Button("Open Player Window")) {
+							InkPlayerWindow.GetWindow();
 						}
 					}
 				} else {
-					if(GUILayout.Button("Open Player Window")) {
-						InkPlayerWindow.GetWindow();
-					}
+					EditorGUI.BeginDisabledGroup(true);
+					GUILayout.Button("Story cannot be null to attach to editor");
+					EditorGUI.EndDisabledGroup();
 				}
 			} else {
 				EditorGUI.BeginDisabledGroup(true);

@@ -192,6 +192,10 @@ namespace Ink.UnityIntegration {
 //		public string content;
 		// The contents of the .ink file
 		public string GetFileContents () {
+			if(inkFile.inkAsset == null) {
+				Debug.LogWarning("Ink file is null! Rebuild library using Assets > Rebuild Ink Library");
+				return "";
+			}
 			return File.OpenText(inkFile.absoluteFilePath).ReadToEnd();
 		}
 
