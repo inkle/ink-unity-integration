@@ -440,13 +440,13 @@ namespace Ink.UnityIntegration {
 					string pathAndLineNumberString = "\n"+inkFile.filePath+":"+lineNo;
 					if(errorType == "ERROR") {
 						inkFile.metaInfo.errors.Add(new InkMetaFile.InkFileLog(message, lineNo));
-						Debug.LogError("INK "+errorType+": "+message + pathAndLineNumberString);
+						Debug.LogError("INK "+errorType+": "+message + pathAndLineNumberString, inkFile.inkAsset);
 					} else if (errorType == "WARNING") {
 						inkFile.metaInfo.warnings.Add(new InkMetaFile.InkFileLog(message, lineNo));
-						Debug.LogWarning("INK "+errorType+": "+message + pathAndLineNumberString);
+						Debug.LogWarning("INK "+errorType+": "+message + pathAndLineNumberString, inkFile.inkAsset);
 					} else if (errorType == "TODO") {
 						inkFile.metaInfo.todos.Add(new InkMetaFile.InkFileLog(message, lineNo));
-						Debug.Log("INK "+errorType+": "+message + pathAndLineNumberString);
+						Debug.Log("INK "+errorType+": "+message + pathAndLineNumberString, inkFile.inkAsset);
 					}
 				}
 			}
