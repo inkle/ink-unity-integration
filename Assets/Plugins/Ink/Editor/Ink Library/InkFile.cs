@@ -30,7 +30,7 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		// The file path relative to the Assets folder
+		// The file path relative to the Assets folder (Assets/Ink/Story.ink)
 		public string filePath {
 			get {
 				if(inkAsset == null) 
@@ -40,7 +40,7 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		// The full file path
+		// The full file path (C:/Users/Inkle/HeavensVault/Assets/Ink/Story.ink)
 		public string absoluteFilePath {
 			get {
 				if(inkAsset == null) 

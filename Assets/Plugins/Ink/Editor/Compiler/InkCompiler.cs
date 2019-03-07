@@ -157,6 +157,7 @@ namespace Ink.UnityIntegration {
 			InkLibrary.CreateOrReadUpdatedInkFiles (InkLibrary.Instance.pendingCompilationStack);
 			foreach (var pendingFile in GetUniqueMasterInkFilesToCompile(InkLibrary.Instance.pendingCompilationStack))
 				InkCompiler.CompileInk(pendingFile);
+			// Files are removed when they're compiled, but we clear the list now just in case.
 			InkLibrary.Instance.pendingCompilationStack.Clear();
 		}
 
