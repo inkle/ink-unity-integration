@@ -119,7 +119,8 @@ namespace Ink.UnityIntegration {
 		[PostProcessBuildAttribute(-1)]
 		public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject) {
 			if(!Debug.isDebugBuild) {
-				Debug.Log("<color=blue>Thanks for using ink, and best of luck with your release!\nIf you're doing well, please help fund the project via Patreon https://www.patreon.com/inkle</color>");
+				var color = EditorGUIUtility.isProSkin ? "#3498db" : "blue";
+				Debug.Log("<color="+color+">Thanks for using ink, and best of luck with your release!\nIf you're doing well, please help fund the project via Patreon https://www.patreon.com/inkle</color>");
 			}
 		}
 
