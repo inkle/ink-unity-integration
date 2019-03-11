@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Linq;
 using Ink.Runtime;
 using UnityEditor.ProjectWindowCallback;
 using UnityEditor.Callbacks;
@@ -64,14 +65,10 @@ namespace Ink.UnityIntegration {
 
 		[MenuItem("Assets/Recompile Ink", false, 61)]
 		public static void RecompileAll() {
-			List<string> compiledFiles = new List<string>();
-			foreach(InkFile masterInkFile in InkLibrary.FilesCompiledByRecompileAll()) {
-				InkCompiler.CompileInk(masterInkFile);
-				compiledFiles.Add(Path.GetFileName(masterInkFile.filePath));
-			}
-			string logString = compiledFiles.Count == 0 ? 
-				"No valid ink found. Note that only files with 'Compile Automatic' checked are compiled if not set to compile all files automatically in InkSettings file." :
-				"Recompile All will compile "+string.Join(", ", compiledFiles.ToArray());
+			InkCompiler.CompileInk(InkLibrary.FilesCompiledByRecompileAll().ToArray());
+			string logString = InkLibrary.FilesCompiledByRecompileAll().Any() ? 
+				"Recompile All will compile "+string.Join(", ", InkLibrary.FilesCompiledByRecompileAll().Select(x => Path.GetFileName(x.filePath)).ToArray()) :
+				"No valid ink found. Note that only files with 'Compile Automatic' checked are compiled if not set to compile all files automatically in InkSettings file.";
 			Debug.Log(logString);
 		}
 
