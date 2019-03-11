@@ -555,9 +555,9 @@ namespace Ink.UnityIntegration {
 				EditorGUILayout.TextField("Current State JSON", "Too long to display!");
 			}
 			EditorGUI.BeginDisabledGroup(GUIUtility.systemCopyBuffer == currentStateJSON);
-//			if (GUILayout.Button("Copy To Clipboard")) {
-//				GUIUtility.systemCopyBuffer = currentStateJSON;
-//			}
+			if (GUILayout.Button("Copy To Clipboard")) {
+				GUIUtility.systemCopyBuffer = currentStateJSON;
+			}
 			EditorGUI.EndDisabledGroup();
 			if (GUILayout.Button("Save As...")) {
 				SaveStoryState(currentStateJSON);
