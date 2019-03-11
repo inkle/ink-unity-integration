@@ -195,7 +195,7 @@ namespace Ink.UnityIntegration {
 		/// <param name="inkFile">Ink file.</param>
 		internal static void CompileInkInternal (InkFile inkFile) {
 			if(inkFile == null) {
-				Debug.LogError("Tried to compile ink file, but input was null. Check Ink Library for empty input lines");
+				Debug.LogError("Tried to compile ink file but input was null.");
 				return;
 			}
 			if(!inkFile.metaInfo.isMaster)

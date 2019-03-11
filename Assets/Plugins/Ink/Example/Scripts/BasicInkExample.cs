@@ -95,7 +95,7 @@ public class BasicInkExample : MonoBehaviour {
 
 	[SerializeField]
 	private TextAsset inkJSONAsset;
-	private Story story;
+	public Story story;
 
 	[SerializeField]
 	private Canvas canvas;
