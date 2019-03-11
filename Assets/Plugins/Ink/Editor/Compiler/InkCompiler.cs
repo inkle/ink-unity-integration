@@ -18,7 +18,7 @@ namespace Ink.UnityIntegration {
 				return InkLibrary.Instance.compilationStack.Count > 0;
 			}
 		}
-		static bool buildBlocked = false;
+		public static bool buildBlocked = false;
 		static bool playModeBlocked = false;
 
 		public delegate void OnCompileInkEvent (InkFile inkFile);
