@@ -251,22 +251,28 @@ namespace Ink.UnityIntegration {
 		public static void DrawStoryPropertyField (Story story, GUIContent label) {
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.PrefixLabel(label);
-			if(EditorApplication.isPlaying && story != null) {
-				if(InkPlayerWindow.isOpen) {
-					InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
-					if(window.attached && window.story == story) {
-						if(GUILayout.Button("Detach")) {
-							InkPlayerWindow.Detach();
+			if(EditorApplication.isPlaying) {
+				if(story != null) {
+					if(InkPlayerWindow.isOpen) {
+						InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
+						if(window.attached && window.story == story) {
+							if(GUILayout.Button("Detach")) {
+								InkPlayerWindow.Detach();
+							}
+						} else {
+							if(GUILayout.Button("Attach")) {
+								InkPlayerWindow.Attach(story);
+							}
 						}
 					} else {
-						if(GUILayout.Button("Attach")) {
-							InkPlayerWindow.Attach(story);
+						if(GUILayout.Button("Open Player Window")) {
+							InkPlayerWindow.GetWindow();
 						}
 					}
 				} else {
-					if(GUILayout.Button("Open Player Window")) {
-						InkPlayerWindow.GetWindow();
-					}
+					EditorGUI.BeginDisabledGroup(true);
+					GUILayout.Button("Story cannot be null to attach to editor");
+					EditorGUI.EndDisabledGroup();
 				}
 			} else {
 				EditorGUI.BeginDisabledGroup(true);
