@@ -182,7 +182,10 @@ namespace Ink.UnityIntegration {
 			outputLog.Append (filesCompiledLog.ToString());
 			Debug.Log(outputLog);
 			
-			foreach(var inkFile in inkFiles) CompileInkInternal (inkFile);
+			foreach(var inkFile in inkFiles) {
+				CompileInkInternal (inkFile);
+				InkLibrary.Instance.pendingCompilationStack.Remove(inkFile.filePath);
+			}
 		}
 
 		/// <summary>
@@ -191,7 +194,7 @@ namespace Ink.UnityIntegration {
 		/// <param name="inkFile">Ink file.</param>
 		internal static void CompileInkInternal (InkFile inkFile) {
 			if(inkFile == null) {
-				Debug.LogError("Tried to compile ink file, but input was null. Check Ink Library for empty input lines");
+				Debug.LogError("Tried to compile ink file but input was null.");
 				return;
 			}
 			if(!inkFile.metaInfo.isMaster)
@@ -218,6 +221,7 @@ namespace Ink.UnityIntegration {
 				Debug.LogWarning("Inklecate path should not contain a space. This might lead to compilation failing. Path is '"+inklecatePath+"'. If you don't see any compilation errors, you can ignore this warning.");
 			}*/
 			string inputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileName(inkFile.filePath));
+			Debug.Assert(inkFile.absoluteFilePath == inputPath);
 			string outputPath = inkFile.absoluteJSONPath;
 			string inkArguments = InkSettings.Instance.customInklecateOptions.additionalCompilerOptions + " -c -o " + "\"" + outputPath + "\" \"" + inputPath + "\"";
 
@@ -287,7 +291,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		private static void ProcessError (Process process, string message) {
-			message = message.Trim(new char[]{'\uFEFF','\u200B'});
+			message = message.Trim();
 			if (InkEditorUtils.IsNullOrWhiteSpace(message) || message == "???")
 				return;
 			Debug.Log(message[0]);
@@ -377,8 +381,8 @@ namespace Ink.UnityIntegration {
 			#if !UNITY_EDITOR_LINUX
 			EditorUtility.ClearProgressBar();
 			#endif
-			if(EditorApplication.isPlayingOrWillChangePlaymode) {
-				Debug.LogWarning("Ink just finished recompiling while in play mode. Your runtime story may not be up to date.");
+			if(EditorApplication.isPlayingOrWillChangePlaymode && InkSettings.Instance.delayInPlayMode) {
+				Debug.LogError("Ink just finished recompiling while in play mode. This should never happen when InkSettings.Instance.delayInPlayMode is true!");
 			}
 
 			if(playModeBlocked) {

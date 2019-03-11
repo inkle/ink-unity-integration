@@ -88,9 +88,10 @@ namespace Ink.UnityIntegration {
 			if(inkLibraryChanged)
 				Instance.inkLibrary = newInkLibrary;
 
-			var metaFiles = Instance.inkLibrary.Select(x => x.metaInfo).ToList();
-			bool metaFilesChanged = InkMetaLibrary.Instance.metaLibrary.SequenceEqual(metaFiles);
-			if(metaFilesChanged) InkMetaLibrary.Instance.metaLibrary = metaFiles;
+			var metaFiles = Instance.inkLibrary.Select(x => x.metaInfo);
+			bool metaFilesChanged = !InkMetaLibrary.Instance.metaLibrary.SequenceEqual(metaFiles);
+			if(metaFilesChanged) 
+				InkMetaLibrary.Instance.metaLibrary = metaFiles.ToList();
 
 			InkMetaLibrary.RebuildInkFileConnections();
 
