@@ -39,7 +39,7 @@ namespace Ink.UnityIntegration {
 		public bool delayInPlayMode = true;
 		public bool handleJSONFilesAutomatically = true;
 
-		public int compileTimeout = 6;
+		public int compileTimeout = 30;
 
 		public CustomInklecateOptions customInklecateOptions = new CustomInklecateOptions();
 		[System.Serializable]
