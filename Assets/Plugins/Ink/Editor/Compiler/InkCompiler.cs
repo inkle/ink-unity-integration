@@ -18,6 +18,7 @@ namespace Ink.UnityIntegration {
 				return InkLibrary.Instance.compilationStack.Count > 0;
 			}
 		}
+		public static bool buildBlocked = false;
 		static bool playModeBlocked = false;
 
 		public delegate void OnCompileInkEvent (InkFile inkFile);
@@ -114,7 +115,7 @@ namespace Ink.UnityIntegration {
 			int numCompiling = InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count;
 			string message = "Compiling .Ink File "+(InkLibrary.Instance.compilationStack.Count-numCompiling)+" of "+InkLibrary.Instance.compilationStack.Count+".";
 			if(playModeBlocked) message += " Will enter play mode when complete.";
-			if(playModeBlocked) EditorUtility.DisplayProgressBar("Compiling Ink...", message, GetEstimatedCompilationProgress());
+			if(buildBlocked || playModeBlocked) EditorUtility.DisplayProgressBar("Compiling Ink...", message, GetEstimatedCompilationProgress());
 			else EditorUtility.ClearProgressBar();
 		}
 
@@ -194,7 +195,7 @@ namespace Ink.UnityIntegration {
 		/// <param name="inkFile">Ink file.</param>
 		internal static void CompileInkInternal (InkFile inkFile) {
 			if(inkFile == null) {
-				Debug.LogError("Tried to compile ink file, but input was null. Check Ink Library for empty input lines");
+				Debug.LogError("Tried to compile ink file but input was null.");
 				return;
 			}
 			if(!inkFile.metaInfo.isMaster)
@@ -384,8 +385,11 @@ namespace Ink.UnityIntegration {
 			if(EditorApplication.isPlayingOrWillChangePlaymode && InkSettings.Instance.delayInPlayMode) {
 				Debug.LogError("Ink just finished recompiling while in play mode. This should never happen when InkSettings.Instance.delayInPlayMode is true!");
 			}
+            
+            buildBlocked = false;
 
 			if(playModeBlocked) {
+                playModeBlocked = false;
 				if(!errorsFound) {
 					// Delaying gives the editor a frame to clear the progress bar.
 					EditorApplication.delayCall += () => {
