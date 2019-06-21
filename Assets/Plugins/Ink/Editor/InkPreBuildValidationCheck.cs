@@ -4,6 +4,9 @@ using UnityEditor.Build;
 using System.Text;
 using Ink.UnityIntegration;
 using System.Linq;
+#if UNITY_2019_1_OR_NEWER
+using UnityEditor.Build.Reporting;
+#endif
 
 class InkPreBuildValidationCheck : 
 #if UNITY_2019_1_OR_NEWER
