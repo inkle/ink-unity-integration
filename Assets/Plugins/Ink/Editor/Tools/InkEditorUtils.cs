@@ -229,6 +229,8 @@ namespace Ink.UnityIntegration {
 		// system this method will always return a path which uses forward slashes ('/' characters) exclusively to ensure
 		// equality checks on path strings return equalities as expected.
 		public static string CombinePaths(string firstPath, string secondPath) {
+            Debug.Assert(firstPath != null);
+            Debug.Assert(secondPath != null);
 			return SanitizePathString(Path.Combine(firstPath, secondPath));
 		}
 
