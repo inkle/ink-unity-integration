@@ -56,8 +56,10 @@ IPreprocessBuild
             var filesAsString = string.Join(", ", filesToRecompile.Select(x => x.filePath).ToArray());
             sb.AppendLine(filesAsString);
             var errorString = sb.ToString();
-            if(UnityEditor.EditorUtility.DisplayDialog("Ink Build Error!", errorString, "Ok")) {
+            if(!UnityEditor.EditorUtility.DisplayDialog("Ink Build Error!", errorString, "Build anyway", "Cancel build")) {
                 Debug.LogError(errorString);
+            } else {
+                Debug.LogWarning(errorString);
             }
         }
     } 
