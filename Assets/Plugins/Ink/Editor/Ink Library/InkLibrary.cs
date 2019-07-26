@@ -68,7 +68,8 @@ namespace Ink.UnityIntegration {
 			List<InkFile> newInkLibrary = new List<InkFile>(inkFilePaths.Length);
 			for (int i = 0; i < inkFilePaths.Length; i++) {
 				InkFile inkFile = GetInkFileWithAbsolutePath(inkFilePaths [i]);
-				if(inkFile == null) {
+				// If the ink library doesn't have a representation for this file, then make one 
+                if(inkFile == null) {
 					inkLibraryChanged = true;
 					string localAssetPath = InkEditorUtils.AbsoluteToUnityRelativePath(inkFilePaths [i]);
 					DefaultAsset inkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localAssetPath);
@@ -88,6 +89,7 @@ namespace Ink.UnityIntegration {
 			if(inkLibraryChanged)
 				Instance.inkLibrary = newInkLibrary;
 
+            // Validate the meta files
 			var metaFiles = Instance.inkLibrary.Select(x => x.metaInfo);
 			bool metaFilesChanged = !InkMetaLibrary.Instance.metaLibrary.SequenceEqual(metaFiles);
 			if(metaFilesChanged) 
@@ -117,6 +119,7 @@ namespace Ink.UnityIntegration {
 			InkMetaLibrary.RebuildInkFileConnections();
 		}
 
+        // Finds absolute file paths of all the ink files in Application.dataPath
 		private static string[] GetAllInkFilePaths () {
 			string[] inkFilePaths = Directory.GetFiles(Application.dataPath, "*.ink", SearchOption.AllDirectories);
 			for (int i = 0; i < inkFilePaths.Length; i++) {

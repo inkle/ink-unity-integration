@@ -63,7 +63,9 @@ namespace Ink.UnityIntegration {
 			}
 			return null;
 		}
-
+        
+        // Detects and fixes missing/bad file references.
+        // Unity has a nasty habit of changing GUIDs on launch which this can detect and correct by comparing file paths with the file
 		private static bool ValidateLibrary () {
 			bool foundDiscrepancy = false;
 			foreach(var metaFile in _Instance.metaLibrary) {
