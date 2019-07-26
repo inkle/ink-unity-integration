@@ -69,16 +69,19 @@ namespace Ink.UnityIntegration {
 		private static bool ValidateLibrary () {
 			bool foundDiscrepancy = false;
 			foreach(var metaFile in _Instance.metaLibrary) {
-				if(metaFile.inkAsset != null && metaFile.inkFile == null) {
-//					metaFile.inkAsset = null;
+				if(metaFile.inkAsset == null || AssetDatabase.GetAssetPath(metaFile.inkAsset) != metaFile.inkAssetPath) {
 					metaFile.inkAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(metaFile.inkAssetPath);
 					if(metaFile.inkAsset == null) {
 						foundDiscrepancy = true;
 						Debug.LogWarning("Ink file for asset "+AssetDatabase.GetAssetPath(metaFile.inkAsset)+" was not found. Path was "+metaFile.inkAssetPath);
 					}
 				}
-				if(metaFile.masterInkAsset != null && metaFile.masterInkFile == null) {
-					metaFile.masterInkAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(metaFile.masterInkAssetPath);
+                // If the library is invalid then metaFile.masterInkAsset can return some random file instead, which causes errors in metaFile.masterInkFile's getter.
+                // Since I can't rely on masterInkAsset being correct between opening/closing Unity I think this function should always set it from masterInkAssetPath.
+                // For optimisation reasons we can probably check if it's already loaded/accurate first.
+                // Do the same with the above too!
+				if(metaFile.masterInkAssetPath != string.Empty && (metaFile.masterInkAsset == null || AssetDatabase.GetAssetPath(metaFile.masterInkAsset) != metaFile.masterInkAssetPath)) {
+                	metaFile.masterInkAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(metaFile.masterInkAssetPath);
 					if(metaFile.masterInkAsset == null) {
 						foundDiscrepancy = true;
 						Debug.LogWarning("Ink file for master asset "+AssetDatabase.GetAssetPath(metaFile.masterInkAsset)+" was not found. Path was "+metaFile.masterInkAssetPath);

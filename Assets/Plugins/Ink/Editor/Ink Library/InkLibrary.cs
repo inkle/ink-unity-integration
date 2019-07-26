@@ -49,12 +49,16 @@ namespace Ink.UnityIntegration {
 		/// <summary>
 		/// Removes and null references in the library
 		/// </summary>
-		public static void Clean () {
+		public static bool Clean () {
+            bool wasDirty = false;
 			for (int i = InkLibrary.Instance.inkLibrary.Count - 1; i >= 0; i--) {
 				InkFile inkFile = InkLibrary.Instance.inkLibrary[i];
-				if (inkFile.inkAsset == null)
+				if (inkFile.inkAsset == null) {
 					InkLibrary.Instance.inkLibrary.RemoveAt(i);
+                    wasDirty = true;
+                }
 			}
+            return wasDirty;
 		}
 
 		/// <summary>
@@ -62,8 +66,11 @@ namespace Ink.UnityIntegration {
 		/// Can be called manually, but incurs a performance cost.
 		/// </summary>
 		public static void Rebuild () {
-			string[] inkFilePaths = GetAllInkFilePaths();
+            // Remove any old file connections
+            Clean();
 
+            // Add any new file connections (if any are found it replaces the old library entirely)
+			string[] inkFilePaths = GetAllInkFilePaths();
 			bool inkLibraryChanged = false;
 			List<InkFile> newInkLibrary = new List<InkFile>(inkFilePaths.Length);
 			for (int i = 0; i < inkFilePaths.Length; i++) {
@@ -171,6 +178,7 @@ namespace Ink.UnityIntegration {
 					return inkFile;
 				}
 			}
+			Debug.LogWarning (file + " missing from ink library. Please rebuild.");
 			return null;
 		}
 
