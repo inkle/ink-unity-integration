@@ -30,7 +30,9 @@ You should never delete the DLL folder (although you may delete the windows/mac 
 
 ## Using ink in game your game. 
 
-The **ink player** is the core feature of this package; the minimal requirements to actually run a compiled JSON story file is the `ink-engine.dll` library.
+The **ink player** is the core feature of this package; the minimal requirements to actually run a compiled JSON story file is the source code in the InkRuntime folder. 
+
+Alternatively, the `ink-engine-runtime.dll` file can be used instead of the source code in the InkRuntime folder. It may otherwise be safely deleted.
 
 ## Ink Player
 
@@ -46,7 +48,8 @@ This package provides tools to automate this process when a .ink file is edited.
 
 **Disabling auto-compilation**: You might want to have manual control over ink compilation. If this is the case, you can disable "Compile ink automatically" in the InkSettings file or delete the InkPostProcessor class.
 
-**Manual compilation**: If you have disabled auto-compilation, you can manually compile ink using the **Assets > Recompile Ink** menu item, via the inspector of an ink file, or using the functions in the InkCompiler class.
+**Manual compilation**: If you have disabled auto-compilation, you can manually compile ink using the **Assets > Recompile Ink** menu item, via the inspector of an ink file, or using the functions in the InkCompiler class which execute the files in the InkCompiler folder.
+Currently compilation is Editor-only, although it's a very solvable problem if you need the functionality.
 
 **Play mode delay**: By default, ink does not compile while in play mode. This can be disabled in the InkSettings file.
 
