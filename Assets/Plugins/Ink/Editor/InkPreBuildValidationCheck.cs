@@ -4,12 +4,12 @@ using UnityEditor.Build;
 using System.Text;
 using Ink.UnityIntegration;
 using System.Linq;
-#if UNITY_2019_1_OR_NEWER
+#if UNITY_2018_1_OR_NEWER
 using UnityEditor.Build.Reporting;
 #endif
 
 class InkPreBuildValidationCheck : 
-#if UNITY_2019_1_OR_NEWER
+#if UNITY_2018_1_OR_NEWER
 IPreprocessBuildWithReport
 #else
 IPreprocessBuild
@@ -17,7 +17,7 @@ IPreprocessBuild
 {
 	public int callbackOrder { get { return 0; } }
 	
-    #if UNITY_2019_1_OR_NEWER
+    #if UNITY_2018_1_OR_NEWER
     public void OnPreprocessBuild(BuildReport report) {
         PreprocessValidationStep();
     }
