@@ -24,7 +24,7 @@ namespace Ink.UnityIntegration {
 			serializedObject.ApplyModifiedProperties();
 	    }
 
-		#if UNITY_2019_1_OR_NEWER
+		#if UNITY_2018_1_OR_NEWER
 		[SettingsProvider]
 		public static SettingsProvider CreateInkSettingsProvider() {
 			// First parameter is the path in the Settings window.

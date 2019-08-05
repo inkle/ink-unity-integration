@@ -58,12 +58,12 @@ namespace Ink.UnityIntegration {
 			public DefaultAsset inklecate;
 		}
 
-		#if UNITY_EDITOR && !UNITY_2019_1_OR_NEWER
+		#if UNITY_EDITOR && !UNITY_2018_1_OR_NEWER
 		[MenuItem("Edit/Project Settings/Ink", false, 500)]
 		public static void SelectFromProjectSettings() {
 			Selection.activeObject = Instance;
 		}
-		#elif UNITY_EDITOR && UNITY_2019_1_OR_NEWER
+		#elif UNITY_EDITOR && UNITY_2018_1_OR_NEWER
 		public static SerializedObject GetSerializedSettings() {
 			return new SerializedObject(Instance);
 		}

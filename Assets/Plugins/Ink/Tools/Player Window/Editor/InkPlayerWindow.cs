@@ -11,8 +11,127 @@ namespace Ink.UnityIntegration {
 
 	/// <summary>
 	/// Ink player window. Tests stories in an editor window.
+    /// Stories may be attached at runtime. InkPlayerWindow.DrawStoryPropertyField may be used for this.
 	/// </summary>
 	public class InkPlayerWindow : EditorWindow {
+
+        /// <summary>
+		/// Draws a property field for a story using GUILayout, allowing you to attach stories to the player window for debugging.
+		/// </summary>
+		/// <param name="story">Story.</param>
+		/// <param name="label">Label.</param>
+		public static void DrawStoryPropertyField (Story story, GUIContent label) {
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.PrefixLabel(label);
+			if(EditorApplication.isPlaying) {
+				if(story != null) {
+					if(InkPlayerWindow.isOpen) {
+						InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
+						if(window.attached && window.story == story) {
+							if(GUILayout.Button("Detach")) {
+								InkPlayerWindow.Detach();
+							}
+						} else {
+							if(GUILayout.Button("Attach")) {
+								InkPlayerWindow.Attach(story);
+							}
+						}
+					} else {
+						if(GUILayout.Button("Open Player Window")) {
+							InkPlayerWindow.GetWindow();
+						}
+					}
+				} else {
+					EditorGUI.BeginDisabledGroup(true);
+					GUILayout.Button("Story cannot be null to attach to editor");
+					EditorGUI.EndDisabledGroup();
+				}
+			} else {
+				EditorGUI.BeginDisabledGroup(true);
+				GUILayout.Button("Enter play mode to attach to editor");
+				EditorGUI.EndDisabledGroup();
+			}
+			EditorGUILayout.EndHorizontal();
+		}
+
+        
+
+		/// <summary>
+		/// Draws a property field for a story using GUI, allowing you to attach stories to the player window for debugging.
+		/// </summary>
+		/// <param name="position">Position.</param>
+		/// <param name="story">Story.</param>
+		/// <param name="label">Label.</param>
+		public static void DrawStoryPropertyField (Rect position, Story story, GUIContent label) {
+			position = EditorGUI.PrefixLabel(position, label);
+			InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
+			if(EditorApplication.isPlaying && story != null/* && story.state != null*/) {
+				if(window.attached && window.story == story) {
+					if(GUI.Button(position, "Detach")) {
+						InkPlayerWindow.Detach();
+					}
+				} else {
+					if(GUI.Button(position, "Attach")) {
+						InkPlayerWindow.Attach(story);
+					}
+				}
+			} else {
+				EditorGUI.BeginDisabledGroup(true);
+				GUI.Button(position, "Enter play mode to attach to editor");
+				EditorGUI.EndDisabledGroup();
+			}
+		}
+
+        // To make this actually practical to use it needs to remember the loaded story.
+        // Right now it loses values before attaching.
+        public class InkPlayerWindowState {
+            static string settingsEditorPrefsKey = typeof(InkPlayerWindowState).Name +" Settings";
+            public static Action OnCreateOrLoad;
+            static InkPlayerWindowState _Instance;
+            public static InkPlayerWindowState Instance {
+                get {
+                    if(_Instance == null) LoadOrCreateAndSave();
+                    return _Instance;
+                }
+            }
+
+            static InkPlayerWindowState LoadOrCreateAndSave () {
+                Load();
+                if(_Instance == null) CreateAndSave();
+                return _Instance;
+            }
+
+            public static void CreateAndSave () {
+                _Instance = new InkPlayerWindowState();
+                Save(_Instance);
+                if(OnCreateOrLoad != null) OnCreateOrLoad();
+            }
+            
+            public static void Save () {
+                Save(_Instance);
+            }
+
+            public static void Save (InkPlayerWindowState settings) {
+                string data = JsonUtility.ToJson(settings);
+                EditorPrefs.SetString(settingsEditorPrefsKey, data);
+            }
+
+            static void Load () {
+                if(!EditorPrefs.HasKey(settingsEditorPrefsKey)) return;
+                string data = EditorPrefs.GetString(settingsEditorPrefsKey);
+                try {
+                    _Instance = JsonUtility.FromJson<InkPlayerWindowState>(data);
+                    if(OnCreateOrLoad != null) OnCreateOrLoad();
+                } catch {
+                    Debug.LogError("Save Data was corrupt and could not be parsed. New data created. Old data was:\n"+data);
+                    CreateAndSave();
+                }
+            }
+
+
+            public FunctionPanelState.FunctionParams functionParams = new FunctionPanelState.FunctionParams();
+        }
+
 		private const string windowTitle = "Ink Player";
 
 		public static bool isOpen {get; private set;}
@@ -21,6 +140,7 @@ namespace Ink.UnityIntegration {
 //		public class StoryState {
 //		}
 		public bool attached {get; private set;}
+		bool attachedWhileInPlayMode {get; set;}
 
 		TextAsset _storyJSONTextAsset;
 		TextAsset storyJSONTextAsset {
@@ -87,22 +207,25 @@ namespace Ink.UnityIntegration {
 		private FunctionPanelState functionPanelState = new FunctionPanelState();
 		ReorderableList functionInputList;
 		public class FunctionPanelState {
-			public class FunctionInput {
-				public enum FunctionInputType {
-					Int,
-					String,
-					Bool,
-					InkVariable
-				}
-				public FunctionInputType type;
-				public int intValue;
-				public string stringValue;
-				public bool boolValue;
-				public string inkVariablePath;
-				public object inkVariableValue;
-			}
-			public string functionName = String.Empty;
-			public List<FunctionInput> inputs = new List<FunctionInput>();
+		    public class FunctionParams {
+                public class FunctionInput {
+                    public enum FunctionInputType {
+                        Int,
+                        String,
+                        Bool,
+                        InkVariable
+                    }
+                    public FunctionInputType type;
+                    public int intValue;
+                    public string stringValue;
+                    public bool boolValue;
+                    public string inkVariablePath;
+                    public object inkVariableValue;
+                }
+                public string functionName = String.Empty;
+                public List<FunctionInput> inputs = new List<FunctionInput>();
+            }
+			public FunctionParams functionParams = new FunctionParams();
 			public string testedFunctionName = null;
 			public object functionReturnValue = null;
 		}
@@ -136,8 +259,15 @@ namespace Ink.UnityIntegration {
 			isOpen = true;
 			storyStateHistory = new UndoHistory<InkPlayerHistoryItem>();
 			storyHistory = new List<InkPlayerHistoryContentItem>();
-			BuildFunctionInputList();
-			EditorApplication.update += Update;
+			
+            InkPlayerWindowState.OnCreateOrLoad += () => {
+                functionPanelState.functionParams = InkPlayerWindowState.Instance.functionParams;
+                BuildFunctionInputList();
+            };
+            
+            BuildFunctionInputList();
+			
+            EditorApplication.update += Update;
 		}
 
 		void OnDestroy () {
@@ -152,22 +282,30 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		// Requires testing - would allow users to attach a run-time story to this window for testing purposes.
 		public static InkPlayerWindow Attach (Story story) {
 			InkPlayerWindow window = GetWindow();
-			window.Clear();
-			window.playerOptions.continueAutomatically = false;
-			window.playerOptions.chooseAutomatically = false;
-			window.story = story;
-			window.attached = true;
-			return window;
+			window.AttachInstance(story);
+            return window;
 		}
+
+        void AttachInstance (Story story) {
+			Clear();
+			playerOptions.continueAutomatically = false;
+			playerOptions.chooseAutomatically = false;
+			this.story = story;
+			attached = true;
+			attachedWhileInPlayMode = EditorApplication.isPlaying;
+        }
 
 		public static void Detach () {
 			InkPlayerWindow window = GetWindow();
-			window.attached = false;
-			window.story = null;
+			window.DetachInstance();
 		}
+
+        void DetachInstance () {
+            attached = false;
+			story = null;
+        }
 
 		public static void LoadAndPlay (TextAsset storyJSONTextAsset) {
 			InkPlayerWindow window = GetWindow();
@@ -315,8 +453,10 @@ namespace Ink.UnityIntegration {
 		}
 		
 		void OnGUI () {
-			this.Repaint();
+            this.Repaint();
 			scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+
+            if(story == null && attached) DetachInstance();
 
 			DisplayHeader();
 
@@ -334,15 +474,21 @@ namespace Ink.UnityIntegration {
 				DrawDiverts();
 				DrawFunctions();
 				DrawVariables();
+                InkPlayerWindowState.Save();
 			}
 
 			EditorGUILayout.EndScrollView();
+
 		}
 		
 		void DisplayHeader () {
 			if(attached) {
 				EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-				GUILayout.Label(new GUIContent("Attached", "This story reference has been attached from elsewhere"));
+                var headerTitle = new System.Text.StringBuilder("Attached");
+                if(attachedWhileInPlayMode != EditorApplication.isPlaying) {
+                    if(attachedWhileInPlayMode) headerTitle.Append(" (Ex-play-mode story)");
+                }
+				GUILayout.Label(new GUIContent(headerTitle.ToString(), "This story reference has been attached from elsewhere"));
 				if (GUILayout.Button(new GUIContent("Detach", "Detach from the loaded external story"), EditorStyles.toolbarButton)) {
 					Detach();
 				}
@@ -613,49 +759,59 @@ namespace Ink.UnityIntegration {
 		void DrawFunctionsPanel () {
 			GUILayout.BeginVertical();
 
-			GUILayout.BeginVertical();
+            DrawFunctionInput();
+			DrawFunctionOutput();
+
+			GUILayout.EndVertical();
+		}
+
+        void DrawFunctionInput () {
+            GUILayout.BeginVertical();
 			EditorGUI.BeginChangeCheck();
-			functionPanelState.functionName = EditorGUILayout.TextField("Function", functionPanelState.functionName);
+			functionPanelState.functionParams.functionName = EditorGUILayout.TextField("Function", functionPanelState.functionParams.functionName);
 			if(EditorGUI.EndChangeCheck()) {
 				functionPanelState.testedFunctionName = null;
 				functionPanelState.functionReturnValue = null;
 			}
 			functionInputList.DoLayoutList();
-			bool functionIsValid = functionPanelState.functionName != String.Empty && story.HasFunction(functionPanelState.functionName);
+			bool functionIsValid = functionPanelState.functionParams.functionName != String.Empty && story.HasFunction(functionPanelState.functionParams.functionName);
 			EditorGUI.BeginDisabledGroup(!functionIsValid);
 			if (GUILayout.Button(new GUIContent("Execute", "Runs the function"))) {
-				storyHistory.Add(new InkPlayerHistoryContentItem("Execute function '"+functionPanelState.functionName+"'", InkPlayerHistoryContentItem.ContentType.DebugNote));
+				storyHistory.Add(new InkPlayerHistoryContentItem("Execute function '"+functionPanelState.functionParams.functionName+"'", InkPlayerHistoryContentItem.ContentType.DebugNote));
 				string outputContent = null;
-				object[] allInput = new object[functionPanelState.inputs.Count];
-				for (int i = 0; i < functionPanelState.inputs.Count; i++) {
-					var input = functionPanelState.inputs[i];
+				object[] allInput = new object[functionPanelState.functionParams.inputs.Count];
+				for (int i = 0; i < functionPanelState.functionParams.inputs.Count; i++) {
+					var input = functionPanelState.functionParams.inputs[i];
 					object obj = null;
 					switch(input.type) {
-					case FunctionPanelState.FunctionInput.FunctionInputType.Int:
+					case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Int:
 						obj = input.intValue;
 						break;
-					case FunctionPanelState.FunctionInput.FunctionInputType.String:
+					case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.String:
 						obj = input.stringValue;
 						break;
-					case FunctionPanelState.FunctionInput.FunctionInputType.Bool:
+					case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Bool:
 						obj = input.boolValue;
 						break;
-					case FunctionPanelState.FunctionInput.FunctionInputType.InkVariable:
+					case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.InkVariable:
 						obj = input.inkVariableValue;
 						break;
 					}
 					allInput[i] = obj;
 				}
 
-				functionPanelState.functionReturnValue = story.EvaluateFunction(functionPanelState.functionName, out outputContent, allInput);
+				functionPanelState.functionReturnValue = story.EvaluateFunction(functionPanelState.functionParams.functionName, out outputContent, allInput);
 				if(outputContent != null)
 					AddContent(outputContent);
-				functionPanelState.testedFunctionName = functionPanelState.functionName;
+				functionPanelState.testedFunctionName = functionPanelState.functionParams.functionName;
 			}
 			EditorGUI.EndDisabledGroup();
 			GUILayout.EndVertical();
+        }
 
-			if(functionIsValid && functionPanelState.functionName == functionPanelState.testedFunctionName) {
+        void DrawFunctionOutput () {
+            bool functionIsValid = functionPanelState.functionParams.functionName != String.Empty && story.HasFunction(functionPanelState.functionParams.functionName);
+            if(functionIsValid && functionPanelState.functionParams.functionName == functionPanelState.testedFunctionName) {
 				if(functionPanelState.functionReturnValue == null) {
 					EditorGUILayout.LabelField("Output (Null)");
 				} else if(functionPanelState.functionReturnValue is string) {
@@ -668,32 +824,30 @@ namespace Ink.UnityIntegration {
 					EditorGUILayout.LabelField("Function returned unexpected type "+functionPanelState.functionReturnValue.GetType().Name+".");
 				}
 			}
-
-			GUILayout.EndVertical();
-		}
+        }
 
 		void BuildFunctionInputList () {
-			functionInputList = new ReorderableList(functionPanelState.inputs, typeof(FunctionPanelState.FunctionInput), true, true, true, true);
+			functionInputList = new ReorderableList(functionPanelState.functionParams.inputs, typeof(FunctionPanelState.FunctionParams.FunctionInput), true, true, true, true);
 			functionInputList.drawHeaderCallback = (Rect rect) => {
 				EditorGUI.LabelField(rect, "Inputs");
 			};
 			functionInputList.elementHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing * 2;
 			functionInputList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
-				var input = functionPanelState.inputs[index];
+				var input = functionPanelState.functionParams.inputs[index];
 				Rect typeRect = new Rect(rect.x, rect.y, 80, EditorGUIUtility.singleLineHeight);
-				input.type = (FunctionPanelState.FunctionInput.FunctionInputType)EditorGUI.EnumPopup(typeRect, input.type);
+				input.type = (FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType)EditorGUI.EnumPopup(typeRect, input.type);
 				Rect inputRect = new Rect(rect.x + 90, rect.y, rect.width - 90, EditorGUIUtility.singleLineHeight);
 				switch(input.type) {
-				case FunctionPanelState.FunctionInput.FunctionInputType.Int:
+				case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Int:
 					input.intValue = EditorGUI.IntField(inputRect, input.intValue);
 					break;
-				case FunctionPanelState.FunctionInput.FunctionInputType.String:
+				case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.String:
 					input.stringValue = EditorGUI.TextField(inputRect, input.stringValue);
 					break;
-				case FunctionPanelState.FunctionInput.FunctionInputType.Bool:
+				case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Bool:
 					input.boolValue = EditorGUI.Toggle(inputRect, input.boolValue);
 					break;
-				case FunctionPanelState.FunctionInput.FunctionInputType.InkVariable:
+				case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.InkVariable:
 					var halfInput = new Rect(inputRect.x, inputRect.y, Mathf.RoundToInt(inputRect.width * 0.5f) - 5, inputRect.height);
 					var halfInput2 = new Rect(inputRect.x + Mathf.RoundToInt(inputRect.width * 0.5f) + 5, inputRect.y, Mathf.RoundToInt(inputRect.width * 0.5f) - 10, inputRect.height);
 					EditorGUI.BeginChangeCheck();

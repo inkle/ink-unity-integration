@@ -293,7 +293,7 @@ namespace Ink.UnityIntegration {
 
 		private static void ProcessError (Process process, string message) {
 			message = message.Trim(new char[]{'\uFEFF','\u200B'});
-			if (InkEditorUtils.IsNullOrWhiteSpace(message) || message == "???")
+			if (IsNullOrWhiteSpace(message) || message == "???")
 				return;
 			Debug.Log(message[0]);
 			Debug.Log(char.IsWhiteSpace(message[0]));
@@ -492,6 +492,24 @@ namespace Ink.UnityIntegration {
 				}
 			}
 			return masterInkFiles;
+		}
+
+
+
+
+        
+
+		//Replacement until Unity upgrades .Net
+		public static bool IsNullOrWhiteSpace(string s){
+			return (string.IsNullOrEmpty(s) || IsWhiteSpace(s));
+		}
+
+		//Returns true if string is only white space
+		public static bool IsWhiteSpace(string s){
+			foreach(char c in s){
+				if(c != ' ' && c != '\t') return false;
+			}
+			return true;
 		}
 	}
 }

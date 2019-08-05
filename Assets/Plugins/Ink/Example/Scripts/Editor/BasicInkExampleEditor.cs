@@ -11,6 +11,6 @@ public class BasicInkExampleEditor : Editor {
 		base.OnInspectorGUI ();
 		var realTarget = target as BasicInkExample;
 		var story = realTarget.story;
-		InkEditorUtils.DrawStoryPropertyField(story, new GUIContent("Story"));
+		InkPlayerWindow.DrawStoryPropertyField(story, new GUIContent("Story"));
 	}
 }

@@ -34,7 +34,7 @@ namespace Ink.UnityIntegration {
 			return AssetDatabase.LoadAssetAtPath(pathName, typeof(DefaultAsset));
 		}
 	}
-
+    
 	[InitializeOnLoad]
 	public static class InkEditorUtils {
 		public const string inkFileExtension = ".ink";
@@ -248,37 +248,7 @@ namespace Ink.UnityIntegration {
 		/// <param name="story">Story.</param>
 		/// <param name="label">Label.</param>
 		public static void DrawStoryPropertyField (Story story, GUIContent label) {
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.PrefixLabel(label);
-			if(EditorApplication.isPlaying) {
-				if(story != null) {
-					if(InkPlayerWindow.isOpen) {
-						InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
-						if(window.attached && window.story == story) {
-							if(GUILayout.Button("Detach")) {
-								InkPlayerWindow.Detach();
-							}
-						} else {
-							if(GUILayout.Button("Attach")) {
-								InkPlayerWindow.Attach(story);
-							}
-						}
-					} else {
-						if(GUILayout.Button("Open Player Window")) {
-							InkPlayerWindow.GetWindow();
-						}
-					}
-				} else {
-					EditorGUI.BeginDisabledGroup(true);
-					GUILayout.Button("Story cannot be null to attach to editor");
-					EditorGUI.EndDisabledGroup();
-				}
-			} else {
-				EditorGUI.BeginDisabledGroup(true);
-				GUILayout.Button("Enter play mode to attach to editor");
-				EditorGUI.EndDisabledGroup();
-			}
-			EditorGUILayout.EndHorizontal();
+			Debug.LogWarning("DrawStoryPropertyField has been moved from InkEditorUtils to InkPlayerWindow");
 		}
 
 		/// <summary>
@@ -288,23 +258,7 @@ namespace Ink.UnityIntegration {
 		/// <param name="story">Story.</param>
 		/// <param name="label">Label.</param>
 		public static void DrawStoryPropertyField (Rect position, Story story, GUIContent label) {
-			position = EditorGUI.PrefixLabel(position, label);
-			InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
-			if(EditorApplication.isPlaying && story != null/* && story.state != null*/) {
-				if(window.attached && window.story == story) {
-					if(GUI.Button(position, "Detach")) {
-						InkPlayerWindow.Detach();
-					}
-				} else {
-					if(GUI.Button(position, "Attach")) {
-						InkPlayerWindow.Attach(story);
-					}
-				}
-			} else {
-				EditorGUI.BeginDisabledGroup(true);
-				GUI.Button(position, "Enter play mode to attach to editor");
-				EditorGUI.EndDisabledGroup();
-			}
+			Debug.LogWarning("DrawStoryPropertyField has been moved from InkEditorUtils to InkPlayerWindow");
 		}
 
 		public static bool FindOrCreateSingletonScriptableObjectOfType<T>(string defaultPath, out T obj) where T : ScriptableObject {
@@ -363,19 +317,6 @@ namespace Ink.UnityIntegration {
 			}
 			Debug.LogWarning("More than one "+typeName+" was found. Deleted newer excess asset instances.");
 			return GUIDs[oldestIndex];
-		}
-
-		//Replacement until Unity upgrades .Net
-		public static bool IsNullOrWhiteSpace(string s){
-			return (string.IsNullOrEmpty(s) || IsWhiteSpace(s));
-		}
-
-		//Returns true if string is only white space
-		public static bool IsWhiteSpace(string s){
-			foreach(char c in s){
-				if(c != ' ' && c != '\t') return false;
-			}
-			return true;
 		}
 	}
 }
