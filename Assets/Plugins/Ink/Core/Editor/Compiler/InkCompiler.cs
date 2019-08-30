@@ -292,7 +292,8 @@ namespace Ink.UnityIntegration {
 		}
 
 		private static void ProcessError (Process process, string message) {
-			message = message.Trim(new char[]{'\uFEFF','\u200B'});
+			if(message == null) return;
+            message = message.Trim(new char[]{'\uFEFF','\u200B'});
 			if (IsNullOrWhiteSpace(message) || message == "???")
 				return;
 			Debug.Log(message[0]);
