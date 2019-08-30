@@ -29,7 +29,7 @@ namespace Ink.UnityIntegration {
 			if(inspector != null) {
 				inspector.OnHeaderGUI();
 			}
-			else if (target.GetType() != typeof(UnityEditor.DefaultAsset))
+			else
 				base.OnHeaderGUI();
 		}
 
@@ -38,7 +38,7 @@ namespace Ink.UnityIntegration {
 				GUI.enabled = true;
 				inspector.OnInspectorGUI();
 			}
-			else if (target.GetType() != typeof(UnityEditor.DefaultAsset))
+			else
 				base.OnInspectorGUI();
 		}
 
