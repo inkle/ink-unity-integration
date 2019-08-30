@@ -55,8 +55,12 @@ namespace Ink.UnityIntegration {
 
 		private static InkMetaLibrary FindLibrary () {
 			if(EditorPrefs.HasKey(pathPlayerPrefsKey)) {
-				try {
-					return JsonUtility.FromJson<InkMetaLibrary>(EditorPrefs.GetString(pathPlayerPrefsKey));
+				try
+				{
+					InkMetaLibrary library = new InkMetaLibrary();
+					var libraryJSON = EditorPrefs.GetString(pathPlayerPrefsKey);
+					EditorJsonUtility.FromJsonOverwrite(libraryJSON, library);
+					return library;
 				} catch {
 					return null;
 				}
@@ -102,7 +106,8 @@ namespace Ink.UnityIntegration {
 
 		public static void Save () {
 			Rebuild();
-			EditorPrefs.SetString(pathPlayerPrefsKey, JsonUtility.ToJson(Instance));
+			var instanceJSON = EditorJsonUtility.ToJson(Instance);
+			EditorPrefs.SetString(pathPlayerPrefsKey, instanceJSON);
 		}
 
 		public static InkMetaFile GetInkMetaFile (InkFile inkFile) {
