@@ -123,6 +123,24 @@ namespace Ink.Runtime
         /// 
         /// </summary>
         public StoryState state { get { return _state; } }
+        
+        
+        /// <summary>
+        /// Callback for when ContinueInternal is complete
+        /// </summary>
+        public event Action onDidContinue;
+        /// <summary>
+        /// Callback for when a choice is about to be executed
+        /// </summary>
+        public event Action<Choice> onMakeChoice;
+        /// <summary>
+        /// Callback for when a function is about to be evaluated
+        /// </summary>
+        public event Action<string, object[]> onEvaluateFunction;
+        /// <summary>
+        /// Callback for when a path string is chosen
+        /// </summary>
+        public event Action<string, object[]> onChoosePathString;
 
         /// <summary>
         /// Start recording ink profiling information during calls to Continue on Story.
@@ -454,8 +472,9 @@ namespace Ink.Runtime
 
             if( _profiler != null )
                 _profiler.PostContinue();
-        }
 
+            if(onDidContinue != null) onDidContinue();
+        }
         bool ContinueSingleStep ()
         {
             if (_profiler != null)
@@ -1496,7 +1515,7 @@ namespace Ink.Runtime
         public void ChoosePathString (string path, bool resetCallstack = true, params object [] arguments)
         {
             IfAsyncWeCant ("call ChoosePathString right now");
-
+            if(onChoosePathString != null) onChoosePathString(path, arguments);
             if (resetCallstack) {
                 ResetCallstack ();
             } else {
@@ -1546,6 +1565,7 @@ namespace Ink.Runtime
             // can create multiple leading edges for the story, each of
             // which has its own context.
             var choiceToChoose = choices [choiceIdx];
+            if(onMakeChoice != null) onMakeChoice(choiceToChoose);
             state.callStack.currentThread = choiceToChoose.threadAtGeneration;
 
             ChoosePath (choiceToChoose.targetPath);
@@ -1587,6 +1607,7 @@ namespace Ink.Runtime
         /// <param name="arguments">The arguments that the ink function takes, if any. Note that we don't (can't) do any validation on the number of arguments right now, so make sure you get it right!</param>
         public object EvaluateFunction (string functionName, out string textOutput, params object [] arguments)
         {
+            onEvaluateFunction(functionName, arguments);
             IfAsyncWeCant ("evaluate a function");
 
 			if(functionName == null) {
@@ -1953,6 +1974,7 @@ namespace Ink.Runtime
                 return null;
             });
         }
+        
         /// <summary>
         /// Remove a binding for a named EXTERNAL ink function.
         /// </summary>
@@ -2080,11 +2102,12 @@ namespace Ink.Runtime
         /// Removes the variable observer, to stop getting variable change notifications.
         /// If you pass a specific variable name, it will stop observing that particular one. If you
         /// pass null (or leave it blank, since it's optional), then the observer will be removed
-        /// from all variables that it's subscribed to.
+        /// from all variables that it's subscribed to. If you pass in a specific variable name and
+        /// null for the the observer, all observers for that variable will be removed. 
         /// </summary>
-        /// <param name="observer">The observer to stop observing.</param>
+        /// <param name="observer">(Optional) The observer to stop observing.</param>
         /// <param name="specificVariableName">(Optional) Specific variable name to stop observing.</param>
-        public void RemoveVariableObserver(VariableObserver observer, string specificVariableName = null)
+        public void RemoveVariableObserver(VariableObserver observer = null, string specificVariableName = null)
         {
             IfAsyncWeCant ("remove a variable observer");
 
@@ -2094,12 +2117,17 @@ namespace Ink.Runtime
             // Remove observer for this specific variable
             if (specificVariableName != null) {
                 if (_variableObservers.ContainsKey (specificVariableName)) {
-                    _variableObservers [specificVariableName] -= observer;
+                    if( observer != null) {
+                        _variableObservers [specificVariableName] -= observer;
+                    }
+                    else {
+                        _variableObservers.Remove(specificVariableName);
+                    }
                 }
             } 
 
             // Remove observer for all variables
-            else {
+            else if( observer != null) {
                 var keys = new List<string>(_variableObservers.Keys);
                 foreach (var varName in keys) {
                     _variableObservers[varName] -= observer;
