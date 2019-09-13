@@ -22,6 +22,9 @@ namespace Ink.UnityIntegration {
 		/// <param name="story">Story.</param>
 		/// <param name="label">Label.</param>
 		public static void DrawStoryPropertyField (Story story, GUIContent label) {
+            DrawStoryPropertyField(story, InkPlayerParams.ForAttachedStories, label);
+        }
+		public static void DrawStoryPropertyField (Story story, InkPlayerParams playerParams, GUIContent label) {
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.PrefixLabel(label);
 			if(EditorApplication.isPlaying) {
@@ -34,7 +37,7 @@ namespace Ink.UnityIntegration {
 							}
 						} else {
 							if(GUILayout.Button("Attach")) {
-								InkPlayerWindow.Attach(story);
+								InkPlayerWindow.Attach(story, playerParams);
 							}
 						}
 					} else {
@@ -1013,9 +1016,9 @@ namespace Ink.UnityIntegration {
 		}
 
         void DrawFunctionInput () {
-            GUILayout.BeginVertical();
+            GUILayout.BeginVertical(GUI.skin.box);
 			EditorGUI.BeginChangeCheck();
-			functionPanelState.functionParams.functionName = EditorGUILayout.TextField("Function", functionPanelState.functionParams.functionName);
+			functionPanelState.functionParams.functionName = EditorGUILayout.TextField("Function Name", functionPanelState.functionParams.functionName);
 			if(EditorGUI.EndChangeCheck()) {
 				functionPanelState.testedFunctionName = null;
 				functionPanelState.functionReturnValue = null;
@@ -1059,6 +1062,7 @@ namespace Ink.UnityIntegration {
         void DrawFunctionOutput () {
             bool functionIsValid = functionPanelState.functionParams.functionName != String.Empty && story.HasFunction(functionPanelState.functionParams.functionName);
             if(functionIsValid && functionPanelState.functionParams.functionName == functionPanelState.testedFunctionName) {
+                GUILayout.BeginVertical(GUI.skin.box);
 				if(functionPanelState.functionReturnValue == null) {
 					EditorGUILayout.LabelField("Output (Null)");
 				} else if(functionPanelState.functionReturnValue is string) {
@@ -1067,9 +1071,12 @@ namespace Ink.UnityIntegration {
 					EditorGUILayout.FloatField("Output (Float)", (float)functionPanelState.functionReturnValue);
 				} else if(functionPanelState.functionReturnValue is int) {
 					EditorGUILayout.IntField("Output (Int)", (int)functionPanelState.functionReturnValue);
+				} else if(functionPanelState.functionReturnValue is InkList) {
+					EditorGUILayoutInkListField("Output (InkList)", (InkList)functionPanelState.functionReturnValue);
 				} else {
 					EditorGUILayout.LabelField("Function returned unexpected type "+functionPanelState.functionReturnValue.GetType().Name+".");
 				}
+                GUILayout.EndVertical();
 			}
         }
 
@@ -1190,23 +1197,32 @@ namespace Ink.UnityIntegration {
 
 
 		object DrawVariable (GUIContent variable, object variableValue) {
-            EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
+            EditorGUILayout.BeginHorizontal();
 			if(variableValue is string) {
+                EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.TextField(variable, (string)variableValue);
+                EditorGUI.EndDisabledGroup();
 			} else if(variableValue is float) {
+                EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.FloatField(variable, (float)variableValue);
+                EditorGUI.EndDisabledGroup();
 			} else if(variableValue is int) {
+                EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.IntField(variable, (int)variableValue);
+                EditorGUI.EndDisabledGroup();
 			} else if(variableValue is InkList) {
 				var c = new GUIContent(variable);
 				c.text += " (InkList)";
 				EditorGUILayout.PrefixLabel(c);
 				var inkList = (InkList)variableValue;
 				if(inkList.Any()) {
+                    // var listStr = string.Empty;
+                    // foreach(var item in inkList) listStr += item.ToString()+", ";
+				    // EditorGUILayout.LabelField(listStr, GUILayout.ExpandWidth(true));
 					if(GUILayout.Button("Log Contents")) {
-						string log = "Log for InkList "+variable+":";
+						string log = "Log for InkList "+variable.text+":";
 						foreach(var item in inkList)
-							log += "\n"+item.ToString();
+							log += item.ToString() + " / ";
 						Debug.Log(log);
 					}
 				} else {
@@ -1218,7 +1234,7 @@ namespace Ink.UnityIntegration {
 			} else {
 				EditorGUILayout.LabelField(variable, new GUIContent("InkPlayerError: Variable is of unexpected type "+variableValue.GetType().Name+"."));
 			}
-            EditorGUI.EndDisabledGroup();
+            EditorGUILayout.EndHorizontal();
 			return variableValue;
 		}
 
@@ -1231,19 +1247,9 @@ namespace Ink.UnityIntegration {
 				variableValue = EditorGUI.IntField(rect, variable, (int)variableValue);
 			} else if(variableValue is InkList) {
 				var c = new GUIContent(variable);
-				c.text += " (InkList)";
-				EditorGUI.PrefixLabel(rect, c);
 				var inkList = (InkList)variableValue;
-				if(inkList.Any()) {
-					if(GUILayout.Button("Log Contents")) {
-						string log = "Log for InkList "+variable.text+":";
-						foreach(var item in inkList)
-							log += "\n"+item.ToString();
-						Debug.Log(log);
-					}
-				} else {
-					EditorGUI.LabelField(rect, "Empty");
-				}
+				c.text += " (InkList)";
+				EditorGUIInkListField(rect, c, inkList, variable.text);
 			} else if(variableValue == null) {
 				EditorGUI.LabelField(rect, variable, new GUIContent("InkPlayerError: Variable is null"));
 			} else {
@@ -1378,6 +1384,35 @@ namespace Ink.UnityIntegration {
 		ProfileNode _profilerResultRootNode;
 		Ink.Runtime.Profiler _currentStoryProfiler;
 		Ink.Runtime.Profiler _previousStoryProfiler;
+
+
+
+
+        
+        static void EditorGUILayoutInkListField (string text, InkList inkList) {
+            EditorGUILayoutInkListField(new GUIContent(text), inkList);
+        }
+        static void EditorGUILayoutInkListField (GUIContent content, InkList inkList) {
+            EditorGUILayout.BeginVertical(GUI.skin.box);
+            EditorGUILayout.LabelField("InkList with "+inkList.Count+" values:", EditorStyles.boldLabel);
+            foreach(var item in inkList) {
+                EditorGUILayout.LabelField(item.Key.ToString()+" ("+item.Value.ToString()+")");
+            }
+            EditorGUILayout.EndVertical();
+        }
+        static void EditorGUIInkListField (Rect rect, GUIContent content, InkList inkList, string variableName) {
+            EditorGUI.PrefixLabel(rect, content);
+            if(inkList.Any()) {
+                if(GUILayout.Button("Log Contents")) {
+                    string log = "Log for InkList "+variableName+":";
+                    foreach(var item in inkList)
+                        log += item.ToString() + " / ";
+                    Debug.Log(log);
+                }
+            } else {
+                EditorGUI.LabelField(rect, "Empty");
+            }
+        }
 	}
 
     // Keeps a history of state changes for an ink variable. Handy for debugging.
