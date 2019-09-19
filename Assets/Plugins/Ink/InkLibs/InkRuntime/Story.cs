@@ -1607,7 +1607,7 @@ namespace Ink.Runtime
         /// <param name="arguments">The arguments that the ink function takes, if any. Note that we don't (can't) do any validation on the number of arguments right now, so make sure you get it right!</param>
         public object EvaluateFunction (string functionName, out string textOutput, params object [] arguments)
         {
-            onEvaluateFunction(functionName, arguments);
+            if(onEvaluateFunction != null) onEvaluateFunction(functionName, arguments);
             IfAsyncWeCant ("evaluate a function");
 
 			if(functionName == null) {
