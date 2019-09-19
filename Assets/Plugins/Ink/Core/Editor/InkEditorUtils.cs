@@ -103,8 +103,13 @@ namespace Ink.UnityIntegration {
 			Application.OpenURL("https://github.com/inkle/ink#ink");
 		}
 
-		[MenuItem("Help/Ink/API Documentation...")]
+		[MenuItem("Help/Ink/Writing Tutorial...")]
 		public static void OpenWritingDocumentation() {
+			Application.OpenURL("https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md");
+		}
+		
+        [MenuItem("Help/Ink/API Documentation...")]
+		public static void OpenAPIDocumentation() {
 			Application.OpenURL("https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md");
 		}
 
