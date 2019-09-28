@@ -32,7 +32,7 @@ namespace Ink.UnityIntegration {
 		private static void OnDeleteAssets (string[] deletedAssets) {
 			bool deletedInk = false;
 			foreach (var deletedAssetPath in deletedAssets) {
-				if(Path.GetExtension(deletedAssetPath) == InkEditorUtils.inkFileExtension) {
+				if(InkEditorUtils.IsInkFile(deletedAssetPath)) {
 					deletedInk = true;
 					break;
 				}
@@ -77,7 +77,7 @@ namespace Ink.UnityIntegration {
 			
 			List<string> validMovedAssets = new List<string>();
 			for (var i = 0; i < movedAssets.Length; i++) {
-				if(Path.GetExtension(movedAssets[i]) != InkEditorUtils.inkFileExtension) 
+				if(!InkEditorUtils.IsInkFile(movedAssets[i]))
 					continue;
 				validMovedAssets.Add(movedAssets[i]);
 				queuedMovedAssets.Add(movedAssets[i]);
@@ -144,7 +144,7 @@ namespace Ink.UnityIntegration {
 			List<string> importedInkAssets = new List<string>();
 			string inklecateFileLocation = null;
 			foreach (var importedAssetPath in importedAssets) {
-				if(Path.GetExtension(importedAssetPath) == InkEditorUtils.inkFileExtension) 
+				if(InkEditorUtils.IsInkFile(importedAssetPath))
 					importedInkAssets.Add(importedAssetPath);
 				else if (Path.GetFileName(importedAssetPath) == "inklecate" && Path.GetExtension(importedAssetPath) == "")
 					inklecateFileLocation = importedAssetPath;

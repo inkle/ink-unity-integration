@@ -316,9 +316,16 @@ namespace Ink.UnityIntegration {
 		/// Gets the ink file from the .ink file reference.
 		/// </summary>
 		/// <returns>The ink file with path.</returns>
-		/// <param name="path">Path.</param>
-		public static InkFile GetInkFileWithFile (DefaultAsset file) {
+		/// <param name="file">File asset.</param>
+		/// <param name="addIfMissing">Adds the file if missing from inkLibrary.</param>
+		public static InkFile GetInkFileWithFile (DefaultAsset file, bool addIfMissing = false) {
 			if(InkLibrary.Instance.inkLibrary == null) return null;
+
+			if (!file) {
+				Debug.LogError("Can't add null file.");
+				return null;
+			}
+
             if(Instance.inkLibraryDictionary == null) {
 				Debug.LogWarning("GetInkFileWithFile: inkLibraryDictionary was null! This should never occur, but is handled following a user reported bug. If this has never been seen long after 12/08/2020, it can be safely removed");
 				BuildLookupDictionary();
@@ -328,6 +335,14 @@ namespace Ink.UnityIntegration {
 					return inkFile;
 				}
 			}
+
+			if (addIfMissing) {
+				InkFile newFile = new InkFile(file);
+				Instance.inkLibrary.Add(newFile);
+				Debug.Log(file + " missing from ink library. Adding it now.");
+				return newFile;
+			}
+
 			System.Text.StringBuilder listOfFiles = new System.Text.StringBuilder();
 			foreach(InkFile inkFile in Instance.inkLibrary) {
 				listOfFiles.AppendLine(inkFile.ToString());
@@ -371,12 +386,21 @@ namespace Ink.UnityIntegration {
 		/// Rebuilds which files are master files and the connections between the files.
 		/// </summary>
 		public static void RebuildInkFileConnections () {
-			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
+			Queue<InkFile> inkFileQueue = new Queue<InkFile>(InkLibrary.Instance.inkLibrary);
+			while (inkFileQueue.Count > 0) {
+				InkFile inkFile = inkFileQueue.Dequeue();
 				inkFile.parents = new List<DefaultAsset>();
 				inkFile.masterInkAssets = new List<DefaultAsset>();
 				inkFile.ParseContent();
-				inkFile.FindIncludedFiles();
+				inkFile.FindIncludedFiles(true);
+
+				foreach (InkFile includedInkFile in inkFile.includesInkFiles) {
+					if (!inkFileQueue.Contains(includedInkFile)) {
+						inkFileQueue.Enqueue(includedInkFile);
+					}
+				}
 			}
+
 			// We now set the master file for ink files. As a file can be in an include hierarchy, we need to do this in two passes.
 			// First, we set the master file to the file that includes an ink file.
 			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
