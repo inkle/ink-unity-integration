@@ -271,7 +271,7 @@ namespace Ink.UnityIntegration {
 			includePaths.AddRange(InkIncludeParser.ParseIncludes(GetFileContents()));
 		}
 
-		public void FindIncludedFiles () {
+		public void FindIncludedFiles (bool addMissing = false) {
 			includes.Clear();
 			foreach(string includePath in includePaths) {
 				string localIncludePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(filePath), includePath);
@@ -282,7 +282,7 @@ namespace Ink.UnityIntegration {
 				if(includedInkFileAsset == null) {
 					Debug.LogError(filePath+ " expected child .ink asset at '"+localIncludePath+"' but file was not found.", inkAsset);
 				} else {
-					InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileAsset);
+					InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileAsset, addMissing);
 					if(includedInkFile == null) {
 						Debug.LogError(filePath+ " expected child InkFile from .ink asset at '"+localIncludePath+"' but file was not found.", inkAsset);
 					} else if (includedInkFile.includes.Contains(inkAsset)) {
