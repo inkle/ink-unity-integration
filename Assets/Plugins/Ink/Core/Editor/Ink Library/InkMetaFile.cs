@@ -204,12 +204,12 @@ namespace Ink.UnityIntegration {
 			includePaths = includeParser.includeFilenames;
 		}
 
-		public void FindIncludedFiles () {
+		public void FindIncludedFiles (bool addMissing = false) {
 			includes.Clear();
 			foreach(string includePath in includePaths) {
 				string localIncludePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(inkFile.filePath), includePath);
 				DefaultAsset includedInkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
-				InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileAsset);
+				InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileAsset, addMissing);
 				if(includedInkFile == null) {
 					Debug.LogError(inkFile.filePath+ " expected child Ink file at "+localIncludePath+" but file was not found.");
 				} else if (includedInkFile.metaInfo.includes.Contains(inkAsset)) {

@@ -170,16 +170,25 @@ namespace Ink.UnityIntegration {
 		/// Gets the ink file from the .ink file reference.
 		/// </summary>
 		/// <returns>The ink file with path.</returns>
-		/// <param name="path">Path.</param>
-		public static InkFile GetInkFileWithFile (DefaultAsset file) {
+		/// <param name="file">File asset.</param>
+		/// <param name="addIfMissing">Adds the file if missing from inkLibrary.</param>
+		public static InkFile GetInkFileWithFile (DefaultAsset file, bool addIfMissing = false) {
 			if(InkLibrary.Instance.inkLibrary == null) return null;
 			foreach(InkFile inkFile in Instance.inkLibrary) {
 				if(inkFile.inkAsset == file) {
 					return inkFile;
 				}
 			}
-			Debug.LogWarning (file + " missing from ink library. Please rebuild.");
-			return null;
+
+			if (addIfMissing) {
+				InkFile newFile = new InkFile(file);
+				Instance.inkLibrary.Add(newFile);
+				Debug.Log(file + " missing from ink library. Adding it now.");
+				return newFile;
+			} else {
+				Debug.LogWarning (file + " missing from ink library. Please rebuild.");
+				return null;
+			}
 		}
 
 		/// <summary>

@@ -110,11 +110,24 @@ namespace Ink.UnityIntegration {
 
 	    static void OnDrawProjectWindowItem(string guid, Rect rect) {
 	        string path = AssetDatabase.GUIDToAssetPath(guid);
-			if (Path.GetExtension(path) == InkEditorUtils.inkFileExtension && InkLibrary.created) {
+			if (IsInkFile(path)) {
 				DefaultAsset asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(path);
 				DrawInkFile(InkLibrary.GetInkFileWithFile(asset), rect);
 			}
 	    }
+
+		static bool IsInkFile(string path) {
+			if (!InkLibrary.created) {
+				return false;
+			}
+
+			string extension = Path.GetExtension(path);
+			if (extension == InkEditorUtils.inkFileExtension) {
+				return true;
+			}
+
+			return string.IsNullOrEmpty(extension) && InkLibrary.Instance.inkLibrary.Exists(f => f.filePath == path);
+		}
 
 		static void DrawInkFile (InkFile inkFile, Rect rect) {
 			bool isSmall = rect.width > rect.height;
