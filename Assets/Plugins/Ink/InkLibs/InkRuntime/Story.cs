@@ -466,14 +466,13 @@ namespace Ink.Runtime
                     _state.variablesState.batchObservingVariableChanges = false;
 
                 _asyncContinueActive = false;
+                if(onDidContinue != null) onDidContinue();
             }
 
             _recursiveContinueCount--;
 
             if( _profiler != null )
                 _profiler.PostContinue();
-
-            if(onDidContinue != null) onDidContinue();
         }
         bool ContinueSingleStep ()
         {
@@ -1078,9 +1077,9 @@ namespace Ink.Runtime
 
                 switch (evalCommand.commandType) {
 
-                case ControlCommand.CommandType.EvalStart:
-                    Assert (state.inExpressionEvaluation == false, "Already in expression evaluation?");
-                    state.inExpressionEvaluation = true;
+				case ControlCommand.CommandType.EvalStart:
+					Assert (state.inExpressionEvaluation == false, "Already in expression evaluation (begun " + state.pathStringWhenLastBeganExpressionEvaluation + "?");
+					state.inExpressionEvaluation = true;
                     break;
 
                 case ControlCommand.CommandType.EvalEnd:
