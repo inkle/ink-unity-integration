@@ -6,7 +6,7 @@ using System.IO;
 using System.Text;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-
+using System.Threading;
 using Debug = UnityEngine.Debug;
 
 namespace Ink.UnityIntegration {
@@ -27,23 +27,54 @@ namespace Ink.UnityIntegration {
 		[Serializable]
 		public class CompilationStackItem {
 			public enum State {
+				// Default state, item is about to be queued for compilation
 				Idle,
+				
+				// Item is no owned by the thread pool and being compiled
 				Compiling,
-				Importing
+				
+				// Compilation has finished, item to be processed for errors and result handled
+				Complete,
 			}
 
-			public Process process;
 			public State state = State.Idle;
 			public InkFile inkFile;
+			public string compiledJson;
 			public string inkAbsoluteFilePath;
 			public string jsonAbsoluteFilePath;
 			public List<string> output = new List<string>();
 			public List<string> errorOutput = new List<string>();
 			public DateTime startTime;
-			public float timeTaken;
+
+			public float timeTaken {
+				get {
+					return (float)(DateTime.Now - startTime).TotalSeconds;
+				}
+			}
 
 			public CompilationStackItem () {
 				startTime = DateTime.Now;
+			}
+		}
+
+		// Utility class for the ink compiler, used to work out how to find include files and their contents
+		private class UnityInkFileHandler : IFileHandler
+		{
+			private readonly string rootDirectory;
+
+			public UnityInkFileHandler(string rootDirectory)
+			{
+				this.rootDirectory = rootDirectory;
+			}
+			
+			public string ResolveInkFilename(string includeName)
+			{
+				return Path.Combine(rootDirectory, includeName);
+			}
+
+			public string LoadInkFileContents(string fullFilename)
+			{
+				return File.ReadAllText(fullFilename);
 			}
 		}
 
@@ -64,49 +95,10 @@ namespace Ink.UnityIntegration {
 			if(compiling && InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count == 0) {
 				DelayedComplete();
 			}
-
-			for (int i = InkLibrary.Instance.compilationStack.Count - 1; i >= 0; i--) {
-				var compilingFile = InkLibrary.Instance.compilationStack [i];
-				if (compilingFile.state == CompilationStackItem.State.Compiling) {
-					compilingFile.timeTaken = (float)((DateTime.Now - compilingFile.startTime).TotalSeconds);
-					if (compilingFile.timeTaken > InkSettings.Instance.compileTimeout) {
-						if (compilingFile.process != null) {	
-							compilingFile.process.Exited -= OnCompileProcessComplete;
-							compilingFile.process.Kill ();
-						}
-						RemoveCompilingFile(i);
-						Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+".\nCompilation should never take more than a few seconds, but for large projects or slow computers you may want to increase the timeout time in the InkSettings file.\nIf this persists there may be another issue; or else check an ink file exists at this path and try Assets/Recompile Ink, else please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+string.Join("\n",compilingFile.errorOutput.ToArray()));
-					}
-				} else if (compilingFile.state == CompilationStackItem.State.Importing) {
-					// This covers a rare bug that I've not pinned down. It seems to happen when importing new assets.
-					// DOES THIS STILL OCCUR? I FIXED A BUG.
-					var timeTaken = (float)((DateTime.Now - compilingFile.startTime).TotalSeconds);
-					if (timeTaken > InkSettings.Instance.compileTimeout + 2) {
-						if (compilingFile.process != null && !compilingFile.process.HasExited) {
-							compilingFile.process.Exited -= OnCompileProcessComplete;
-							compilingFile.process.Kill ();
-						}
-						// Can remove this if it never fires
-						Debug.Assert(InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count != 0);
-						RemoveCompilingFile(i);
-						Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+" while the file was importing.\nPlease report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+compilingFile.errorOutput);
-					}
-				}
-			}
-
+			
 			// If we're not showing a progress bar in Linux this whole step is superfluous
 			#if !UNITY_EDITOR_LINUX
 			UpdateProgressBar();
-			#endif
-		}
-
-		static void RemoveCompilingFile (int index) {
-			InkLibrary.Instance.compilationStack.RemoveAt(index);
-			InkLibrary.Save();
-			// Progress bar prevents delayCall callback from firing in Linux Editor, locking the
-			// compilation until it times out. Let's just not show progress bars in Linux Editor	
-			#if !UNITY_EDITOR_LINUX
-			if (InkLibrary.Instance.compilationStack.Count == 0) EditorUtility.ClearProgressBar();
 			#endif
 		}
 
@@ -125,7 +117,7 @@ namespace Ink.UnityIntegration {
 			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
 				if (compilingFile.state == CompilationStackItem.State.Compiling)
 					progress += compilingFile.timeTaken / InkSettings.Instance.compileTimeout;
-				if (compilingFile.state == CompilationStackItem.State.Importing)
+				if (compilingFile.state == CompilationStackItem.State.Complete)
 					progress += 1;
 			}
 			progress /= InkLibrary.Instance.compilationStack.Count;
@@ -193,7 +185,7 @@ namespace Ink.UnityIntegration {
 		/// Starts a System.Process that compiles a master ink file, creating a playable JSON file that can be parsed by the Ink.Story class
 		/// </summary>
 		/// <param name="inkFile">Ink file.</param>
-		internal static void CompileInkInternal (InkFile inkFile) {
+		private static void CompileInkInternal (InkFile inkFile) {
 			if(inkFile == null) {
 				Debug.LogError("Tried to compile ink file but input was null.");
 				return;
@@ -205,102 +197,50 @@ namespace Ink.UnityIntegration {
 				return;
 			}
 
-			string inklecatePath = InkEditorUtils.GetInklecateFilePath();
-			if(inklecatePath == null) {
-				UnityEngine.Debug.LogWarning("Inklecate (the ink compiler) not found in assets. This will prevent automatic building of JSON TextAsset files from ink story files.");
-				return;
-			}
-			if(Application.platform == RuntimePlatform.OSXEditor) {
-				SetInklecateFilePermissions(inklecatePath);
-			}
-			if(inklecatePath.Contains("'")){
-				Debug.LogError("Due to a Unity bug, Inklecate path cannot contain an apostrophe. Ink will not compile until this is resolved. Path is '"+inklecatePath+"'");
-				return;
-			}
-			// This hasn't been affecting us lately. Left it in so we can easily restore it in case of future bugs.
-			/* else if(inklecatePath.Contains(" ")){
-				Debug.LogWarning("Inklecate path should not contain a space. This might lead to compilation failing. Path is '"+inklecatePath+"'. If you don't see any compilation errors, you can ignore this warning.");
-			}*/
 			string inputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileName(inkFile.filePath));
 			Debug.Assert(inkFile.absoluteFilePath == inputPath);
-			string outputPath = inkFile.absoluteJSONPath;
-			string inkArguments = InkSettings.Instance.customInklecateOptions.additionalCompilerOptions + " -c -o " + "\"" + outputPath + "\" \"" + inputPath + "\"";
 
-			CompilationStackItem pendingFile = new CompilationStackItem();
-			pendingFile.inkFile = InkLibrary.GetInkFileWithAbsolutePath(inputPath);
-			pendingFile.inkAbsoluteFilePath = inputPath;
-			pendingFile.jsonAbsoluteFilePath = outputPath;
-			pendingFile.state = CompilationStackItem.State.Compiling;
+			CompilationStackItem pendingFile = new CompilationStackItem
+			{
+				inkFile = InkLibrary.GetInkFileWithAbsolutePath(inputPath),
+				inkAbsoluteFilePath = inputPath,
+				jsonAbsoluteFilePath = inkFile.jsonPath,
+				state = CompilationStackItem.State.Compiling
+			};
+
 			InkLibrary.Instance.compilationStack.Add(pendingFile);
 			InkLibrary.Save();
+			ThreadPool.QueueUserWorkItem(CompileInkThreaded, pendingFile);
+		}
 
-			Process process = new Process();
-			if( InkSettings.Instance.customInklecateOptions.runInklecateWithMono && Application.platform != RuntimePlatform.WindowsEditor ) {
-				foreach (var path in InkSettings.Instance.customInklecateOptions.monoPaths) {
-					if (File.Exists(path)) {
-						process.StartInfo.FileName = path;
-					}
-				}
-				if (process.StartInfo.FileName == null) {
-					Debug.LogError("Mono was not found on machine, please edit the mono paths in settings to include a valid one for your machine.");
-					return;
-				}
-				process.StartInfo.Arguments = inklecatePath + " " + inkArguments;
-			} else {
-				process.StartInfo.FileName = inklecatePath;
-				process.StartInfo.Arguments = inkArguments;
+		private static void CompileInkThreaded(object itemObj)
+		{
+			CompilationStackItem item = (CompilationStackItem) itemObj;
+
+			var inputString = File.ReadAllText(item.inkAbsoluteFilePath);
+			var compiler = new Compiler(inputString, new Compiler.Options
+			{
+				countAllVisits = true,
+				fileHandler = new UnityInkFileHandler(Path.GetDirectoryName(item.inkAbsoluteFilePath))
+			});
+
+			try
+			{
+				var compiledStory = compiler.Compile();
+				if (compiledStory != null)
+					item.compiledJson = compiledStory.ToJson();
+			}
+			catch (SystemException e)
+			{
+				item.errorOutput.Add(string.Format(
+					"Ink Compiler threw exception \nError: {0}\n---- Trace ----\n{1}\n--------\n", e.Message,
+					e.StackTrace));
 			}
 
-			process.StartInfo.RedirectStandardError = true;
-			process.StartInfo.RedirectStandardOutput = true;
-			process.StartInfo.UseShellExecute = false;
-			process.StartInfo.CreateNoWindow = true;
-			process.EnableRaisingEvents = true;
-			process.OutputDataReceived += OnProcessOutput;
-			// For some reason having this line enabled spams the output and error streams with null and "???" (only on OSX?)
-			// Rather than removing unhandled error detection I thought it'd be best to just catch those messages and ignore them instead.
-			process.ErrorDataReceived += OnProcessError;
-			process.Exited += OnCompileProcessComplete;
-			process.Start();
-			process.BeginOutputReadLine();
-			process.BeginErrorReadLine();
-			pendingFile.process = process;
-			// If you'd like to run this command outside of unity, you could instead run process.StartInfo.Arguments in the command line.
-		}
-
-		static void OnProcessOutput (object sender, DataReceivedEventArgs e) {
-			Process process = (Process)sender;
-			ProcessOutput(process, e.Data);
-		}
-
-		static void OnProcessError (object sender, DataReceivedEventArgs e) {
-			Process process = (Process)sender;
-			ProcessError(process, e.Data);
-		}
-
-		static void OnCompileProcessComplete(object sender, System.EventArgs e) {
-			Process process = (Process)sender;
-			CompilationStackItem pendingFile = InkLibrary.GetCompilationStackItem(process);
-			pendingFile.state = CompilationStackItem.State.Importing;
-		}
-
-		private static void ProcessOutput (Process process, string message) {
-			if (message == null || message.Length == 0 || message == "???")
-				return;
-			CompilationStackItem compilingFile = InkLibrary.GetCompilationStackItem(process);
-			compilingFile.output.Add(message);
-		}
-
-		private static void ProcessError (Process process, string message) {
-			if(message == null) return;
-            message = message.Trim(new char[]{'\uFEFF','\u200B'});
-			if (IsNullOrWhiteSpace(message) || message == "???")
-				return;
-			Debug.Log(message[0]);
-			Debug.Log(char.IsWhiteSpace(message[0]));
-			Debug.Log((int)(message[0]));
-			CompilationStackItem compilingFile = InkLibrary.GetCompilationStackItem(process);
-			compilingFile.errorOutput.Add(message);
+			item.errorOutput.AddRange(compiler.errors);
+			item.output.AddRange(compiler.warnings);
+			
+			item.state = CompilationStackItem.State.Complete;
 		}
 
 		// When all files in stack have been compiled. This is called via update because Process events run in another thread.
@@ -313,8 +253,32 @@ namespace Ink.UnityIntegration {
 			bool errorsFound = false;
 			StringBuilder filesCompiledLog = new StringBuilder("Files compiled:");
 			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
+				
+				// Complete status is also set when an error occured, in these cases 'compiledJson' will be null so there's no import to process
+				if (compilingFile.compiledJson != null)
+				{
+					// Write new compiled data to the file system
+					File.WriteAllText(compilingFile.jsonAbsoluteFilePath, compilingFile.compiledJson, Encoding.UTF8);
+
+					// Attempt to grab the existing object from the db
+					var jsonObject = AssetDatabase.LoadAssetAtPath<TextAsset>(compilingFile.inkFile.jsonPath);
+					if (jsonObject
+					) // If there was an existing json file, mark as dirty and Unity will detect the changes
+						EditorUtility.SetDirty(jsonObject);
+					else
+					{
+						// Otherwise force a synchronous import of the new json file
+						AssetDatabase.ImportAsset(compilingFile.jsonAbsoluteFilePath);
+						jsonObject = AssetDatabase.LoadAssetAtPath<TextAsset>(compilingFile.inkFile.jsonPath);
+					}
+
+					// Update the jsonAsset reference
+					compilingFile.inkFile.jsonAsset = jsonObject;
+				}
+
 				longestTimeTaken = Mathf.Max (compilingFile.timeTaken);
 				filesCompiledLog.AppendLine().Append(compilingFile.inkFile.filePath);
+				filesCompiledLog.Append(string.Format(" ({0}s)", compilingFile.timeTaken));
 				if(compilingFile.errorOutput.Count > 0) {
 					filesCompiledLog.Append(" (With unhandled error)");
 					StringBuilder errorLog = new StringBuilder ();
@@ -343,10 +307,6 @@ namespace Ink.UnityIntegration {
 					if(errorsInEntireStory) {
 						filesCompiledLog.Append(" (With error)");
 						errorsFound = true;
-					} else {
-						string localJSONAssetPath = InkEditorUtils.AbsoluteToUnityRelativePath(compilingFile.jsonAbsoluteFilePath);
-						AssetDatabase.ImportAsset (localJSONAssetPath);
-						compilingFile.inkFile.jsonAsset = AssetDatabase.LoadAssetAtPath<TextAsset> (localJSONAssetPath);
 					}
 					if(warningsInEntireStory) {
 						filesCompiledLog.Append(" (With warning)");
@@ -368,7 +328,7 @@ namespace Ink.UnityIntegration {
 				outputLog.Append ("Ink compilation completed with errors at ");
 				outputLog.AppendLine (DateTime.Now.ToLongTimeString ());
 				outputLog.Append (filesCompiledLog.ToString());
-				Debug.LogWarning(outputLog);
+				Debug.LogError(outputLog);
 			} else {
 				outputLog.Append ("Ink compilation completed at ");
 				outputLog.AppendLine (DateTime.Now.ToLongTimeString ());
