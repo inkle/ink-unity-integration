@@ -138,6 +138,11 @@ namespace Ink.Runtime
         /// </summary>
         public event Action<string, object[]> onEvaluateFunction;
         /// <summary>
+        /// Callback for when a function has been evaluated
+        /// This is necessary because evaluating a function can cause continuing
+        /// </summary>
+        public event Action<string, object[], string, object> onCompleteEvaluateFunction;
+        /// <summary>
         /// Callback for when a path string is chosen
         /// </summary>
         public event Action<string, object[]> onChoosePathString;
@@ -1640,6 +1645,7 @@ namespace Ink.Runtime
 
             // Finish evaluation, and see whether anything was produced
             var result = state.CompleteFunctionEvaluationFromGame ();
+            if(onCompleteEvaluateFunction != null) onCompleteEvaluateFunction(functionName, arguments, textOutput, result);
             return result;
         }
 

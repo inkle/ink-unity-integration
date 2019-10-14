@@ -119,7 +119,7 @@ namespace Ink.UnityIntegration {
         [System.Serializable]
         public class InkPlayerWindowState {
             static string settingsEditorPrefsKey = typeof(InkPlayerWindowState).Name +" Settings";
-            public static Action OnCreateOrLoad;
+            public static event Action OnCreateOrLoad;
             static InkPlayerWindowState _Instance;
             public static InkPlayerWindowState Instance {
                 get {
@@ -398,9 +398,9 @@ namespace Ink.UnityIntegration {
             AddWarningsAndErrorsToHistory();
         }
         void OnEvaluateFunction (string functionName, object[] arguments) {
-            StringBuilder sb = new StringBuilder("OnEvaluateFunction: ");
+            StringBuilder sb = new StringBuilder("OnEvaluateFunction Executed: ");
             sb.Append(functionName);
-            if(arguments != null) {
+            if(arguments != null && arguments.Length > 0) {
                 sb.Append(" with args: ");
                 for (int i = 0; i < arguments.Length; i++) {
                     if(arguments[i] == null) sb.Append("NULL");
@@ -412,6 +412,29 @@ namespace Ink.UnityIntegration {
                     }
                     if(i < arguments.Length-1) sb.Append(", ");
                 }
+            }
+            storyHistory.Add(new InkPlayerHistoryContentItem(sb.ToString(), InkPlayerHistoryContentItem.ContentType.StoryEvaluateFunction));		
+            AddWarningsAndErrorsToHistory();
+        }
+        void OnCompleteEvaluateFunction (string functionName, object[] arguments, string textOutput, object result) {
+            StringBuilder sb = new StringBuilder("OnEvaluateFunction Completed: ");
+            sb.Append(functionName);
+            if(arguments != null && arguments.Length > 0) {
+                sb.Append(" with args: ");
+                for (int i = 0; i < arguments.Length; i++) {
+                    if(arguments[i] == null) sb.Append("NULL");
+                    else {
+                        sb.Append(arguments[i]);
+                        sb.Append(" (");
+                        sb.Append(arguments[i].GetType().Name);
+                        sb.Append(")");
+                    }
+                    if(i < arguments.Length-1) sb.Append(", ");
+                }
+                bool hasTextOutput = textOutput != null && textOutput != string.Empty;
+                if(hasTextOutput) sb.Append(" text output is: "+textOutput);
+                if(result != null) sb.Append(" result is: "+result);
+                if(!hasTextOutput && result == null) sb.Append("has no output");
             }
             storyHistory.Add(new InkPlayerHistoryContentItem(sb.ToString(), InkPlayerHistoryContentItem.ContentType.StoryEvaluateFunction));		
             AddWarningsAndErrorsToHistory();
@@ -548,6 +571,7 @@ namespace Ink.UnityIntegration {
             _story.onDidContinue -= OnDidContinue;
             _story.onMakeChoice -= OnMakeChoice;
             _story.onEvaluateFunction -= OnEvaluateFunction;
+            _story.onCompleteEvaluateFunction -= OnCompleteEvaluateFunction;
             _story.onChoosePathString -= OnChoosePathString;
             foreach(var observedVariableName in InkPlayerWindowState.Instance.variablesPanelState.observedVariableNames) {
                 UnobserveVariable(observedVariableName, false);
@@ -559,6 +583,7 @@ namespace Ink.UnityIntegration {
             _story.onDidContinue += OnDidContinue;
             _story.onMakeChoice += OnMakeChoice;
             _story.onEvaluateFunction += OnEvaluateFunction;
+            _story.onCompleteEvaluateFunction += OnCompleteEvaluateFunction;
             _story.onChoosePathString += OnChoosePathString;
             
             // Recalculate function ink variables
@@ -1011,7 +1036,7 @@ namespace Ink.UnityIntegration {
 		void DisplayLine (string content) {
 			float width = position.width-28;
 			float height = EditorStyles.wordWrappedLabel.CalcHeight(new GUIContent(content), width);
-			EditorGUILayout.SelectableLabel(content, EditorStyles.wordWrappedLabel, GUILayout.ExpandHeight(true), GUILayout.Width(width), GUILayout.Height(height));
+			EditorGUILayout.LabelField(content, EditorStyles.wordWrappedLabel, GUILayout.ExpandHeight(true), GUILayout.Width(width), GUILayout.Height(height));
 		}
 
 		void DrawChoices () {
