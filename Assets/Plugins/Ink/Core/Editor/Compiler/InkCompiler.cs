@@ -24,6 +24,9 @@ namespace Ink.UnityIntegration {
 		public delegate void OnCompileInkEvent (InkFile inkFile);
 		public static event OnCompileInkEvent OnCompileInk;
 
+		// Track if we've currently locked compilation of Unity C# Scripts
+		private static bool hasLockedUnityCompilation = false;
+
 		[Serializable]
 		public class CompilationStackItem {
 			public enum State {
@@ -90,6 +93,13 @@ namespace Ink.UnityIntegration {
 		private static void Update () {
 			if(!InkLibrary.created) 
 				return;
+
+			// If we're not compiling but have locked C# compilation then now is the time to reset
+			if (!compiling && hasLockedUnityCompilation)
+			{
+				hasLockedUnityCompilation = false;
+				EditorApplication.UnlockReloadAssemblies();
+			}
 
 			// When all files have compiled, run the complete function.
 			if(compiling && InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count == 0) {
@@ -186,6 +196,14 @@ namespace Ink.UnityIntegration {
 		/// </summary>
 		/// <param name="inkFile">Ink file.</param>
 		private static void CompileInkInternal (InkFile inkFile) {
+
+			// If we've not yet locked C# compilation do so now
+			if (!hasLockedUnityCompilation)
+			{
+				hasLockedUnityCompilation = true;
+				EditorApplication.LockReloadAssemblies();
+			}
+
 			if(inkFile == null) {
 				Debug.LogError("Tried to compile ink file but input was null.");
 				return;
