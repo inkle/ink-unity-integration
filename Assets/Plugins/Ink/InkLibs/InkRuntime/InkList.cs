@@ -138,17 +138,17 @@ namespace Ink.Runtime
 		}
 
 		/// <summary>
-		/// 
+		/// Converts a string to an ink list and returns for use in the story.
 		/// </summary>
-		/// <returns>Converts a string to an ink list and returns for use in the story.</returns>
+		/// <returns>InkList created from string list item</returns>
 		/// <param name="itemKey">Item key.</param>
 		/// <param name="originStory">Origin story.</param>
 		public static InkList FromString(string myListItem, Story originStory) {
 			var listValue = originStory.listDefinitions.FindSingleItemListWithName (myListItem);
 			if (listValue)
 				return new InkList (listValue.value);
-			else
-				return new InkList ();
+			else 
+                throw new System.Exception ("Could not find the InkListItem from the string '" + myListItem + "' to create an InkList because it doesn't exist in the original list definition in ink.");
 		}
 
 
