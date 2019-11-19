@@ -305,8 +305,11 @@ namespace Ink.UnityIntegration {
                         else inkVariableValue = null;
                     }
                     public void RefreshInkListVariableValue (Story story) {
-                        if(!StringIsNullOrWhiteSpace(inkListVariablePath)) inkListVariableValue = Ink.Runtime.InkList.FromString(inkListVariablePath, story);
-                        else inkListVariableValue = null;
+                        inkListVariableValue = null;
+                        try {
+                            if(!StringIsNullOrWhiteSpace(inkListVariablePath)) 
+                                inkListVariableValue = Ink.Runtime.InkList.FromString(inkListVariablePath, story);
+                        } catch {}
                     }
                 }
                 public string functionName = String.Empty;
