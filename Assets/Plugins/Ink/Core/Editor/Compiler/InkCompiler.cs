@@ -24,6 +24,9 @@ namespace Ink.UnityIntegration {
 		public delegate void OnCompileInkEvent (InkFile inkFile);
 		public static event OnCompileInkEvent OnCompileInk;
 
+		// Track if we've currently locked compilation of Unity C# Scripts
+		private static bool hasLockedUnityCompilation = false;
+
 		[Serializable]
 		public class CompilationStackItem {
 			public enum State {
@@ -91,16 +94,46 @@ namespace Ink.UnityIntegration {
 			if(!InkLibrary.created) 
 				return;
 
+			// If we're not compiling but have locked C# compilation then now is the time to reset
+			if (!compiling && hasLockedUnityCompilation)
+			{
+				hasLockedUnityCompilation = false;
+				EditorApplication.UnlockReloadAssemblies();
+			}
+
 			// When all files have compiled, run the complete function.
 			if(compiling && InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count == 0) {
 				DelayedComplete();
 			}
 			
+            
+            for (int i = InkLibrary.Instance.compilationStack.Count - 1; i >= 0; i--) {
+                var compilingFile = InkLibrary.Instance.compilationStack [i];
+                if (compilingFile.state == CompilationStackItem.State.Compiling) {
+                    if (compilingFile.timeTaken > InkSettings.Instance.compileTimeout) {
+                        // TODO - Cancel the thread if it's still going. Not critical, since its kinda fine if it compiles a bit later, but it's not clear.
+                        RemoveCompilingFile(i);
+                        Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+".\nCompilation should never take more than a few seconds, but for large projects or slow computers you may want to increase the timeout time in the InkSettings file.\nIf this persists there may be another issue; or else check an ink file exists at this path and try Assets/Recompile Ink, else please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+string.Join("\n",compilingFile.errorOutput.ToArray()));
+                    }
+                }
+            }
+
+
 			// If we're not showing a progress bar in Linux this whole step is superfluous
 			#if !UNITY_EDITOR_LINUX
 			UpdateProgressBar();
 			#endif
 		}
+
+        static void RemoveCompilingFile (int index) {
+            InkLibrary.Instance.compilationStack.RemoveAt(index);
+            InkLibrary.Save();
+            // Progress bar prevents delayCall callback from firing in Linux Editor, locking the
+            // compilation until it times out. Let's just not show progress bars in Linux Editor    
+            #if !UNITY_EDITOR_LINUX
+            if (InkLibrary.Instance.compilationStack.Count == 0) EditorUtility.ClearProgressBar();
+            #endif
+        }
 
 		static void UpdateProgressBar () {
 			if(InkLibrary.Instance.compilationStack.Count == 0) return;
@@ -186,6 +219,14 @@ namespace Ink.UnityIntegration {
 		/// </summary>
 		/// <param name="inkFile">Ink file.</param>
 		private static void CompileInkInternal (InkFile inkFile) {
+
+			// If we've not yet locked C# compilation do so now
+			if (!hasLockedUnityCompilation)
+			{
+				hasLockedUnityCompilation = true;
+				EditorApplication.LockReloadAssemblies();
+			}
+
 			if(inkFile == null) {
 				Debug.LogError("Tried to compile ink file but input was null.");
 				return;
@@ -210,6 +251,7 @@ namespace Ink.UnityIntegration {
 
 			InkLibrary.Instance.compilationStack.Add(pendingFile);
 			InkLibrary.Save();
+            if(EditorApplication.isCompiling) Debug.LogWarning("Was compiling scripts when ink compilation started! This seems to cause the thread to cancel and complete, but the work isn't done. It'll cause a timeout.");
 			ThreadPool.QueueUserWorkItem(CompileInkThreaded, pendingFile);
 		}
 
@@ -259,18 +301,8 @@ namespace Ink.UnityIntegration {
 				{
 					// Write new compiled data to the file system
 					File.WriteAllText(compilingFile.jsonAbsoluteFilePath, compilingFile.compiledJson, Encoding.UTF8);
-
-					// Attempt to grab the existing object from the db
-					var jsonObject = AssetDatabase.LoadAssetAtPath<TextAsset>(compilingFile.inkFile.jsonPath);
-					if (jsonObject
-					) // If there was an existing json file, mark as dirty and Unity will detect the changes
-						EditorUtility.SetDirty(jsonObject);
-					else
-					{
-						// Otherwise force a synchronous import of the new json file
-						AssetDatabase.ImportAsset(compilingFile.jsonAbsoluteFilePath);
-						jsonObject = AssetDatabase.LoadAssetAtPath<TextAsset>(compilingFile.inkFile.jsonPath);
-					}
+                    AssetDatabase.ImportAsset(compilingFile.jsonAbsoluteFilePath);
+                    var jsonObject = AssetDatabase.LoadAssetAtPath<TextAsset>(compilingFile.inkFile.jsonPath);
 
 					// Update the jsonAsset reference
 					compilingFile.inkFile.jsonAsset = jsonObject;

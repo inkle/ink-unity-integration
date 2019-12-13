@@ -57,6 +57,11 @@ namespace Ink.UnityIntegration {
 			titleRect.yMin -= 2f;
 			titleRect.yMax += 2f;
 			GUI.Label(titleRect, editor.target.name, EditorStyles.largeLabel);
+
+            // On 2019 OnInspectorGUI never gets called. No idea why. Just run it here instead!
+            #if UNITY_2019_1_OR_NEWER
+            OnInspectorGUI();
+            #endif
 		}
 
 		public override void OnEnable () {

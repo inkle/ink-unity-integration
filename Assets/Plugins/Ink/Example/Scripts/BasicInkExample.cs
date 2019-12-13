@@ -63,7 +63,7 @@ public class BasicInkExample : MonoBehaviour {
 		RefreshView();
 	}
 
-	// Creates a button showing the choice text
+	// Creates a textbox showing the the line of text
 	void CreateContentView (string text) {
 		Text storyText = Instantiate (textPrefab) as Text;
 		storyText.text = text;

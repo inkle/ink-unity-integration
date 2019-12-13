@@ -30,8 +30,8 @@ namespace Ink.UnityIntegration {
 			if(EditorApplication.isPlaying) {
 				if(story != null) {
 					if(InkPlayerWindow.isOpen) {
-						InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
-						if(window.attached && window.story == story) {
+						// InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
+						if(InkPlayerWindow.attached && InkPlayerWindow.story == story) {
 							if(GUILayout.Button("Detach")) {
 								InkPlayerWindow.Detach();
 							}
@@ -68,9 +68,9 @@ namespace Ink.UnityIntegration {
 		/// <param name="label">Label.</param>
 		public static void DrawStoryPropertyField (Rect position, Story story, GUIContent label) {
 			position = EditorGUI.PrefixLabel(position, label);
-			InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
+			InkPlayerWindow.GetWindow(false);
 			if(EditorApplication.isPlaying && story != null/* && story.state != null*/) {
-				if(window.attached && window.story == story) {
+				if(InkPlayerWindow.attached && InkPlayerWindow.story == story) {
 					if(GUI.Button(position, "Detach")) {
 						InkPlayerWindow.Detach();
 					}
@@ -119,7 +119,7 @@ namespace Ink.UnityIntegration {
         [System.Serializable]
         public class InkPlayerWindowState {
             static string settingsEditorPrefsKey = typeof(InkPlayerWindowState).Name +" Settings";
-            public static Action OnCreateOrLoad;
+            public static event Action OnCreateOrLoad;
             static InkPlayerWindowState _Instance;
             public static InkPlayerWindowState Instance {
                 get {
@@ -170,14 +170,14 @@ namespace Ink.UnityIntegration {
         }
 
         
-		public PlayerOptions playerOptions = new PlayerOptions();
+		public static PlayerOptions playerOptions = new PlayerOptions();
 		[System.Serializable]
 		public class PlayerOptions {
 			public bool continueAutomatically = true;
 			public bool chooseAutomatically = false;
 		}
 
-		public StoryPanelViewState storyPanelViewState = new StoryPanelViewState();
+		public static StoryPanelViewState storyPanelViewState = new StoryPanelViewState();
         [System.Serializable]
 		public class StoryPanelViewState {
             public bool showingContentPanel = true;
@@ -197,11 +197,11 @@ namespace Ink.UnityIntegration {
 //		public StoryState storyState = new StoryState();
 //		public class StoryState {
 //		}
-		public bool attached {get; private set;}
-		bool attachedWhileInPlayMode {get; set;}
+		public static bool attached {get; private set;}
+		static bool attachedWhileInPlayMode {get; set;}
 
-		TextAsset _storyJSONTextAsset;
-		TextAsset storyJSONTextAsset {
+		static TextAsset _storyJSONTextAsset;
+		static TextAsset storyJSONTextAsset {
 			get {
 				return _storyJSONTextAsset;
 			} set {
@@ -212,11 +212,11 @@ namespace Ink.UnityIntegration {
 				}
 			}
 		}
-		string storyJSON;
-		DateTime currentStoryJSONLastEditDateTime;
+		static string storyJSON;
+		static DateTime currentStoryJSONLastEditDateTime;
 
-		private Story _story;
-		public Story story {
+		private static Story _story;
+		public static Story story {
             get {
                 return _story;
             } private set {
@@ -230,8 +230,8 @@ namespace Ink.UnityIntegration {
             }
         }
 
-		private TextAsset _storyStateTextAsset;
-		public TextAsset storyStateTextAsset {
+		private static TextAsset _storyStateTextAsset;
+		public static TextAsset storyStateTextAsset {
 			get {
 				return _storyStateTextAsset;
 			} set {
@@ -243,29 +243,29 @@ namespace Ink.UnityIntegration {
 			}
 		}
 		
-		private UndoHistory<InkPlayerHistoryItem> storyStateHistory;
-		private List<InkPlayerHistoryContentItem> storyHistory;
+		private static UndoHistory<InkPlayerHistoryItem> storyStateHistory;
+		private static List<InkPlayerHistoryContentItem> storyHistory;
 		
-		private Exception playStoryException;
-		private bool storyStateValid = false;
+		private static Exception playStoryException;
+		private static bool storyStateValid = false;
 
 
 //		private WindowState windowState = new WindowState();
 //		public class WindowState {
-		public Vector2 scrollPosition;
-		public bool showingChoicesPanel = true;
-		public bool showingSaveLoadPanel;
-		public bool showingProfileData;
+		public static Vector2 scrollPosition;
+		public static bool showingChoicesPanel = true;
+		public static bool showingSaveLoadPanel;
+		public static bool showingProfileData;
 
-		public bool showingFunctionsPanel;
+		public static bool showingFunctionsPanel;
 
-		public Vector2 variablesScrollPosition;
+		public static Vector2 variablesScrollPosition;
 //		}
 
 
 
 
-		private DivertPanelViewState divertPanelViewState = new DivertPanelViewState();
+		private static DivertPanelViewState divertPanelViewState = new DivertPanelViewState();
 		[System.Serializable]
 		public class DivertPanelViewState {
 		    public bool showingDivertsPanel;
@@ -276,8 +276,8 @@ namespace Ink.UnityIntegration {
 			public string divertCommand = String.Empty;
 		}
 
-		private FunctionPanelState functionPanelState = new FunctionPanelState();
-		ReorderableList functionInputList;
+		private static FunctionPanelState functionPanelState = new FunctionPanelState();
+		static ReorderableList functionInputList;
         [System.Serializable]
 		public class FunctionPanelState {
             [System.Serializable]
@@ -288,7 +288,8 @@ namespace Ink.UnityIntegration {
                         Int,
                         String,
                         Bool,
-                        InkVariable
+                        InkVariable,
+                        InkListVariable
                     }
                     public FunctionInputType type;
                     public int intValue;
@@ -296,6 +297,20 @@ namespace Ink.UnityIntegration {
                     public bool boolValue;
                     public string inkVariablePath;
                     public object inkVariableValue;
+                    public InkList inkListVariableValue;
+                    public string inkListVariablePath;
+
+                    public void RefreshInkVariableValue (Story story) {
+                        if(!StringIsNullOrWhiteSpace(inkVariablePath)) inkVariableValue = story.variablesState[inkVariablePath];
+                        else inkVariableValue = null;
+                    }
+                    public void RefreshInkListVariableValue (Story story) {
+                        inkListVariableValue = null;
+                        try {
+                            if(!StringIsNullOrWhiteSpace(inkListVariablePath)) 
+                                inkListVariableValue = Ink.Runtime.InkList.FromString(inkListVariablePath, story);
+                        } catch {}
+                    }
                 }
                 public string functionName = String.Empty;
                 public List<FunctionInput> inputs = new List<FunctionInput>();
@@ -305,8 +320,8 @@ namespace Ink.UnityIntegration {
 			public object functionReturnValue = null;
 		}
 
-		public bool showingVariablesPanel;
-		public bool showingObservedVariablesPanel;
+		public static bool showingVariablesPanel;
+		public static bool showingObservedVariablesPanel;
 		[System.Serializable]
         public class VariablesPanelState {
 			public string searchString = string.Empty;
@@ -334,21 +349,22 @@ namespace Ink.UnityIntegration {
 			public bool displayErrorsInConsole = true;
 		}
 
-        public InkPlayerParams playerParams;
+        public static InkPlayerParams playerParams;
 
 		[MenuItem("Window/Ink Player %#i", false, 2300)]
 		public static InkPlayerWindow GetWindow () {
-			return GetWindow<InkPlayerWindow>(windowTitle, true);
+			return GetWindow<InkPlayerWindow>(false, windowTitle, true);
 		}
 
 		public static InkPlayerWindow GetWindow (bool focus) {
-			return GetWindow<InkPlayerWindow>(windowTitle, focus);
+			return GetWindow<InkPlayerWindow>(false, windowTitle, focus);
 		}
 		
 		void OnEnable () {
+			if(isOpen) return;
 			isOpen = true;
-			storyStateHistory = new UndoHistory<InkPlayerHistoryItem>();
-			storyHistory = new List<InkPlayerHistoryContentItem>();
+			if(storyStateHistory == null) storyStateHistory = new UndoHistory<InkPlayerHistoryItem>();
+			if(storyHistory == null) storyHistory = new List<InkPlayerHistoryContentItem>();
 			
             InkPlayerWindowState.OnCreateOrLoad += () => {
                 functionPanelState.functionParams = InkPlayerWindowState.Instance.functionParams;
@@ -360,11 +376,15 @@ namespace Ink.UnityIntegration {
             EditorApplication.update += Update;
 		}
 
+		void OnDisable () {
+			EditorApplication.update -= Update;
+		}
+
 		void OnDestroy () {
 			isOpen = false;
 		}
 
-		private void Update () {
+		private static  void Update () {
 			if(story != null && playerOptions.chooseAutomatically) {
 				if(story.currentChoices.Count > 0) {
 					MakeRandomChoice();
@@ -377,18 +397,18 @@ namespace Ink.UnityIntegration {
 
         
 
-        void OnDidContinue () {
+        static void OnDidContinue () {
 			AddContent(story.currentText.Trim());
             AddWarningsAndErrorsToHistory();
         }
-        void OnMakeChoice (Choice choice) {
+        static void OnMakeChoice (Choice choice) {
             storyHistory.Add(new InkPlayerHistoryContentItem(choice.text.Trim(), InkPlayerHistoryContentItem.ContentType.StoryChoice));		
             AddWarningsAndErrorsToHistory();
         }
-        void OnEvaluateFunction (string functionName, object[] arguments) {
-            StringBuilder sb = new StringBuilder("OnEvaluateFunction: ");
+        static void OnEvaluateFunction (string functionName, object[] arguments) {
+            StringBuilder sb = new StringBuilder("OnEvaluateFunction Executed: ");
             sb.Append(functionName);
-            if(arguments != null) {
+            if(arguments != null && arguments.Length > 0) {
                 sb.Append(" with args: ");
                 for (int i = 0; i < arguments.Length; i++) {
                     if(arguments[i] == null) sb.Append("NULL");
@@ -404,7 +424,30 @@ namespace Ink.UnityIntegration {
             storyHistory.Add(new InkPlayerHistoryContentItem(sb.ToString(), InkPlayerHistoryContentItem.ContentType.StoryEvaluateFunction));		
             AddWarningsAndErrorsToHistory();
         }
-        void OnChoosePathString (string pathString, object[] arguments) {
+        static void OnCompleteEvaluateFunction (string functionName, object[] arguments, string textOutput, object result) {
+            StringBuilder sb = new StringBuilder("OnEvaluateFunction Completed: ");
+            sb.Append(functionName);
+            if(arguments != null && arguments.Length > 0) {
+                sb.Append(" with args: ");
+                for (int i = 0; i < arguments.Length; i++) {
+                    if(arguments[i] == null) sb.Append("NULL");
+                    else {
+                        sb.Append(arguments[i]);
+                        sb.Append(" (");
+                        sb.Append(arguments[i].GetType().Name);
+                        sb.Append(")");
+                    }
+                    if(i < arguments.Length-1) sb.Append(", ");
+                }
+                bool hasTextOutput = textOutput != null && textOutput != string.Empty;
+                if(hasTextOutput) sb.Append(" text output is: "+textOutput);
+                if(result != null) sb.Append(" result is: "+result);
+                if(!hasTextOutput && result == null) sb.Append("has no output");
+            }
+            storyHistory.Add(new InkPlayerHistoryContentItem(sb.ToString(), InkPlayerHistoryContentItem.ContentType.StoryEvaluateFunction));		
+            AddWarningsAndErrorsToHistory();
+        }
+        static void OnChoosePathString (string pathString, object[] arguments) {
             StringBuilder sb = new StringBuilder("ChoosePathString: ");
             sb.Append(pathString);
             if(arguments != null) {
@@ -424,7 +467,7 @@ namespace Ink.UnityIntegration {
             AddWarningsAndErrorsToHistory();
         }
 
-        void AddWarningsAndErrorsToHistory () {
+		static void AddWarningsAndErrorsToHistory () {
             if(story.hasWarning) {
                 foreach(var warning in story.currentWarnings) {
                     storyHistory.Add(new InkPlayerHistoryContentItem(warning.Trim(), InkPlayerHistoryContentItem.ContentType.StoryWarning));
@@ -452,90 +495,91 @@ namespace Ink.UnityIntegration {
         }
 		public static InkPlayerWindow Attach (Story story, InkPlayerParams inkPlayerParams) {
 			InkPlayerWindow window = GetWindow();
-			window.AttachInstance(story, inkPlayerParams);
+			InkPlayerWindow.AttachInstance(story, inkPlayerParams);
             return window;
 		}
 
-        public void AttachInstance (Story story) {
+        public static void AttachInstance (Story story) {
             AttachInstance(story, InkPlayerWindow.InkPlayerParams.ForAttachedStories);
         }
         // Loads an existing story to the player window. Handy for debugging stories running in games in editor.
-        public void AttachInstance (Story story, InkPlayerParams inkPlayerParams) {
+        public static void AttachInstance (Story story, InkPlayerParams inkPlayerParams) {
 			Clear();
 			playerOptions.continueAutomatically = false;
 			playerOptions.chooseAutomatically = false;
             playerParams = inkPlayerParams;
-			this.story = story;
+			InkPlayerWindow.story = story;
 			attached = true;
 			attachedWhileInPlayMode = EditorApplication.isPlaying;
         }
 
 		public static void Detach () {
-			InkPlayerWindow window = GetWindow();
-			window.DetachInstance();
+			GetWindow();
+			DetachInstance();
 		}
 
-        void DetachInstance () {
+        static void DetachInstance () {
             attached = false;
 			story = null;
         }
 
 		public static void LoadAndPlay (TextAsset storyJSONTextAsset) {
-			InkPlayerWindow window = GetWindow();
-			if(window.story != null) {
+			GetWindow();
+			if(InkPlayerWindow.story != null) {
 				if(EditorUtility.DisplayDialog("Story in progress", "The Ink Player Window is already playing a story. Would you like to stop it and load the new story?", "Stop and load", "Cancel")) {
-					window.Stop();
-					window.Play(storyJSONTextAsset);
+					InkPlayerWindow.Stop();
+					InkPlayerWindow.Play(storyJSONTextAsset);
 				}
 			} else {
-				window.Play(storyJSONTextAsset);
+				InkPlayerWindow.Play(storyJSONTextAsset);
 			}
 		}
 
 		public static void LoadAndPlay (string storyJSON) {
-			InkPlayerWindow window = GetWindow();
-			if(window.story != null) {
+			GetWindow();
+			if(InkPlayerWindow.story != null) {
 				if(EditorUtility.DisplayDialog("Story in progress", "The Ink Player Window is already playing a story. Would you like to stop it and load the new story?", "Stop and load", "Cancel")) {
-					window.Stop();
-					window.Play(storyJSON);
+					InkPlayerWindow.Stop();
+					InkPlayerWindow.Play(storyJSON);
 				}
 			} else {
-				window.Play(storyJSON);
+				InkPlayerWindow.Play(storyJSON);
 			}
 		}
 
-		void Play (TextAsset storyJSONTextAsset) {
+		static void Play (TextAsset storyJSONTextAsset) {
 			Play(storyJSONTextAsset, InkPlayerParams.Standard);
 		}
-		void Play (TextAsset storyJSONTextAsset, InkPlayerParams inkPlayerParams) {
-			this.storyJSONTextAsset = storyJSONTextAsset;
+		static void Play (TextAsset storyJSONTextAsset, InkPlayerParams inkPlayerParams) {
+			InkPlayerWindow.storyJSONTextAsset = storyJSONTextAsset;
 			if(!InkEditorUtils.CheckStoryIsValid(storyJSONTextAsset.text, out playStoryException))
 				return;
-			storyJSON = this.storyJSONTextAsset.text;
-            this.playerParams = inkPlayerParams;
+			storyJSON = InkPlayerWindow.storyJSONTextAsset.text;
+            InkPlayerWindow.playerParams = inkPlayerParams;
 			PlayInternal();
 		}
-        void Play (string storyJSON) {
+        static void Play (string storyJSON) {
 			Play(storyJSON, InkPlayerParams.Standard);
 		}
-		void Play (string storyJSON, InkPlayerParams inkPlayerParams) {
+		static void Play (string storyJSON, InkPlayerParams inkPlayerParams) {
 			if(!InkEditorUtils.CheckStoryIsValid(storyJSON, out playStoryException))
 				return;
-			this.storyJSONTextAsset = null;
-			this.storyJSON = storyJSON;
-            this.playerParams = inkPlayerParams;
+			InkPlayerWindow.storyJSONTextAsset = null;
+			InkPlayerWindow.storyJSON = storyJSON;
+            InkPlayerWindow.playerParams = inkPlayerParams;
 			PlayInternal();
 		}
 
-		void PlayInternal () {
+		static void PlayInternal () {
 			story = new Story(storyJSON);
 			story.allowExternalFunctionFallbacks = true;
 		}
 
-        void OnUnsetStory () {
+        static void OnUnsetStory () {
             _story.onDidContinue -= OnDidContinue;
             _story.onMakeChoice -= OnMakeChoice;
             _story.onEvaluateFunction -= OnEvaluateFunction;
+            _story.onCompleteEvaluateFunction -= OnCompleteEvaluateFunction;
             _story.onChoosePathString -= OnChoosePathString;
             foreach(var observedVariableName in InkPlayerWindowState.Instance.variablesPanelState.observedVariableNames) {
                 UnobserveVariable(observedVariableName, false);
@@ -543,11 +587,22 @@ namespace Ink.UnityIntegration {
             InkPlayerWindowState.Instance.variablesPanelState.observedVariables.Clear();
         }
 
-        void OnSetStory () {
+        static void OnSetStory () {
             _story.onDidContinue += OnDidContinue;
             _story.onMakeChoice += OnMakeChoice;
             _story.onEvaluateFunction += OnEvaluateFunction;
+            _story.onCompleteEvaluateFunction += OnCompleteEvaluateFunction;
             _story.onChoosePathString += OnChoosePathString;
+            
+            // Recalculate function ink variables
+            foreach(var input in InkPlayerWindowState.Instance.functionParams.inputs) {
+                if(input.type == FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.InkVariable) {
+                    input.RefreshInkVariableValue(story);
+                } else if(input.type == FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.InkListVariable) {
+                    input.RefreshInkListVariableValue(story);
+                }
+            }
+            
             // Reobserve variables
             var variablesToObserve = new List<string>(InkPlayerWindowState.Instance.variablesPanelState.observedVariableNames);
             InkPlayerWindowState.Instance.variablesPanelState.observedVariables.Clear();
@@ -562,7 +617,7 @@ namespace Ink.UnityIntegration {
 			PingAutomator();
         }
 
-		void PingAutomator () {
+		static void PingAutomator () {
             if(playerParams.disablePlayControls) return;
 			if(story.canContinue && playerOptions.continueAutomatically) {
 				TryContinue();
@@ -571,17 +626,17 @@ namespace Ink.UnityIntegration {
 			}
 		}
 		
-		void Stop () {
+		static void Stop () {
 			Clear ();
 		}
 
-		void Clear () {
-			storyStateHistory.Clear();
-			storyHistory.Clear();
+		static void Clear () {
+			if(storyStateHistory != null) storyStateHistory.Clear();
+			if(storyStateHistory != null) storyHistory.Clear();
 			story = null;
 		}
 		
-		void Restart () {
+		static void Restart () {
 			Stop();
 			if(storyJSONTextAsset != null)
 				Play(storyJSONTextAsset);
@@ -589,36 +644,36 @@ namespace Ink.UnityIntegration {
 				Play(storyJSON);
 		}
 		
-		void ContinueStory () {
+		static void ContinueStory () {
 			story.Continue();
 		}
 
-		void AddContent (string content) {
+		static void AddContent (string content) {
 			storyHistory.Add(new InkPlayerHistoryContentItem(content, InkPlayerHistoryContentItem.ContentType.StoryContent));
 			ScrollToBottom();
 			if(!playerParams.disableUndoHistory) AddToHistory();
 		}
 		
-		void AddToHistory () {
+		static void AddToHistory () {
 			InkPlayerHistoryItem historyItem = new InkPlayerHistoryItem(story.state.ToJson(), new List<InkPlayerHistoryContentItem>(storyHistory));
 			storyStateHistory.AddToUndoHistory(historyItem);
 		}
 		
-		void Undo () {
+		static void Undo () {
 			InkPlayerHistoryItem item = storyStateHistory.Undo();
 			story.state.LoadJson(item.inkStateJSON);
 			storyHistory = new List<InkPlayerHistoryContentItem>(item.storyHistory);
 			ScrollToBottom();
 		}
 		
-		void Redo () {
+		static void Redo () {
 			InkPlayerHistoryItem item = storyStateHistory.Redo();
 			story.state.LoadJson(item.inkStateJSON);
 			storyHistory = new List<InkPlayerHistoryContentItem>(item.storyHistory);
 			ScrollToBottom();
 		}
 
-		void SaveStoryState (string storyStateJSON) {
+		static void SaveStoryState (string storyStateJSON) {
 			storyHistory.Add(new InkPlayerHistoryContentItem("Saved state", InkPlayerHistoryContentItem.ContentType.DebugNote));
 
 			// Text asset can be null if we attached to an existing story rather than loading our own
@@ -632,18 +687,19 @@ namespace Ink.UnityIntegration {
 			storyStateTextAsset = InkEditorUtils.CreateStoryStateTextFile(storyStateJSON, dirPath, storyName+"_SaveState");
 		}
 
-		void LoadStoryState (string storyStateJSON) {
+		static void LoadStoryState (string storyStateJSON) {
+			Debug.Log("CLER");
 			storyHistory.Clear();
 			storyStateHistory.Clear();
 			storyHistory.Add(new InkPlayerHistoryContentItem("Loaded state", InkPlayerHistoryContentItem.ContentType.DebugNote));
 			story.state.LoadJson(storyStateJSON);
 		}
 
-		void ScrollToBottom () {
+		static void ScrollToBottom () {
 			storyPanelViewState.storyScrollPosition.y = Mathf.Infinity;
 		}
 
-		void TryContinue () {
+		static void TryContinue () {
 			if(!story.canContinue) 
 				return;
 			if(playerOptions.continueAutomatically) {
@@ -839,32 +895,73 @@ namespace Ink.UnityIntegration {
             GUIUtility.systemCopyBuffer = sb.ToString();
         }
 
+        bool ShouldShowContentWithSearchString (string contentString, string searchString) {
+            if(StringIsNullOrWhiteSpace(InkPlayerWindowState.Instance.storyPanelState.searchString)) return true;
+            if(StringContains(contentString, InkPlayerWindowState.Instance.storyPanelState.searchString, StringComparison.OrdinalIgnoreCase)) return true;
+            return false;
+        }
+        bool ShouldShowContent (InkPlayerHistoryContentItem content) {
+            if(content.content == string.Empty && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.EmptyEntries) == 0) {
+                return false;
+            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryContent) {
+                return true;
+            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryChoice && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Choice) != 0) {
+                return true;
+            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.DebugNote && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.DebugNotes) != 0) {
+                return true;
+            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryWarning && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Warnings) != 0) {
+                return true;
+            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryError && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Errors) != 0) {
+                return true;
+            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryChoosePathString && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.ChoosePathString) != 0) {
+                return true;
+            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryEvaluateFunction && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Function) != 0) {
+                return true;
+            }
+            return false;
+        }
 		void DisplayStoryBody () {
 			GUILayout.BeginVertical();
 			
-			storyPanelViewState.storyScrollPosition = EditorGUILayout.BeginScrollView(storyPanelViewState.storyScrollPosition);
-			int displayIndex = 0;
-			foreach(InkPlayerHistoryContentItem content in storyHistory) {
-                if(!StringIsNullOrWhiteSpace(InkPlayerWindowState.Instance.storyPanelState.searchString) && !StringContains(content.content, InkPlayerWindowState.Instance.storyPanelState.searchString, StringComparison.OrdinalIgnoreCase)) continue;
-				
-				if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryContent) {
-					DisplayContent(content, displayIndex);
-				} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryChoice && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Choice) != 0) {
-					DisplayContent(content, displayIndex);
-				} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.DebugNote && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.DebugNotes) != 0) {
-					DisplayContent(content, displayIndex);
-				} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryWarning && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Warnings) != 0) {
-					DisplayContent(content, displayIndex);
-				} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryError && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Errors) != 0) {
-					DisplayContent(content, displayIndex);
-				} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryChoosePathString && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.ChoosePathString) != 0) {
-					DisplayContent(content, displayIndex);
-				} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryEvaluateFunction && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Function) != 0) {
-					DisplayContent(content, displayIndex);
-				}
-                displayIndex++;
-			}
-			EditorGUILayout.EndScrollView();
+            float m_ItemHeight = 20;
+            float minScrollRectHeight = 30;
+            float maxScrollRectHeight = 400;
+            float totalHeight = 0;
+            // int totalItemsToShow = 0;
+            List<InkPlayerHistoryContentItem> validHistory = new List<InkPlayerHistoryContentItem>();
+            // float[] heights = new float[storyHistory.Count];
+            for(int i = 0; i < storyHistory.Count; i++) {
+                var content = storyHistory[i];
+                if(!ShouldShowContentWithSearchString(content.content, InkPlayerWindowState.Instance.storyPanelState.searchString)) continue;
+				if(!ShouldShowContent(content)) continue;
+				// heights[i] = m_ItemHeight;
+                totalHeight += m_ItemHeight;
+                // totalItemsToShow++;
+                validHistory.Add(content);
+            }
+            float scrollRectHeight = Mathf.Clamp(totalHeight, minScrollRectHeight, maxScrollRectHeight);
+            storyPanelViewState.storyScrollPosition = EditorGUILayout.BeginScrollView(storyPanelViewState.storyScrollPosition, GUILayout.ExpandHeight(false), GUILayout.Height(scrollRectHeight));
+            int numToShow = Mathf.CeilToInt(scrollRectHeight / m_ItemHeight);
+            int firstIndex = (int)(storyPanelViewState.storyScrollPosition.y / m_ItemHeight);
+            firstIndex = Mathf.Clamp(firstIndex,0,Mathf.Max(0,validHistory.Count-numToShow));
+            GUILayout.Space(firstIndex * m_ItemHeight);
+            var lastIndex = Mathf.Min(validHistory.Count, firstIndex+numToShow);
+            for(int i = firstIndex; i < lastIndex; i++) {
+                var content = validHistory[i];
+                DisplayContent(content, i);
+            }
+            GUILayout.Space(Mathf.Max(0,(validHistory.Count-firstIndex-numToShow) * m_ItemHeight));
+            EditorGUILayout.EndScrollView();
+
+
+            // int displayIndex = 0;
+			// foreach(InkPlayerHistoryContentItem content in storyHistory) {
+            //     if(!ShouldShowContentWithSearchString(content.content, InkPlayerWindowState.Instance.storyPanelState.searchString)) continue;
+			// 	if(!ShouldShowContent(content)) continue;
+            //     DisplayContent(content, displayIndex);
+            //     displayIndex++;
+			// }
+			// EditorGUILayout.EndScrollView();
 			GUILayout.EndVertical();
 		}
 
@@ -917,10 +1014,6 @@ namespace Ink.UnityIntegration {
             }
         }
 		void DisplayContent(InkPlayerHistoryContentItem content, int index)  {
-            if((InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.EmptyEntries) == 0 && content.content == string.Empty) {
-                return;
-            }
-
             EditorGUILayout.BeginHorizontal(index % 2 == 0 ? historyItemBGStyle1 : historyItemBGStyle2);
             string s = String.Empty;
 			if((InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.TimeStamp) != 0) 
@@ -952,7 +1045,7 @@ namespace Ink.UnityIntegration {
 		void DisplayLine (string content) {
 			float width = position.width-28;
 			float height = EditorStyles.wordWrappedLabel.CalcHeight(new GUIContent(content), width);
-			EditorGUILayout.SelectableLabel(content, EditorStyles.wordWrappedLabel, GUILayout.ExpandHeight(true), GUILayout.Width(width), GUILayout.Height(height));
+			EditorGUILayout.LabelField(content, EditorStyles.wordWrappedLabel, GUILayout.ExpandHeight(true), GUILayout.Width(width), GUILayout.Height(height));
 		}
 
 		void DrawChoices () {
@@ -991,17 +1084,17 @@ namespace Ink.UnityIntegration {
 			EditorGUI.EndDisabledGroup();
 		}
 
-		void MakeRandomChoice () {
+		static void MakeRandomChoice () {
 			MakeChoice(story.currentChoices[UnityEngine.Random.Range(0, story.currentChoices.Count)]);
 		}
 
-		void MakeChoice (Choice choice) {
+		static void MakeChoice (Choice choice) {
 			story.ChooseChoiceIndex(choice.index);
 			if(!playerParams.disableUndoHistory) AddToHistory();
 			TryContinue();
 		}
 
-		void DrawSaveLoad () {
+		static void DrawSaveLoad () {
 			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
 			showingSaveLoadPanel = EditorGUILayout.Foldout(showingSaveLoadPanel, "Story State", true);
 			EditorGUILayout.EndHorizontal();
@@ -1009,7 +1102,7 @@ namespace Ink.UnityIntegration {
 				DrawSaveLoadPanel ();
 		}
 
-		void DrawSaveLoadPanel () {
+		static void DrawSaveLoadPanel () {
 			GUILayout.BeginVertical();
 
 			EditorGUILayout.BeginHorizontal();
@@ -1129,6 +1222,9 @@ namespace Ink.UnityIntegration {
 					case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.InkVariable:
 						obj = input.inkVariableValue;
 						break;
+					case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.InkListVariable:
+						obj = input.inkListVariableValue;
+						break;
 					}
 					allInput[i] = obj;
 				}
@@ -1185,19 +1281,30 @@ namespace Ink.UnityIntegration {
 					input.boolValue = EditorGUI.Toggle(inputRect, input.boolValue);
 					break;
 				case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.InkVariable:
-					var halfInput = new Rect(inputRect.x, inputRect.y, Mathf.RoundToInt(inputRect.width * 0.5f) - 5, inputRect.height);
-					var halfInput2 = new Rect(inputRect.x + Mathf.RoundToInt(inputRect.width * 0.5f) + 5, inputRect.y, Mathf.RoundToInt(inputRect.width * 0.5f) - 10, inputRect.height);
-					EditorGUI.BeginChangeCheck();
-					input.inkVariablePath = EditorGUI.TextField(halfInput, input.inkVariablePath);
-					if(EditorGUI.EndChangeCheck()) {
-//						story.ListItemWithName(input.inkVariablePath).Values
-						if(!StringIsNullOrWhiteSpace(input.inkVariablePath)) input.inkVariableValue = story.variablesState[input.inkVariablePath];
-						else input.inkVariableValue = null;
-					}
-					EditorGUI.BeginDisabledGroup(true);
-					DrawVariable(halfInput2, GUIContent.none, input.inkVariableValue);
-					EditorGUI.EndDisabledGroup();
+					{
+                        var halfInput = new Rect(inputRect.x, inputRect.y, Mathf.RoundToInt(inputRect.width * 0.5f) - 5, inputRect.height);
+                        var halfInput2 = new Rect(inputRect.x + Mathf.RoundToInt(inputRect.width * 0.5f) + 5, inputRect.y, Mathf.RoundToInt(inputRect.width * 0.5f) - 10, inputRect.height);
+                        EditorGUI.BeginChangeCheck();
+                        input.inkVariablePath = EditorGUI.TextField(halfInput, input.inkVariablePath);
+                        if(EditorGUI.EndChangeCheck()) input.RefreshInkVariableValue(story);
+                        
+                        EditorGUI.BeginDisabledGroup(true);
+                        DrawVariable(halfInput2, GUIContent.none, input.inkVariableValue);
+                        EditorGUI.EndDisabledGroup();
+                    }
 					break;
+				case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.InkListVariable:
+					{
+                        var halfInput = new Rect(inputRect.x, inputRect.y, Mathf.RoundToInt(inputRect.width * 0.5f) - 5, inputRect.height);
+                        var halfInput2 = new Rect(inputRect.x + Mathf.RoundToInt(inputRect.width * 0.5f) + 5, inputRect.y, Mathf.RoundToInt(inputRect.width * 0.5f) - 10, inputRect.height);
+                        EditorGUI.BeginChangeCheck();
+                        input.inkListVariablePath = EditorGUI.TextField(halfInput, input.inkListVariablePath);
+                        if(EditorGUI.EndChangeCheck()) input.RefreshInkListVariableValue(story);
+                        EditorGUI.BeginDisabledGroup(true);
+                        DrawVariable(halfInput2, GUIContent.none, input.inkListVariableValue);
+                        EditorGUI.EndDisabledGroup();
+					}
+                    break;
 				}
 			};
 		}
@@ -1269,7 +1376,7 @@ namespace Ink.UnityIntegration {
 			GUILayout.EndVertical();
 		}
 
-        ObservedVariable ObserveVariable (string variableName, bool alsoAddToCache) {
+        static ObservedVariable ObserveVariable (string variableName, bool alsoAddToCache) {
             if(InkPlayerWindowState.Instance.variablesPanelState.observedVariables.ContainsKey(variableName)) return InkPlayerWindowState.Instance.variablesPanelState.observedVariables[variableName];
             var observedVariable = new ObservedVariable(variableName);
             observedVariable.variableObserver = (_variableName, newValue) => {
@@ -1288,7 +1395,7 @@ namespace Ink.UnityIntegration {
             return observedVariable;
         }
 
-        void UnobserveVariable (string variableName, bool alsoRemoveFromCache) {
+        static void UnobserveVariable (string variableName, bool alsoRemoveFromCache) {
             if(!InkPlayerWindowState.Instance.variablesPanelState.observedVariables.ContainsKey(variableName)) return;
             
             var observedVariable = InkPlayerWindowState.Instance.variablesPanelState.observedVariables[variableName];
@@ -1340,7 +1447,17 @@ namespace Ink.UnityIntegration {
 				var c = new GUIContent(variable);
 				var inkList = (InkList)variableValue;
 				c.text += " (InkList)";
-				EditorGUIInkListField(rect, c, inkList, variable.text);
+                if(inkList.Any()) {
+                    bool first = true;
+                    foreach(var item in inkList) {
+                        if(!first) c.text += ", ";
+                        c.text += item.ToString();
+                        first = false;
+                    }
+                } else {
+                    c.text += " Empty";
+                }
+				EditorGUI.LabelField(rect, c);
 			} else if(variableValue == null) {
 				EditorGUI.LabelField(rect, variable, new GUIContent("InkPlayerError: Variable is null"));
 			} else {

@@ -138,6 +138,11 @@ namespace Ink.Runtime
         /// </summary>
         public event Action<string, object[]> onEvaluateFunction;
         /// <summary>
+        /// Callback for when a function has been evaluated
+        /// This is necessary because evaluating a function can cause continuing
+        /// </summary>
+        public event Action<string, object[], string, object> onCompleteEvaluateFunction;
+        /// <summary>
         /// Callback for when a path string is chosen
         /// </summary>
         public event Action<string, object[]> onChoosePathString;
@@ -466,15 +471,15 @@ namespace Ink.Runtime
                     _state.variablesState.batchObservingVariableChanges = false;
 
                 _asyncContinueActive = false;
+                if(onDidContinue != null) onDidContinue();
             }
 
             _recursiveContinueCount--;
 
             if( _profiler != null )
                 _profiler.PostContinue();
-
-            if(onDidContinue != null) onDidContinue();
         }
+
         bool ContinueSingleStep ()
         {
             if (_profiler != null)
@@ -901,12 +906,20 @@ namespace Ink.Runtime
 
             Container currentContainerAncestor = currentChildOfContainer.parent as Container;
 
+            bool allChildrenEnteredAtStart = true;
             while (currentContainerAncestor && (!_prevContainers.Contains(currentContainerAncestor) || currentContainerAncestor.countingAtStartOnly)) {
 
                 // Check whether this ancestor container is being entered at the start,
                 // by checking whether the child object is the first.
                 bool enteringAtStart = currentContainerAncestor.content.Count > 0 
-                    && currentChildOfContainer == currentContainerAncestor.content [0];
+                    && currentChildOfContainer == currentContainerAncestor.content [0]
+                    && allChildrenEnteredAtStart;
+
+                // Don't count it as entering at start if we're entering random somewhere within
+                // a container B that happens to be nested at index 0 of container A. It only counts
+                // if we're diverting directly to the first leaf node.
+                if (!enteringAtStart)
+                    allChildrenEnteredAtStart = false;
 
                 // Mark a visit to this container
                 VisitContainer (currentContainerAncestor, enteringAtStart);
@@ -1261,7 +1274,13 @@ namespace Ink.Runtime
                             Error ("Invalid value for maximum parameter of RANDOM(min, max)");
 
                         // +1 because it's inclusive of min and max, for e.g. RANDOM(1,6) for a dice roll.
-                        var randomRange = maxInt.value - minInt.value + 1;
+                        int randomRange;
+                        try {
+                            randomRange = checked(maxInt.value - minInt.value + 1);
+                        } catch (System.OverflowException) {
+                            randomRange = int.MaxValue;
+                            Error("RANDOM was called with a range that exceeds the size that ink numbers can use.");
+                        }
                         if (randomRange <= 0)
                             Error ("RANDOM was called with minimum as " + minInt.value + " and maximum as " + maxInt.value + ". The maximum must be larger");
 
@@ -1641,6 +1660,7 @@ namespace Ink.Runtime
 
             // Finish evaluation, and see whether anything was produced
             var result = state.CompleteFunctionEvaluationFromGame ();
+            if(onCompleteEvaluateFunction != null) onCompleteEvaluateFunction(functionName, arguments, textOutput, result);
             return result;
         }
 
@@ -2119,6 +2139,9 @@ namespace Ink.Runtime
                 if (_variableObservers.ContainsKey (specificVariableName)) {
                     if( observer != null) {
                         _variableObservers [specificVariableName] -= observer;
+                        if (_variableObservers[specificVariableName] == null) {
+                            _variableObservers.Remove(specificVariableName);
+                        }
                     }
                     else {
                         _variableObservers.Remove(specificVariableName);
@@ -2131,6 +2154,9 @@ namespace Ink.Runtime
                 var keys = new List<string>(_variableObservers.Keys);
                 foreach (var varName in keys) {
                     _variableObservers[varName] -= observer;
+                    if (_variableObservers[varName] == null) {
+                        _variableObservers.Remove(varName);
+                    }
                 }
             }
         }
@@ -2336,6 +2362,12 @@ namespace Ink.Runtime
             // Invisible choice may have been generated on a different thread,
             // in which case we need to restore it before we continue
             state.callStack.currentThread = choice.threadAtGeneration;
+
+            // If there's a chance that this state will be rolled back to before
+            // the invisible choice then make sure that the choice thread is
+            // left intact, and it isn't re-entered in an old state.
+            if ( _stateSnapshotAtLastNewline != null )
+                state.callStack.currentThread = state.callStack.ForkThread();
 
             ChoosePath (choice.targetPath, incrementingTurnIndex: false);
 
