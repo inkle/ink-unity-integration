@@ -283,12 +283,14 @@ namespace Ink.Runtime
                     throw new System.Exception (message);
                 }
             }
-
+			
+			private const char BOMChar = (char)65279;
+			
             void SkipWhitespace ()
             {
                 while (_offset < _text.Length) {
                     var c = _text [_offset];
-                    if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
+                    if (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == BOMChar)
                         _offset++;
                     else
                         break;
