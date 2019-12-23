@@ -23,11 +23,16 @@ namespace Ink.Runtime
 
         class Reader
         {
+			
+			private const char BOMChar = (char)65279;
+			
             public Reader (string text)
             {
                 _text = text;
                 _offset = 0;
-
+				if (_text[_offset] == UTF8_BOM_char) {
+                    _offset++;
+                }
                 SkipWhitespace ();
 
                 _rootObject = ReadObject ();
@@ -283,7 +288,9 @@ namespace Ink.Runtime
                     throw new System.Exception (message);
                 }
             }
-
+			
+			
+			
             void SkipWhitespace ()
             {
                 while (_offset < _text.Length) {
