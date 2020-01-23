@@ -66,8 +66,6 @@ This package also replaces the icon for ink files to make them easier to spot, a
 
 **The Inspector**: To replace the inspector for ink files, we've created a system that allows you to provide a custom inspector for any file. If this conflicts with existing behaviour in your project, you can delete the Ink Inspector folder altogether.
 
-## Advanced
-
 ## Updating Ink manually
 
 The ink git repo is updated far more frequently than this asset store package. 
