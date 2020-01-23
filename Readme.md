@@ -40,6 +40,13 @@ The Ink Player (**Ink > Player Window**) allows you to play stories in an editor
 
 To play a story, click the "play" button shown on the inspector of a compiled ink file, or drag a compiled ink story TextAsset into the window.
 
+**Editor Attaching**: Attach the InkStory instance used by your game to the Ink Player window allows you to view and edit your story as it runs in game. 
+
+See BasicInkExampleEditor.cs in the Examples folder for an example of how to:
+* Show an attach/detach button on an inspector
+* Automatically attach on entering play mode
+
+
 ## Automatic compilation
 	
 Ink files must be compiled to JSON before they can be used in-game. 
@@ -61,8 +68,6 @@ This package also replaces the icon for ink files to make them easier to spot, a
 
 ## Advanced
 
-**Editor Attaching**: It can be handy to attach the InkStory instance used by your game to the Ink Player window. You can do this in a single line using the InkEditorUtils.DrawStoryPropertyField function in an editor class.
-
 ## Updating Ink manually
 
 The ink git repo is updated far more frequently than this asset store package. 
@@ -80,10 +85,6 @@ We'd love to see this supported more if you'd like to assist the effort!
 * Is the Linux Unity Editor supported?
 
   *Yes!*
-  
-* What happened to Newtonsoft.Json.Net? Do I still need my API compatibility set to .NET 2.0?
-
-  We removed our dependency on Newtonsoft.Json.Net, so you can keep (or revert) your API compatibility to .NET 2.0 Subset, if you're upgrading your ink Unity integration plugin.
 
 # License
 
