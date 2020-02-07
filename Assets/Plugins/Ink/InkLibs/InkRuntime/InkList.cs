@@ -137,6 +137,29 @@ namespace Ink.Runtime
             Add (singleElement.Key, singleElement.Value);
 		}
 
+
+		/// <summary>
+		/// Converts an integer value into a list containing an item from a given list
+		/// </summary>
+
+		public static InkList FromValue(InkList list, int itemVal) 
+		{
+			if (list.origins == null || list.origins.Count == 0)
+			{
+				throw new System.Exception ("LIST_GET_ITEM: No origin exists in list passed into InkList.FromValue");
+			}
+			var origin = list.origins[0];
+			InkListItem foundItem;
+			if (origin.TryGetItemWithValue(itemVal, out foundItem))
+			{ 
+				return new Ink.Runtime.InkList {
+					{foundItem, itemVal}
+				};
+			}
+			throw new System.Exception ("LIST_GET_ITEM: Item with value " + itemVal + " couldn't be found in list " + origin.name);
+		}
+
+
 		/// <summary>
 		/// Converts a string to an ink list and returns for use in the story.
 		/// </summary>
@@ -319,6 +342,22 @@ namespace Ink.Runtime
                 return list;
             }
         }
+
+		/// <summary>
+		/// Get the integer value of the maximum value of the "all" of the list.
+		/// </summary>
+		public int maxValueOfAll {
+			get {
+				var maxValue = int.MinValue;
+				if (origins != null) 
+					foreach (var origin in origins) 
+						foreach (var kv in origin.items)
+								if (kv.Value > maxValue)
+									maxValue = kv.Value;
+				
+				return maxValue;
+			}
+		}
 
         /// <summary>
         /// The list of all items from the original list definition, equivalent to calling
