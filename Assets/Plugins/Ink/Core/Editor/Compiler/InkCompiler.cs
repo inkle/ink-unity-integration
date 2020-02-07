@@ -195,10 +195,15 @@ namespace Ink.UnityIntegration {
 		}
 
 		static void EnteredPlayModeWhenCompiling () {
-			Debug.LogError("Entered Play Mode while Ink was still compiling. Story will not be up to date. This should never happen. Recommend exiting and re-entering play mode.");
+			Debug.LogError("Entered Play Mode while Ink was still compiling! Your story will not be up to date. Recommend exiting and re-entering play mode.\nWe normally delay entering play mode when compiling, so you've found an edge case!");
 		}
 
 		public static void CompileInk (params InkFile[] inkFiles) {
+            CompileInk(inkFiles, false, null);
+        }
+		public static void CompileInk (InkFile[] inkFiles, bool immediate, Action onComplete) {
+            InkLibrary.Validate();
+            if(onComplete != null) onCompleteActions.Add(onComplete);
 			StringBuilder filesCompiledLog = new StringBuilder("Files compiled:");
 			foreach (var inkFile in inkFiles) filesCompiledLog.AppendLine().Append(inkFile.filePath);
 			
