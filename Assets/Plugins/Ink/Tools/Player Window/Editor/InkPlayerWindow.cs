@@ -56,6 +56,31 @@ namespace Ink.UnityIntegration {
 				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndHorizontal();
+
+            if(story != null) {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("Can Continue", story.canContinue.ToString());
+                EditorGUI.BeginDisabledGroup(true);
+                if(GUILayout.Button("Continue")) {
+                    story.Continue();
+                }
+                EditorGUI.EndDisabledGroup();
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.LabelField("Current Text", story.currentText);
+                foreach(var choice in story.currentChoices) {
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Choice "+choice.index, choice.text);
+                    EditorGUI.BeginDisabledGroup(true);
+                    if(GUILayout.Button("Choose")) {
+                        story.ChooseChoiceIndex(choice.index);
+                    }
+                    EditorGUI.EndDisabledGroup();
+                    EditorGUILayout.EndHorizontal();
+                }
+                EditorGUI.indentLevel--;
+            }
 		}
 
         
@@ -161,6 +186,16 @@ namespace Ink.UnityIntegration {
                 }
             }
 
+            public string lastStoryJSONAssetPath;
+            public TextAsset TryGetLastStoryJSONAsset () {
+                if(lastStoryJSONAssetPath == null) return null;
+                var asset = AssetDatabase.LoadAssetAtPath<TextAsset>(lastStoryJSONAssetPath);
+                if(asset == null) {
+                    lastStoryJSONAssetPath = null;
+                    Save();
+                }
+                return asset;
+            }
 
 		    public StoryPanelState storyPanelState = new StoryPanelState();
             public DivertPanelState divertPanelState = new DivertPanelState();        
@@ -175,13 +210,27 @@ namespace Ink.UnityIntegration {
 		public class PlayerOptions {
 			public bool continueAutomatically = true;
 			public bool chooseAutomatically = false;
+			public float continueAutomaticallyTimeInterval = 0.1f;
+			public float chooseAutomaticallyTimeInterval = 0.1f;
 		}
 
 		public static StoryPanelViewState storyPanelViewState = new StoryPanelViewState();
         [System.Serializable]
 		public class StoryPanelViewState {
             public bool showingContentPanel = true;
-		    public Vector2 storyScrollPosition;
+            [SerializeField]
+            Vector2 _scrollPosition;
+            public Vector2 scrollPosition {
+                get {
+                    return _scrollPosition;
+                } set {
+                    if(_scrollPosition == value) return;
+                    _scrollPosition = value;
+                    // Deselect lines on scrolling because otherwise unity does weird things with the selection
+                    // Disabled because it was deselecting the search field as you typed
+                    // GUI.FocusControl(null);
+                }
+            }
         }
         [System.Serializable]
         public class StoryPanelState {
@@ -207,12 +256,17 @@ namespace Ink.UnityIntegration {
 			} set {
 				_storyJSONTextAsset = value;
 				if (_storyJSONTextAsset != null) {
-					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(storyJSONTextAsset));
+                    InkPlayerWindowState.Instance.lastStoryJSONAssetPath = AssetDatabase.GetAssetPath(storyJSONTextAsset);
+					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(InkPlayerWindowState.Instance.lastStoryJSONAssetPath);
 					currentStoryJSONLastEditDateTime = File.GetLastWriteTime(fullJSONFilePath);
-				}
+				} else {
+                    InkPlayerWindowState.Instance.lastStoryJSONAssetPath = null;
+                }
+                InkPlayerWindowState.Save();
 			}
 		}
 		static string storyJSON;
+		static string currentStoryJSONPath;
 		static DateTime currentStoryJSONLastEditDateTime;
 
 		private static Story _story;
@@ -252,7 +306,15 @@ namespace Ink.UnityIntegration {
 
 //		private WindowState windowState = new WindowState();
 //		public class WindowState {
-		public static Vector2 scrollPosition;
+		static Vector2 _scrollPosition;
+		public static Vector2 scrollPosition {
+            get {
+                return _scrollPosition;
+            } set {
+                if(_scrollPosition == value) return;
+                _scrollPosition = value;
+            }
+        }
 		public static bool showingChoicesPanel = true;
 		public static bool showingSaveLoadPanel;
 		public static bool showingProfileData;
@@ -336,20 +398,47 @@ namespace Ink.UnityIntegration {
 			public enum VisibilityOptions {
                 Warnings = 1 << 0,
                 Errors = 1 << 1,
-                Choice = 1 << 2,
-                Function = 1 << 3,
-                ChoosePathString = 1 << 4,
-                DebugNotes = 1 << 5,
-                TimeStamp = 1 << 6,
-                EmptyEntries = 1 << 7,
+                Content = 1 << 2,
+                PresentedChoices = 1 << 3,
+                SelectedChoice = 1 << 4,
+                Function = 1 << 5,
+                ChoosePathString = 1 << 6,
+                DebugNotes = 1 << 7,
+                TimeStamp = 1 << 8,
+                EmptyEntries = 1 << 9,
             }
-            public VisibilityOptions visibilityOptions = (VisibilityOptions)(((int)VisibilityOptions.Warnings) + ((int)VisibilityOptions.Errors));
+            public VisibilityOptions visibilityOptions = VisibilityOptions.Warnings | VisibilityOptions.Errors | VisibilityOptions.Content;
 
 			public bool displayWarningsInConsole = true;
 			public bool displayErrorsInConsole = true;
 		}
 
         public static InkPlayerParams playerParams;
+
+
+        static float lastOnGUITime = -1f;
+        static float lastUpdateTime = -1f;
+
+        public enum AutoScrollMode {
+            NONE,
+            Snap,
+            Smooth
+        }
+        static AutoScrollMode markedForScrollToBottom;
+        
+        static AutoScrollMode markedForScrollToSelectedLine;
+        static InkPlayerHistoryContentItem selectedLine;
+        
+        static bool doingAutoscroll;
+        static float autoscrollTarget;
+        static float autoscrollVelocity;
+        static float autoscrollSmoothTime = 0.25f;
+
+        static float timeUntilNextAutomaticChoice = 0;
+        static float timeUntilNextAutomaticContinue = 0;
+
+
+
 
 		[MenuItem("Window/Ink Player %#i", false, 2300)]
 		public static InkPlayerWindow GetWindow () {
@@ -374,20 +463,53 @@ namespace Ink.UnityIntegration {
             BuildFunctionInputList();
 			
             EditorApplication.update += Update;
+
+            var lastLoadedStory = InkPlayerWindowState.Instance.TryGetLastStoryJSONAsset();
+            if(lastLoadedStory != null) LoadAndPlay(lastLoadedStory);
 		}
 
 		void OnDisable () {
 			EditorApplication.update -= Update;
 		}
 
+        private void OnBecameVisible() {
+            if(doingAutoscroll) {
+                storyPanelViewState.scrollPosition = new Vector2(storyPanelViewState.scrollPosition.x, autoscrollTarget);
+                doingAutoscroll = false;
+            }
+        }
+    
+        private void OnBecameInvisible() {}
+
 		void OnDestroy () {
 			isOpen = false;
 		}
 
-		private static  void Update () {
-			if(story != null && playerOptions.chooseAutomatically) {
-				if(story.currentChoices.Count > 0) {
-					MakeRandomChoice();
+		private static void Update () {
+            var time = Time.realtimeSinceStartup;
+            var deltaTime = 0f;
+            if(lastUpdateTime != -1)
+                deltaTime = time - lastUpdateTime;
+            lastUpdateTime = time;
+            
+			if(story != null) {
+                timeUntilNextAutomaticChoice -= deltaTime;
+				if(story.currentChoices.Count > 0 && playerOptions.chooseAutomatically) {
+                    if(timeUntilNextAutomaticChoice <= 0) {
+                        MakeRandomChoice();
+                        timeUntilNextAutomaticChoice = playerOptions.chooseAutomaticallyTimeInterval;
+                    }
+				}
+				if(story.canContinue && playerOptions.continueAutomatically) {
+                    timeUntilNextAutomaticContinue -= deltaTime;
+                    if(timeUntilNextAutomaticContinue <= 0) {
+                        if(playerOptions.continueAutomaticallyTimeInterval == 0) {
+                            story.ContinueMaximally();
+                        } else {
+                            ContinueStory();
+                        }
+                        timeUntilNextAutomaticContinue = playerOptions.continueAutomaticallyTimeInterval;
+                    }
 				}
 			}
 		}
@@ -398,11 +520,16 @@ namespace Ink.UnityIntegration {
         
 
         static void OnDidContinue () {
-			AddContent(story.currentText.Trim());
+			AddStoryContent(story.currentText.Trim());
+            if(story.currentChoices != null) {
+                foreach(var choice in story.currentChoices) {
+                    AddToHistory(new InkPlayerHistoryContentItem(choice.text.Trim(), InkPlayerHistoryContentItem.ContentType.PresentedStoryChoice));
+                }
+            }
             AddWarningsAndErrorsToHistory();
         }
         static void OnMakeChoice (Choice choice) {
-            storyHistory.Add(new InkPlayerHistoryContentItem(choice.text.Trim(), InkPlayerHistoryContentItem.ContentType.StoryChoice));		
+            AddToHistory(new InkPlayerHistoryContentItem(choice.text.Trim(), InkPlayerHistoryContentItem.ContentType.SelectedStoryChoice));		
             AddWarningsAndErrorsToHistory();
         }
         static void OnEvaluateFunction (string functionName, object[] arguments) {
@@ -421,7 +548,7 @@ namespace Ink.UnityIntegration {
                     if(i < arguments.Length-1) sb.Append(", ");
                 }
             }
-            storyHistory.Add(new InkPlayerHistoryContentItem(sb.ToString(), InkPlayerHistoryContentItem.ContentType.StoryEvaluateFunction));		
+            AddToHistory(new InkPlayerHistoryContentItem(sb.ToString().Trim(), InkPlayerHistoryContentItem.ContentType.StoryEvaluateFunction));		
             AddWarningsAndErrorsToHistory();
         }
         static void OnCompleteEvaluateFunction (string functionName, object[] arguments, string textOutput, object result) {
@@ -444,7 +571,7 @@ namespace Ink.UnityIntegration {
                 if(result != null) sb.Append(" result is: "+result);
                 if(!hasTextOutput && result == null) sb.Append("has no output");
             }
-            storyHistory.Add(new InkPlayerHistoryContentItem(sb.ToString(), InkPlayerHistoryContentItem.ContentType.StoryEvaluateFunction));		
+            AddToHistory(new InkPlayerHistoryContentItem(sb.ToString().Trim(), InkPlayerHistoryContentItem.ContentType.StoryEvaluateFunction));		
             AddWarningsAndErrorsToHistory();
         }
         static void OnChoosePathString (string pathString, object[] arguments) {
@@ -463,14 +590,14 @@ namespace Ink.UnityIntegration {
                     if(i < arguments.Length-1) sb.Append(", ");
                 }
             }
-            storyHistory.Add(new InkPlayerHistoryContentItem(sb.ToString(), InkPlayerHistoryContentItem.ContentType.StoryChoosePathString));
+            AddToHistory(new InkPlayerHistoryContentItem(sb.ToString().Trim(), InkPlayerHistoryContentItem.ContentType.StoryChoosePathString));
             AddWarningsAndErrorsToHistory();
         }
 
 		static void AddWarningsAndErrorsToHistory () {
             if(story.hasWarning) {
                 foreach(var warning in story.currentWarnings) {
-                    storyHistory.Add(new InkPlayerHistoryContentItem(warning.Trim(), InkPlayerHistoryContentItem.ContentType.StoryWarning));
+                    AddToHistory(new InkPlayerHistoryContentItem(warning.Trim(), InkPlayerHistoryContentItem.ContentType.StoryWarning));
                     if(InkPlayerWindowState.Instance.storyPanelState.displayOptions.displayWarningsInConsole) {
                         Debug.LogWarning("Ink Warning: "+warning.Trim());
                     }
@@ -478,7 +605,7 @@ namespace Ink.UnityIntegration {
             }
             if(story.hasError) {
                 foreach(var error in story.currentErrors) {
-                    storyHistory.Add(new InkPlayerHistoryContentItem(error.Trim(), InkPlayerHistoryContentItem.ContentType.StoryError));
+                    AddToHistory(new InkPlayerHistoryContentItem(error.Trim(), InkPlayerHistoryContentItem.ContentType.StoryError));
                     if(InkPlayerWindowState.Instance.storyPanelState.displayOptions.displayErrorsInConsole) {
                         Debug.LogError("Ink Error: "+error.Trim());
                     }
@@ -551,8 +678,8 @@ namespace Ink.UnityIntegration {
 			Play(storyJSONTextAsset, InkPlayerParams.Standard);
 		}
 		static void Play (TextAsset storyJSONTextAsset, InkPlayerParams inkPlayerParams) {
-			InkPlayerWindow.storyJSONTextAsset = storyJSONTextAsset;
-			if(!InkEditorUtils.CheckStoryIsValid(storyJSONTextAsset.text, out playStoryException))
+            InkPlayerWindow.storyJSONTextAsset = storyJSONTextAsset;
+			if(storyJSONTextAsset == null || !InkEditorUtils.CheckStoryIsValid(storyJSONTextAsset.text, out playStoryException))
 				return;
 			storyJSON = InkPlayerWindow.storyJSONTextAsset.text;
             InkPlayerWindow.playerParams = inkPlayerParams;
@@ -648,13 +775,17 @@ namespace Ink.UnityIntegration {
 			story.Continue();
 		}
 
-		static void AddContent (string content) {
-			storyHistory.Add(new InkPlayerHistoryContentItem(content, InkPlayerHistoryContentItem.ContentType.StoryContent));
-			ScrollToBottom();
-			if(!playerParams.disableUndoHistory) AddToHistory();
+		static void AddStoryContent (string content) {
+			AddToHistory(new InkPlayerHistoryContentItem(content, InkPlayerHistoryContentItem.ContentType.StoryContent));
+			if(!playerParams.disableUndoHistory) AddToStateHistory();
 		}
 		
-		static void AddToHistory () {
+        static void AddToHistory (InkPlayerHistoryContentItem content) {
+            storyHistory.Add(content);
+            ScrollToBottom();
+        }
+
+		static void AddToStateHistory () {
 			InkPlayerHistoryItem historyItem = new InkPlayerHistoryItem(story.state.ToJson(), new List<InkPlayerHistoryContentItem>(storyHistory));
 			storyStateHistory.AddToUndoHistory(historyItem);
 		}
@@ -674,7 +805,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		static void SaveStoryState (string storyStateJSON) {
-			storyHistory.Add(new InkPlayerHistoryContentItem("Saved state", InkPlayerHistoryContentItem.ContentType.DebugNote));
+			AddToHistory(new InkPlayerHistoryContentItem("Saved state", InkPlayerHistoryContentItem.ContentType.DebugNote));
 
 			// Text asset can be null if we attached to an existing story rather than loading our own
 			string dirPath = string.Empty;
@@ -688,32 +819,47 @@ namespace Ink.UnityIntegration {
 		}
 
 		static void LoadStoryState (string storyStateJSON) {
-			Debug.Log("CLER");
 			storyHistory.Clear();
 			storyStateHistory.Clear();
-			storyHistory.Add(new InkPlayerHistoryContentItem("Loaded state", InkPlayerHistoryContentItem.ContentType.DebugNote));
+			AddToHistory(new InkPlayerHistoryContentItem("Loaded state", InkPlayerHistoryContentItem.ContentType.DebugNote));
 			story.state.LoadJson(storyStateJSON);
 		}
 
-		static void ScrollToBottom () {
-			storyPanelViewState.storyScrollPosition.y = Mathf.Infinity;
+		static void ScrollToBottom (bool instant = false) {
+            markedForScrollToBottom = instant ? AutoScrollMode.Snap : AutoScrollMode.Smooth;
+		}
+
+		static void ScrollToSelectedLine (bool instant = false) {
+            markedForScrollToSelectedLine = instant ? AutoScrollMode.Snap : AutoScrollMode.Smooth;
 		}
 
 		static void TryContinue () {
 			if(!story.canContinue) 
 				return;
-			if(playerOptions.continueAutomatically) {
-				while (story.canContinue) {
-					ContinueStory();
-				}
-			} else {
+			// if(playerOptions.continueAutomatically) {
+			// 	while (story.canContinue) {
+			// 		ContinueStory();
+			// 	}
+			// } else {
 				ContinueStory();
-			}
+			// }
 		}
 		
 		void OnGUI () {
+            var time = Time.realtimeSinceStartup;
+            var deltaTime = 0f;
+            if(lastOnGUITime != -1)
+                deltaTime = time - lastOnGUITime;
+            lastOnGUITime = time;
+            
+            if(doingAutoscroll) {
+                var newY = Mathf.SmoothDamp(storyPanelViewState.scrollPosition.y, autoscrollTarget, ref autoscrollVelocity, autoscrollSmoothTime, Mathf.Infinity, deltaTime);
+                storyPanelViewState.scrollPosition = new Vector2(storyPanelViewState.scrollPosition.x, newY);
+                if(Mathf.Abs(storyPanelViewState.scrollPosition.y - autoscrollTarget) < 0.1f) doingAutoscroll = false;
+            }
+
             this.Repaint();
-			scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
             if(story == null && attached) DetachInstance();
 
@@ -815,12 +961,12 @@ namespace Ink.UnityIntegration {
 			// Undo/Redo
 			if(story != null) {
 				EditorGUI.BeginDisabledGroup(playerParams.disableUndoHistory || !storyStateHistory.canUndo);
-				if(GUILayout.Button(new GUIContent("Undo", "Undo the last continue or choice"), EditorStyles.toolbarButton)) {
+				if(GUILayout.Button(new GUIContent("Undo", "Undo the last continue or choice"), EditorStyles.toolbarButton, GUILayout.Width(36))) {
 					Undo();
 				}
 				EditorGUI.EndDisabledGroup();
 				EditorGUI.BeginDisabledGroup(playerParams.disableUndoHistory || !storyStateHistory.canRedo);
-				if(GUILayout.Button(new GUIContent("Redo", "Redo the last continue or choice"), EditorStyles.toolbarButton)) {
+				if(GUILayout.Button(new GUIContent("Redo", "Redo the last continue or choice"), EditorStyles.toolbarButton, GUILayout.Width(36))) {
 					Redo();
 				}
 				EditorGUI.EndDisabledGroup();
@@ -842,7 +988,7 @@ namespace Ink.UnityIntegration {
                 if(!playerParams.disablePlayControls) playerOptions.chooseAutomatically = newChooseAutomatically;
             }
             EditorGUI.EndDisabledGroup();
-
+			playerOptions.continueAutomaticallyTimeInterval = playerOptions.chooseAutomaticallyTimeInterval = GUILayout.HorizontalSlider(playerOptions.continueAutomaticallyTimeInterval, 1f, 0f, GUILayout.Width(80));
 			GUILayout.EndHorizontal();
 		}
 			
@@ -868,14 +1014,17 @@ namespace Ink.UnityIntegration {
 			EditorGUI.BeginChangeCheck();
             // TODO: tooltips for options. I'd REALLY like for it not to show "Mixed ..." in the box mais c'est la vie
             // TODO: Add a "default" option in the dropdown
-            Enum newVisibilityOptions = EditorGUILayout.EnumFlagsField(GUIContent.none, InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions, EditorStyles.toolbarDropDown, GUILayout.Width(120));
+            Enum newVisibilityOptions = EditorGUILayout.EnumFlagsField(GUIContent.none, InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions, EditorStyles.toolbarDropDown, GUILayout.Width(80));
     		InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions = (DisplayOptions.VisibilityOptions)(int)Convert.ChangeType(newVisibilityOptions, typeof(DisplayOptions.VisibilityOptions));
 			if(EditorGUI.EndChangeCheck()) {
 				ScrollToBottom();
 			}
 
             bool changed = DrawSearchBar(ref InkPlayerWindowState.Instance.storyPanelState.searchString);
-            if(changed) ScrollToBottom();
+            if(changed) {
+                if(selectedLine != null) ScrollToSelectedLine(true);
+                else ScrollToBottom();
+            }
 
 			EditorGUILayout.EndHorizontal();
         }
@@ -903,9 +1052,11 @@ namespace Ink.UnityIntegration {
         bool ShouldShowContent (InkPlayerHistoryContentItem content) {
             if(content.content == string.Empty && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.EmptyEntries) == 0) {
                 return false;
-            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryContent) {
+            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryContent && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Content) != 0) {
                 return true;
-            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryChoice && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Choice) != 0) {
+            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.SelectedStoryChoice && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.SelectedChoice) != 0) {
+                return true;
+            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.PresentedStoryChoice && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.PresentedChoices) != 0) {
                 return true;
             } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.DebugNote && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.DebugNotes) != 0) {
                 return true;
@@ -920,133 +1071,239 @@ namespace Ink.UnityIntegration {
             }
             return false;
         }
-		void DisplayStoryBody () {
-			GUILayout.BeginVertical();
-			
-            float m_ItemHeight = 20;
-            float minScrollRectHeight = 30;
-            float maxScrollRectHeight = 400;
-            float totalHeight = 0;
-            // int totalItemsToShow = 0;
-            List<InkPlayerHistoryContentItem> validHistory = new List<InkPlayerHistoryContentItem>();
-            // float[] heights = new float[storyHistory.Count];
+        
+        static List<InkPlayerHistoryContentItem> validHistory = new List<InkPlayerHistoryContentItem>();
+        void GetValidHistory () {
+            validHistory.Clear();
             for(int i = 0; i < storyHistory.Count; i++) {
                 var content = storyHistory[i];
                 if(!ShouldShowContentWithSearchString(content.content, InkPlayerWindowState.Instance.storyPanelState.searchString)) continue;
 				if(!ShouldShowContent(content)) continue;
-				// heights[i] = m_ItemHeight;
-                totalHeight += m_ItemHeight;
-                // totalItemsToShow++;
                 validHistory.Add(content);
             }
-            float scrollRectHeight = Mathf.Clamp(totalHeight, minScrollRectHeight, maxScrollRectHeight);
-            storyPanelViewState.storyScrollPosition = EditorGUILayout.BeginScrollView(storyPanelViewState.storyScrollPosition, GUILayout.ExpandHeight(false), GUILayout.Height(scrollRectHeight));
-            int numToShow = Mathf.CeilToInt(scrollRectHeight / m_ItemHeight);
-            int firstIndex = (int)(storyPanelViewState.storyScrollPosition.y / m_ItemHeight);
-            firstIndex = Mathf.Clamp(firstIndex,0,Mathf.Max(0,validHistory.Count-numToShow));
-            GUILayout.Space(firstIndex * m_ItemHeight);
-            var lastIndex = Mathf.Min(validHistory.Count, firstIndex+numToShow);
-            for(int i = firstIndex; i < lastIndex; i++) {
+        }
+        void DisplayStoryBody () {
+			GetValidHistory();
+    
+            float storyContentMargin = 4;
+            float contentSpacing = 8;
+            
+            var timestampWidth = 58;
+            var contentTypeWidth = 26;
+
+            var visibilityOptions = InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions;
+            bool showTimestamp = (visibilityOptions & DisplayOptions.VisibilityOptions.TimeStamp) != 0; 
+
+			var lastRect = GUILayoutUtility.GetLastRect();
+            var containerWidth = position.width - GUI.skin.verticalScrollbar.fixedWidth;
+            
+            var lineWidth = containerWidth - storyContentMargin * 2;
+            
+            var contentWidth = lineWidth;
+            if(showTimestamp) {
+                contentWidth -= timestampWidth;
+                contentWidth -= contentSpacing;
+            }
+            contentWidth -= contentTypeWidth;
+            contentWidth -= contentSpacing;
+            
+            float minScrollRectHeight = 30;
+            float maxScrollRectHeight = 480;
+            float totalHeight = 0;
+            float[] heights = new float[storyHistory.Count];
+            int selectedLineIndex = -1;
+            float selectedLineY = -1;
+            for(int i = 0; i < validHistory.Count; i++) {
                 var content = validHistory[i];
-                DisplayContent(content, i);
+                heights[i] = EditorStyles.wordWrappedLabel.CalcHeight(new GUIContent(content.content), contentWidth);
+                heights[i] += storyContentMargin * 2;
+                if(content == selectedLine) {
+                    selectedLineIndex = i;
+                    selectedLineY = totalHeight;
+                }
+				totalHeight += heights[i];
             }
-            GUILayout.Space(Mathf.Max(0,(validHistory.Count-firstIndex-numToShow) * m_ItemHeight));
-            EditorGUILayout.EndScrollView();
+
+            float scrollRectHeight = Mathf.Clamp(totalHeight, minScrollRectHeight, maxScrollRectHeight);
+            
+            var viewportRect = new Rect(0,lastRect.yMax,position.width, scrollRectHeight);
+            var containerRect = new Rect(0,0,containerWidth, totalHeight);
+            
+            var newScrollPos = GUI.BeginScrollView(viewportRect, storyPanelViewState.scrollPosition, containerRect, false, true);
+            if(newScrollPos != storyPanelViewState.scrollPosition) {
+                doingAutoscroll = false;
+                storyPanelViewState.scrollPosition = newScrollPos;
+            }
+
+            var y = 0f;
+            var panelTop = storyPanelViewState.scrollPosition.y;
+            var panelBottom = storyPanelViewState.scrollPosition.y + scrollRectHeight;
+            // int numShown = 0;
+            // var log = "";
+            for(int i = 0; i < validHistory.Count; i++) {
+                var endY = y + heights[i];
+                if(panelTop <= endY && panelBottom >= y) {
+                    // if(numShown == 0) {
+                    //     log += "Total space "+totalHeight+" Scroll "+storyPanelViewState.storyScrollPosition.y+" Space "+y+", showing: ";
+                    // }
+                    var content = validHistory[i];
+                    var lineContainerRect = new Rect(0, y, containerWidth, heights[i]);
+                    var lineRect = new Rect(lineContainerRect.x + storyContentMargin, lineContainerRect.y + storyContentMargin, lineContainerRect.width - storyContentMargin * 2, lineContainerRect.height - storyContentMargin * 2);
+                    
+                    GUIStyle lineStyle = null;
+                    if(selectedLine == content) lineStyle = historyItemBGStyleSelected.guiStyle;
+                    else lineStyle = i % 2 == 0 ? historyItemBGStyleDark.guiStyle : historyItemBGStyleLight.guiStyle;
+                    
+                    if(GUI.Button(lineContainerRect, GUIContent.none, lineStyle)) {
+                        selectedLine = content;
+                        ScrollToSelectedLine();
+                    }
+
+                    string textToDisplay = String.Empty;
+                    
+                    var x = lineRect.x;
+                    if(showTimestamp) {
+                        var timeRect = new Rect(x, lineRect.y, timestampWidth, lineRect.height);
+                        DisplayLineTime(timeRect, content);
+                        x += timestampWidth;
+                        x += contentSpacing;
+                    }
+                    var iconRect = new Rect(x, lineRect.y, contentTypeWidth, lineRect.height);
+                    DisplayLineIcon(iconRect, content);
+                    x += contentTypeWidth;
+                    x += contentSpacing;
+                    
+                    var contentRect = new Rect(x, lineRect.y, contentWidth, lineRect.height);
+                    DisplayLine(contentRect, content);
+                    // log += i+", ";
+                }
+                y = endY;
+            }
+
+            var lineX = storyContentMargin;
+            if(showTimestamp) {
+                lineX += timestampWidth;
+                lineX += contentSpacing * 0.5f;
+                GUI.Box(new Rect(lineX, 0, 1, containerRect.height), "", dividerLineStyle.guiStyle);
+                lineX += contentSpacing * 0.5f;
+            }
+            lineX += contentTypeWidth;
+            lineX += contentSpacing * 0.5f;
+            GUI.Box(new Rect(lineX, 0, 1, containerRect.height), "", dividerLineStyle.guiStyle);
+            lineX += contentSpacing * 0.5f;
 
 
-            // int displayIndex = 0;
-			// foreach(InkPlayerHistoryContentItem content in storyHistory) {
-            //     if(!ShouldShowContentWithSearchString(content.content, InkPlayerWindowState.Instance.storyPanelState.searchString)) continue;
-			// 	if(!ShouldShowContent(content)) continue;
-            //     DisplayContent(content, displayIndex);
-            //     displayIndex++;
-			// }
-			// EditorGUILayout.EndScrollView();
-			GUILayout.EndVertical();
+            GUI.EndScrollView();
+            GUILayout.Space(viewportRect.height);
+
+            if(Event.current.type == EventType.Layout) {
+                if(markedForScrollToBottom != AutoScrollMode.NONE) {
+                    var targetPosition = totalHeight - viewportRect.height;
+                    if(markedForScrollToBottom == AutoScrollMode.Smooth) {
+                        doingAutoscroll = true;
+                        autoscrollTarget = targetPosition;
+                    } else if(markedForScrollToBottom == AutoScrollMode.Snap) {
+                        doingAutoscroll = false;
+                        storyPanelViewState.scrollPosition = new Vector2(storyPanelViewState.scrollPosition.x, targetPosition);
+                    }
+                    autoscrollVelocity = 0;
+                    markedForScrollToBottom = AutoScrollMode.NONE;
+                }
+                if(markedForScrollToSelectedLine != AutoScrollMode.NONE && selectedLineIndex != -1) {
+                    var targetPosition = Mathf.Clamp((selectedLineY + heights[selectedLineIndex] * 0.5f) - viewportRect.height * 0.5f, 0, totalHeight - viewportRect.height);
+                    if(markedForScrollToSelectedLine == AutoScrollMode.Smooth) {
+                        doingAutoscroll = true;
+                        autoscrollTarget = targetPosition;
+                    } else if(markedForScrollToSelectedLine == AutoScrollMode.Snap) {
+                        doingAutoscroll = false;
+                        storyPanelViewState.scrollPosition = new Vector2(storyPanelViewState.scrollPosition.x, targetPosition);
+                    }
+                    autoscrollVelocity = 0;
+                    markedForScrollToSelectedLine = AutoScrollMode.NONE;
+                }
+            }
 		}
 
-        private static Color historyItemBGColor1Free = new Color(0.81f,0.81f,0.81f,1);
-        private static Color historyItemBGColor1Pro = new Color(0.21f,0.21f,0.21f,1);
-        private static Texture2D _historyItemBGTexture1;
-        private static Texture2D historyItemBGTexture1 {
+        static ColoredBackgroundGUIStyle _historyItemBGStyleDark;
+        static ColoredBackgroundGUIStyle historyItemBGStyleDark {
             get {
-                if( _historyItemBGTexture1 == null ) {
-                    _historyItemBGTexture1 = new Texture2D( 1, 1 );
-                    _historyItemBGTexture1.SetPixel(0, 0, EditorGUIUtility.isProSkin ? historyItemBGColor1Pro : historyItemBGColor1Free);
-                    _historyItemBGTexture1.Apply();
-                }
-                return _historyItemBGTexture1;
-            }
-        }
-        private static GUIStyle _historyItemBGStyle1;
-        private static GUIStyle historyItemBGStyle1 {
-            get {
-                if( _historyItemBGStyle1 == null ) {
-                    _historyItemBGStyle1 = new GUIStyle();
-                    _historyItemBGStyle1.normal.background = historyItemBGTexture1;
-                }
-                return _historyItemBGStyle1;
+                if(_historyItemBGStyleDark == null) _historyItemBGStyleDark = new ColoredBackgroundGUIStyle(new Color(0.8470589f,0.8470589f,0.8470589f,1), new Color(0.21f,0.21f,0.21f,1f));
+                return _historyItemBGStyleDark;
             }
         }
 
+        static ColoredBackgroundGUIStyle _historyItemBGStyleLight;
+        static ColoredBackgroundGUIStyle historyItemBGStyleLight {
+            get {
+                if(_historyItemBGStyleLight == null) _historyItemBGStyleLight = new ColoredBackgroundGUIStyle(new Color(0.8745099f,0.8745099f,0.8745099f,1f), new Color(0.23f,0.23f,0.23f,1f));
+                return _historyItemBGStyleLight;
+            }
+        }
 
-        private static Color historyItemBGColor2Free = new Color(0.83f,0.83f,0.83f,1f);
-        private static Color historyItemBGColor2Pro = new Color(0.23f,0.23f,0.23f,1f);
-        private static Texture2D _historyItemBGTexture2;
-        private static Texture2D historyItemBGTexture2 {
+        static ColoredBackgroundGUIStyle _historyItemBGStyleSelected;
+        static ColoredBackgroundGUIStyle historyItemBGStyleSelected {
             get {
-                if( _historyItemBGTexture2 == null ) {
-                    _historyItemBGTexture2 = new Texture2D( 1, 1 );
-                    _historyItemBGTexture2.SetPixel(0, 0, EditorGUIUtility.isProSkin ? historyItemBGColor2Pro : historyItemBGColor2Free);
-                    _historyItemBGTexture2.Apply();
-                }
-                return _historyItemBGTexture2;
+                if(_historyItemBGStyleSelected == null) _historyItemBGStyleSelected = new ColoredBackgroundGUIStyle(new Color(0.2392157f,0.5019608f,0.8745099f,1f));
+                return _historyItemBGStyleSelected;
             }
         }
-        private static GUIStyle _historyItemBGStyle2;
-        private static GUIStyle historyItemBGStyle2 {
+
+        static ColoredBackgroundGUIStyle _dividerLineStyle;
+        static ColoredBackgroundGUIStyle dividerLineStyle {
             get {
-                if( _historyItemBGStyle2 == null ) {
-                    _historyItemBGStyle2 = new GUIStyle();
-                    _historyItemBGStyle2.normal.background = historyItemBGTexture2;
-                }
-                return _historyItemBGStyle2;
+                if(_dividerLineStyle == null) _dividerLineStyle = new ColoredBackgroundGUIStyle(new Color(0.85f,0.85f,0.85f,1f), new Color(0.25f,0.25f,0.25f,1f));
+                return _dividerLineStyle;
             }
         }
-		void DisplayContent(InkPlayerHistoryContentItem content, int index)  {
-            EditorGUILayout.BeginHorizontal(index % 2 == 0 ? historyItemBGStyle1 : historyItemBGStyle2);
-            string s = String.Empty;
-			if((InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.TimeStamp) != 0) 
-                s = "("+content.time.ToLongTimeString()+") ";
-			if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryChoice && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Choice) != 0) {
-                var icon = EditorGUIUtility.IconContent("d_Animation.Play");
-                EditorGUILayout.LabelField(icon, GUILayout.Width(icon.image.width), GUILayout.Height(icon.image.height));
-				s += " > ";
-			} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.DebugNote && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.DebugNotes) != 0) {
-                // var icon = EditorGUIUtility.IconContent("UnityEditor.ConsoleWindow");
-                // EditorGUILayout.LabelField(icon, GUILayout.Width(icon.image.width), GUILayout.Height(icon.image.height));
-				s += " // ";
-			} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryWarning && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Warnings) != 0) {
+
+        void DisplayLineTime (Rect rect, InkPlayerHistoryContentItem content) {
+            EditorGUI.LabelField(rect, new GUIContent(content.time.ToLongTimeString()));
+        }
+
+        void DisplayLineIcon (Rect rect, InkPlayerHistoryContentItem content) {
+            var visibilityOptions = InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions;
+			if(content.contentType == InkPlayerHistoryContentItem.ContentType.SelectedStoryChoice && (visibilityOptions & DisplayOptions.VisibilityOptions.SelectedChoice) != 0) {
+                var icon = new GUIContent("*", "Selected Choice");
+                EditorGUI.LabelField(rect, icon);
+			} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.PresentedStoryChoice && (visibilityOptions & DisplayOptions.VisibilityOptions.PresentedChoices) != 0) {
+                var icon = new GUIContent("*?", "Presented Choice");
+                EditorGUI.LabelField(rect, icon);
+			} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryEvaluateFunction && (visibilityOptions & DisplayOptions.VisibilityOptions.Function) != 0) {
+                var icon = new GUIContent("f(x)", "Took Function");
+                EditorGUI.LabelField(rect, icon);
+			} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryChoosePathString && (visibilityOptions & DisplayOptions.VisibilityOptions.ChoosePathString) != 0) {
+                var icon = new GUIContent("->", "Took Path");
+                EditorGUI.LabelField(rect, icon);
+			} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.DebugNote && (visibilityOptions & DisplayOptions.VisibilityOptions.DebugNotes) != 0) {
+                var icon = new GUIContent("//", "Debug Note");
+                EditorGUI.LabelField(rect, icon);
+			} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryWarning && (visibilityOptions & DisplayOptions.VisibilityOptions.Warnings) != 0) {
                 var icon = EditorGUIUtility.IconContent("console.warnicon.sml");
-                EditorGUILayout.LabelField(icon, GUILayout.Width(icon.image.width), GUILayout.Height(icon.image.height));
-				s += " WARNING: ";
-			} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryError && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Errors) != 0) {
+                icon.tooltip = "Warning";
+                EditorGUI.LabelField(rect, icon);
+			} else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryError && (visibilityOptions & DisplayOptions.VisibilityOptions.Errors) != 0) {
                 var icon = EditorGUIUtility.IconContent("console.erroricon.sml");
-                EditorGUILayout.LabelField(icon, GUILayout.Width(icon.image.width), GUILayout.Height(icon.image.height));
-				s += " ERROR: ";
+                icon.tooltip = "Error";
+                EditorGUI.LabelField(rect, icon);
 			} else {
-                var icon = EditorGUIUtility.IconContent("console.infoicon.sml");
-                EditorGUILayout.LabelField(icon, GUILayout.Width(icon.image.width), GUILayout.Height(icon.image.height));
+                // var icon = EditorGUIUtility.IconContent("console.infoicon.sml");
+                // EditorGUI.LabelField(rect, icon);
             }
-			s += content.content;
-			DisplayLine(s);
-            EditorGUILayout.EndHorizontal();
-		}
-		void DisplayLine (string content) {
-			float width = position.width-28;
-			float height = EditorStyles.wordWrappedLabel.CalcHeight(new GUIContent(content), width);
-			EditorGUILayout.LabelField(content, EditorStyles.wordWrappedLabel, GUILayout.ExpandHeight(true), GUILayout.Width(width), GUILayout.Height(height));
-		}
+        }
+
+		void DisplayLine (Rect rect, InkPlayerHistoryContentItem content) {
+            float timeSinceLastWrite = (float)(System.DateTime.Now - content.time).TotalSeconds;
+            var revealTime = 1f;
+            var l = Mathf.InverseLerp(revealTime, 0, timeSinceLastWrite);
+            var newColor = new Color(GUI.color.r, GUI.color.g, GUI.color.b, 0);
+            var color = Color.Lerp(GUI.color, newColor, l);
+            var oldGUIColor = GUI.color; 
+            GUI.color = color;
+            EditorGUI.SelectableLabel(rect, content.content, EditorStyles.wordWrappedLabel);
+            GUI.color = oldGUIColor;
+        }
+
+
 
 		void DrawChoices () {
 			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -1060,6 +1317,7 @@ namespace Ink.UnityIntegration {
 			EditorGUI.BeginDisabledGroup(playerParams.disableChoices);
 			GUILayout.BeginVertical();
 			if(story.canContinue) {
+                EditorGUI.BeginDisabledGroup(playerOptions.continueAutomatically);
 				if(GUILayout.Button(new GUIContent("Continue", "Continues once"))) {
 					ContinueStory();
 				}
@@ -1068,7 +1326,9 @@ namespace Ink.UnityIntegration {
 						ContinueStory();
 					}
 				}
+                EditorGUI.EndDisabledGroup();
 			} else if(story.currentChoices.Count > 0) {
+                EditorGUI.BeginDisabledGroup(playerOptions.chooseAutomatically);
 				foreach(Choice choice in story.currentChoices) {
 					GUILayout.BeginHorizontal();
                     if(GUILayout.Button(new GUIContent(choice.text.Trim(), "Index: "+choice.index.ToString()+"\nSourcePath: "+choice.sourcePath.Trim()))) {
@@ -1076,6 +1336,7 @@ namespace Ink.UnityIntegration {
 					}
                     GUILayout.EndHorizontal();
 				}
+                EditorGUI.EndDisabledGroup();
 			} else {
 				GUILayout.Label("Reached end of story");
 			}
@@ -1090,7 +1351,7 @@ namespace Ink.UnityIntegration {
 
 		static void MakeChoice (Choice choice) {
 			story.ChooseChoiceIndex(choice.index);
-			if(!playerParams.disableUndoHistory) AddToHistory();
+			if(!playerParams.disableUndoHistory) AddToStateHistory();
 			TryContinue();
 		}
 
@@ -1159,7 +1420,7 @@ namespace Ink.UnityIntegration {
 			InkPlayerWindowState.Instance.divertPanelState.divertCommand = EditorGUILayout.TextField("Divert command", InkPlayerWindowState.Instance.divertPanelState.divertCommand);
 			EditorGUI.BeginDisabledGroup(InkPlayerWindowState.Instance.divertPanelState.divertCommand == "");
 			if (GUILayout.Button("Divert")) {
-				storyHistory.Add(new InkPlayerHistoryContentItem("Diverted to '"+InkPlayerWindowState.Instance.divertPanelState.divertCommand+"'", InkPlayerHistoryContentItem.ContentType.DebugNote));
+				AddToHistory(new InkPlayerHistoryContentItem("Diverted to '"+InkPlayerWindowState.Instance.divertPanelState.divertCommand+"'", InkPlayerHistoryContentItem.ContentType.DebugNote));
 				story.ChoosePathString(InkPlayerWindowState.Instance.divertPanelState.divertCommand);
 				PingAutomator();
 			}
@@ -1203,7 +1464,7 @@ namespace Ink.UnityIntegration {
 			bool functionIsValid = functionPanelState.functionParams.functionName != String.Empty && story.HasFunction(functionPanelState.functionParams.functionName);
 			EditorGUI.BeginDisabledGroup(!functionIsValid);
 			if (GUILayout.Button(new GUIContent("Execute", "Runs the function"))) {
-				storyHistory.Add(new InkPlayerHistoryContentItem("Execute function '"+functionPanelState.functionParams.functionName+"'", InkPlayerHistoryContentItem.ContentType.DebugNote));
+				AddToHistory(new InkPlayerHistoryContentItem("Execute function '"+functionPanelState.functionParams.functionName+"'", InkPlayerHistoryContentItem.ContentType.DebugNote));
 				string outputContent = null;
 				object[] allInput = new object[functionPanelState.functionParams.inputs.Count];
 				for (int i = 0; i < functionPanelState.functionParams.inputs.Count; i++) {
@@ -1231,7 +1492,7 @@ namespace Ink.UnityIntegration {
 
 				functionPanelState.functionReturnValue = story.EvaluateFunction(functionPanelState.functionParams.functionName, out outputContent, allInput);
 				if(outputContent != null)
-					AddContent(outputContent);
+					AddStoryContent(outputContent);
 				functionPanelState.testedFunctionName = functionPanelState.functionParams.functionName;
 			}
 			EditorGUI.EndDisabledGroup();
@@ -1366,7 +1627,7 @@ namespace Ink.UnityIntegration {
 				EditorGUILayout.EndHorizontal();
 			}
 			if(variableToChange != null) {
-				storyHistory.Add(new InkPlayerHistoryContentItem("Change '"+variableToChange+"' from '"+story.variablesState[variableToChange]+"' to '"+newVariableValue+"'", InkPlayerHistoryContentItem.ContentType.DebugNote));
+				AddToHistory(new InkPlayerHistoryContentItem("Change '"+variableToChange+"' from '"+story.variablesState[variableToChange]+"' to '"+newVariableValue+"'", InkPlayerHistoryContentItem.ContentType.DebugNote));
 				story.variablesState[variableToChange] = newVariableValue;
 				variableToChange = null;
 				newVariableValue = null;
@@ -1616,7 +1877,6 @@ namespace Ink.UnityIntegration {
 			searchString = GUILayout.TextField(searchString, GUI.skin.FindStyle("ToolbarSeachTextField"));
 			if (GUILayout.Button("", GUI.skin.FindStyle("ToolbarSeachCancelButton"))) {
 				searchString = string.Empty;
-				GUI.FocusControl(null);
 			}
 			return lastString != searchString;
 		}
@@ -1710,6 +1970,19 @@ namespace Ink.UnityIntegration {
 			values.Add(new ObservedVariableState(value));
 		}
 	}
+
+
+    public class ColoredBackgroundGUIStyle {
+        public GUIStyle guiStyle;
+        public ColoredBackgroundGUIStyle (Color color) : this (color, color) {}
+        public ColoredBackgroundGUIStyle (Color colorFree, Color colorPro) {
+            var texture = new Texture2D( 1, 1 );
+            texture.SetPixel(0, 0, EditorGUIUtility.isProSkin ? colorPro : colorFree);
+            texture.Apply();
+            guiStyle = new GUIStyle();
+            guiStyle.normal.background = texture;
+        }
+    }
 
 
 	[System.Serializable]
@@ -1821,7 +2094,8 @@ namespace Ink.UnityIntegration {
 	public class InkPlayerHistoryContentItem {
 		public enum ContentType {
 			StoryContent,
-			StoryChoice,
+			SelectedStoryChoice,
+			PresentedStoryChoice,
 			StoryEvaluateFunction,
 			StoryChoosePathString,
 			StoryWarning,
