@@ -73,7 +73,7 @@ namespace Ink.UnityIntegration {
 		}
 
 
-		[MenuItem("Assets/Create/Ink", false, 120)]
+		[MenuItem("Assets/Create/Ink Script", false, 120)]
 		public static void CreateNewInkFile () {
 			string fileName = "New Ink.ink";
 			string filePath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(GetSelectedPathOrFallback(), fileName));
