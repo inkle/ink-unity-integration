@@ -96,15 +96,15 @@ public class BasicInkExample : MonoBehaviour {
 	}
 
 	[SerializeField]
-	private TextAsset inkJSONAsset;
+	private TextAsset inkJSONAsset = null;
 	public Story story;
 
 	[SerializeField]
-	private Canvas canvas;
+	private Canvas canvas = null;
 
 	// UI Prefabs
 	[SerializeField]
-	private Text textPrefab;
+	private Text textPrefab = null;
 	[SerializeField]
-	private Button buttonPrefab;
+	private Button buttonPrefab = null;
 }
