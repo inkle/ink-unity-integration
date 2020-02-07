@@ -26,6 +26,8 @@ namespace Ink.UnityIntegration {
 
 		// Track if we've currently locked compilation of Unity C# Scripts
 		private static bool hasLockedUnityCompilation = false;
+        
+        private static List<Action> onCompleteActions = new List<Action>();
 
 		[Serializable]
 		public class CompilationStackItem {
@@ -46,7 +48,7 @@ namespace Ink.UnityIntegration {
 			public string inkAbsoluteFilePath;
 			public string jsonAbsoluteFilePath;
 			public List<string> output = new List<string>();
-			public List<string> errorOutput = new List<string>();
+			public List<string> unhandledErrorOutput = new List<string>();
 			public DateTime startTime;
 
 			public float timeTaken {
@@ -113,7 +115,7 @@ namespace Ink.UnityIntegration {
                     if (compilingFile.timeTaken > InkSettings.Instance.compileTimeout) {
                         // TODO - Cancel the thread if it's still going. Not critical, since its kinda fine if it compiles a bit later, but it's not clear.
                         RemoveCompilingFile(i);
-                        Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+".\nCompilation should never take more than a few seconds, but for large projects or slow computers you may want to increase the timeout time in the InkSettings file.\nIf this persists there may be another issue; or else check an ink file exists at this path and try Assets/Recompile Ink, else please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+string.Join("\n",compilingFile.errorOutput.ToArray()));
+                        Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+".\nCompilation should never take more than a few seconds, but for large projects or slow computers you may want to increase the timeout time in the InkSettings file.\nIf this persists there may be another issue; or else check an ink file exists at this path and try Assets/Recompile Ink, else please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+string.Join("\n",compilingFile.unhandledErrorOutput.ToArray()));
                     }
                 }
             }
@@ -140,7 +142,7 @@ namespace Ink.UnityIntegration {
 			int numCompiling = InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count;
 			string message = "Compiling .Ink File "+(InkLibrary.Instance.compilationStack.Count-numCompiling)+" of "+InkLibrary.Instance.compilationStack.Count+".";
 			if(playModeBlocked) message += " Will enter play mode when complete.";
-			if(buildBlocked || playModeBlocked) EditorUtility.DisplayProgressBar("Compiling Ink...", message, GetEstimatedCompilationProgress());
+			if(buildBlocked || playModeBlocked || EditorApplication.isPlaying) EditorUtility.DisplayProgressBar("Compiling Ink...", message, GetEstimatedCompilationProgress());
 			else EditorUtility.ClearProgressBar();
 		}
 
@@ -181,10 +183,8 @@ namespace Ink.UnityIntegration {
 
 		static void CompilePendingFiles () {
 			InkLibrary.CreateOrReadUpdatedInkFiles (InkLibrary.Instance.pendingCompilationStack);
-			foreach (var pendingFile in GetUniqueMasterInkFilesToCompile(InkLibrary.Instance.pendingCompilationStack))
-				InkCompiler.CompileInk(pendingFile);
-			// Files are removed when they're compiled, but we clear the list now just in case.
-			InkLibrary.Instance.pendingCompilationStack.Clear();
+			foreach (var pendingMasterFile in GetUniqueMasterInkFilesToCompile(InkLibrary.Instance.pendingCompilationStack))
+				InkCompiler.CompileInk(pendingMasterFile);
 		}
 
 		static void BlockPlayMode () {
@@ -214,8 +214,7 @@ namespace Ink.UnityIntegration {
 			Debug.Log(outputLog);
 			
 			foreach(var inkFile in inkFiles) {
-				CompileInkInternal (inkFile);
-				InkLibrary.Instance.pendingCompilationStack.Remove(inkFile.filePath);
+				CompileInkInternal (inkFile, immediate);
 			}
 		}
 
@@ -223,7 +222,7 @@ namespace Ink.UnityIntegration {
 		/// Starts a System.Process that compiles a master ink file, creating a playable JSON file that can be parsed by the Ink.Story class
 		/// </summary>
 		/// <param name="inkFile">Ink file.</param>
-		private static void CompileInkInternal (InkFile inkFile) {
+		private static void CompileInkInternal (InkFile inkFile, bool immediate) {
 
 			// If we've not yet locked C# compilation do so now
 			if (!hasLockedUnityCompilation)
@@ -231,6 +230,8 @@ namespace Ink.UnityIntegration {
 				hasLockedUnityCompilation = true;
 				EditorApplication.LockReloadAssemblies();
 			}
+
+            RemoveFromPendingCompilationStack(inkFile);
 
 			if(inkFile == null) {
 				Debug.LogError("Tried to compile ink file but input was null.");
@@ -256,8 +257,13 @@ namespace Ink.UnityIntegration {
 
 			InkLibrary.Instance.compilationStack.Add(pendingFile);
 			InkLibrary.Save();
-            if(EditorApplication.isCompiling) Debug.LogWarning("Was compiling scripts when ink compilation started! This seems to cause the thread to cancel and complete, but the work isn't done. It'll cause a timeout.");
-			ThreadPool.QueueUserWorkItem(CompileInkThreaded, pendingFile);
+			if(immediate) {
+                CompileInkThreaded(pendingFile);
+                Update();
+			} else {
+                if(EditorApplication.isCompiling) Debug.LogWarning("Was compiling scripts when ink compilation started! This seems to cause the thread to cancel and complete, but the work isn't done. It may cause a timeout.");
+                ThreadPool.QueueUserWorkItem(CompileInkThreaded, pendingFile);
+            }
 		}
 
 		private static void CompileInkThreaded(object itemObj)
@@ -279,12 +285,12 @@ namespace Ink.UnityIntegration {
 			}
 			catch (SystemException e)
 			{
-				item.errorOutput.Add(string.Format(
+				item.unhandledErrorOutput.Add(string.Format(
 					"Ink Compiler threw exception \nError: {0}\n---- Trace ----\n{1}\n--------\n", e.Message,
 					e.StackTrace));
 			}
 
-			item.errorOutput.AddRange(compiler.errors);
+			item.output.AddRange(compiler.errors);
 			item.output.AddRange(compiler.warnings);
 			
 			item.state = CompilationStackItem.State.Complete;
@@ -316,7 +322,7 @@ namespace Ink.UnityIntegration {
 				longestTimeTaken = Mathf.Max (compilingFile.timeTaken);
 				filesCompiledLog.AppendLine().Append(compilingFile.inkFile.filePath);
 				filesCompiledLog.Append(string.Format(" ({0}s)", compilingFile.timeTaken));
-				if(compilingFile.errorOutput.Count > 0) {
+				if(compilingFile.unhandledErrorOutput.Count > 0) {
 					filesCompiledLog.Append(" (With unhandled error)");
 					StringBuilder errorLog = new StringBuilder ();
 					errorLog.Append ("Unhandled error(s) occurred compiling Ink file ");
@@ -324,10 +330,10 @@ namespace Ink.UnityIntegration {
 					errorLog.Append (compilingFile.inkFile.filePath);
 					errorLog.Append ("'");
 					errorLog.AppendLine ("! Please report following error(s) as a bug:");
-					foreach (var error in compilingFile.errorOutput)
+					foreach (var error in compilingFile.unhandledErrorOutput)
 						errorLog.AppendLine (error);
 					Debug.LogError(errorLog);
-					compilingFile.inkFile.metaInfo.compileErrors = compilingFile.errorOutput;
+					compilingFile.inkFile.metaInfo.unhandledCompileErrors = compilingFile.unhandledErrorOutput;
 					errorsFound = true;
 				} else {
 					SetOutputLog(compilingFile);
@@ -380,9 +386,11 @@ namespace Ink.UnityIntegration {
 			#if !UNITY_EDITOR_LINUX
 			EditorUtility.ClearProgressBar();
 			#endif
-			if(EditorApplication.isPlayingOrWillChangePlaymode && InkSettings.Instance.delayInPlayMode) {
-				Debug.LogError("Ink just finished recompiling while in play mode. This should never happen when InkSettings.Instance.delayInPlayMode is true!");
-			}
+			
+            // This is now allowed, if compiled manually. I've left this code commented out because at some point we might want to track what caused a file to compile. 
+            // if(EditorApplication.isPlayingOrWillChangePlaymode && InkSettings.Instance.delayInPlayMode) {
+			// 	Debug.LogError("Ink just finished recompiling while in play mode. This should never happen when InkSettings.Instance.delayInPlayMode is true!");
+			// }
             
             buildBlocked = false;
 
@@ -398,6 +406,11 @@ namespace Ink.UnityIntegration {
 					Debug.LogWarning("Play mode not entered after ink compilation because ink had errors.");
 				}
 			}
+
+            foreach(var onCompleteAction in onCompleteActions) {
+                if(onCompleteAction != null) onCompleteAction();
+            }
+            onCompleteActions.Clear();
 		}
 
 		private static void SetOutputLog (CompilationStackItem pendingFile) {
@@ -406,7 +419,7 @@ namespace Ink.UnityIntegration {
 			pendingFile.inkFile.metaInfo.todos.Clear();
 
 			foreach(var childInkFile in pendingFile.inkFile.metaInfo.inkFilesInIncludeHierarchy) {
-				childInkFile.metaInfo.compileErrors.Clear();
+				childInkFile.metaInfo.unhandledCompileErrors.Clear();
 				childInkFile.metaInfo.errors.Clear();
 				childInkFile.metaInfo.warnings.Clear();
 				childInkFile.metaInfo.todos.Clear();
@@ -460,6 +473,20 @@ namespace Ink.UnityIntegration {
 
 		private static Regex _errorRegex = new Regex(@"(?<errorType>ERROR|WARNING|TODO|RUNTIME ERROR):(?:\s(?:'(?<filename>[^']*)'\s)?line (?<lineNo>\d+):)?(?<message>.*)");
 
+
+
+        
+
+        static void RemoveFromPendingCompilationStack (InkFile inkFile) {
+            InkLibrary.Instance.pendingCompilationStack.Remove(inkFile.filePath);
+            foreach(var includeFile in inkFile.metaInfo.inkFilesInIncludeHierarchy) {
+                InkLibrary.Instance.pendingCompilationStack.Remove(includeFile.filePath);
+            }
+        }
+
+
+
+
 		// The asset store version of this plugin removes execute permissions. We can't run unless they're restored.
 		private static void SetInklecateFilePermissions (string inklecatePath) {
 			Process process = new Process();
@@ -477,25 +504,27 @@ namespace Ink.UnityIntegration {
 		public static List<InkFile> GetUniqueMasterInkFilesToCompile (List<string> importedInkAssets) {
 			List<InkFile> masterInkFiles = new List<InkFile>();
 			foreach (var importedAssetPath in importedInkAssets) {
-				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
-				// Trying to catch a rare (and not especially important) bug that seems to happen occasionally when opening a project
-				// It's probably this - I've noticed it before in another context.
-				Debug.Assert(InkSettings.Instance != null, "No ink settings file. This is a bug. For now you should be able to fix this via Assets > Rebuild Ink Library");
-				// I've caught it here before
-				Debug.Assert(inkFile != null, "No internal InkFile reference at path "+importedAssetPath+". This is a bug. For now you can fix this via Assets > Rebuild Ink Library");
-				Debug.Assert(inkFile.metaInfo != null);
-				Debug.Assert(inkFile.metaInfo.masterInkFileIncludingSelf != null);
-				if (!masterInkFiles.Contains(inkFile.metaInfo.masterInkFileIncludingSelf) && (InkSettings.Instance.compileAutomatically || inkFile.metaInfo.masterInkFileIncludingSelf.compileAutomatically)) {
-					masterInkFiles.Add(inkFile.metaInfo.masterInkFileIncludingSelf);
-				}
-			}
+                var masterInkFile = GetMasterFileFromInkAssetPath(importedAssetPath);
+                if (!masterInkFiles.Contains(masterInkFile.metaInfo.masterInkFileIncludingSelf) && (InkSettings.Instance.compileAutomatically || masterInkFile.metaInfo.masterInkFileIncludingSelf.compileAutomatically)) {
+                    masterInkFiles.Add(masterInkFile.metaInfo.masterInkFileIncludingSelf);
+                }
+            }
 			return masterInkFiles;
 		}
 
+        public static InkFile GetMasterFileFromInkAssetPath (string importedAssetPath) {
+            InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
+            // Trying to catch a rare (and not especially important) bug that seems to happen occasionally when opening a project
+            // It's probably this - I've noticed it before in another context.
+            Debug.Assert(InkSettings.Instance != null, "No ink settings file. This is a bug. For now you should be able to fix this via Assets > Rebuild Ink Library");
+            // I've caught it here before
+            Debug.Assert(inkFile != null, "No internal InkFile reference at path "+importedAssetPath+". This is a bug. For now you can fix this via Assets > Rebuild Ink Library");
+            Debug.Assert(inkFile.metaInfo != null);
+            Debug.Assert(inkFile.metaInfo.masterInkFileIncludingSelf != null);
+            return inkFile.metaInfo.masterInkFileIncludingSelf;
+        }
 
 
-
-        
 
 		//Replacement until Unity upgrades .Net
 		public static bool IsNullOrWhiteSpace(string s){

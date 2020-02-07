@@ -231,7 +231,7 @@ namespace Ink.UnityIntegration {
 			}
 
 			DrawEditAndCompileDates(masterInkFile);
-			if(masterInkFile.metaInfo.hasCompileErrors) {
+			if(masterInkFile.metaInfo.hasUnhandledCompileErrors) {
 				EditorGUILayout.HelpBox("Last compiled failed", MessageType.Error);
 			} if(masterInkFile.metaInfo.hasErrors) {
 				EditorGUILayout.HelpBox("Last compiled had errors", MessageType.Error);
@@ -307,7 +307,12 @@ namespace Ink.UnityIntegration {
 				DateTime lastCompileDate = masterInkFile.metaInfo.lastCompileDate;
 				editAndCompileDateString += "\nLast compile date "+lastCompileDate.ToString();
 				if(lastEditDate > lastCompileDate) {
-					EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.Warning);
+                    if(EditorApplication.isPlaying && InkSettings.Instance.delayInPlayMode) {
+					    editAndCompileDateString += "\nWill compile on exiting play mode";
+                        EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.Info);
+                    } else {
+					    EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.Warning);
+                    }
 				} else {
 					EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.None);
 				}
@@ -323,7 +328,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		void DrawCompileErrors () {
-			if(inkFile.metaInfo.compileErrors.Count == 0) 
+			if(inkFile.metaInfo.unhandledCompileErrors.Count == 0) 
 				return;
 			EditorGUILayout.BeginVertical(GUI.skin.box);
 			EditorGUILayout.HelpBox("Compiler bug prevented compilation of JSON file. Please help us fix it by reporting this as a bug.", MessageType.Error);
@@ -335,7 +340,7 @@ namespace Ink.UnityIntegration {
 				Application.OpenURL("mailto:info@inklestudios.com");
 			}
 			EditorGUILayout.EndHorizontal();
-			foreach(string compileError in inkFile.metaInfo.compileErrors) {
+			foreach(string compileError in inkFile.metaInfo.unhandledCompileErrors) {
 				GUILayout.TextArea(compileError);
 			}
 			EditorGUILayout.EndVertical();

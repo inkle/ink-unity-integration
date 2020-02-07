@@ -47,9 +47,13 @@ namespace Ink.UnityIntegration {
 					if(!InkLibrary.Instance.inkLibrary[i].metaInfo.isMaster && InkLibrary.Instance.inkLibrary[i].metaInfo.masterInkAsset != null && !masterFilesAffected.Contains(InkLibrary.Instance.inkLibrary[i].metaInfo.masterInkFile)) {
 						masterFilesAffected.Add(InkLibrary.Instance.inkLibrary[i].metaInfo.masterInkFile);
 					}
-					if(InkSettings.Instance.handleJSONFilesAutomatically)
-						AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(InkLibrary.Instance.inkLibrary[i].jsonAsset));
-					InkLibrary.Instance.inkLibrary.RemoveAt(i);
+					if(InkSettings.Instance.handleJSONFilesAutomatically) {
+                        var assetPath = AssetDatabase.GetAssetPath(InkLibrary.Instance.inkLibrary[i].jsonAsset);
+						if(assetPath != null && assetPath != string.Empty) {
+                            AssetDatabase.DeleteAsset(assetPath);
+                        }
+                    }
+					InkLibrary.RemoveAt(i);
 				}
 			}
 			// After deleting files, we might have broken some include references, so we rebuild them. There's probably a faster way to do this, or we could probably just remove any null references, but this is a bit more robust.

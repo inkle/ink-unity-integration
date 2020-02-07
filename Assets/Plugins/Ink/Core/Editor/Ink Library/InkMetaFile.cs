@@ -28,10 +28,10 @@ namespace Ink.UnityIntegration {
 		}
 
 		// Fatal unhandled errors that should be reported as compiler bugs.
-		public List<string> compileErrors = new List<string>();
-		public bool hasCompileErrors {
+		public List<string> unhandledCompileErrors = new List<string>();
+		public bool hasUnhandledCompileErrors {
 			get {
-				return compileErrors.Count > 0;
+				return unhandledCompileErrors.Count > 0;
 			}
 		}
 
@@ -69,7 +69,7 @@ namespace Ink.UnityIntegration {
 					return true;
 				
 				foreach(InkFile inkFile in inkFilesInIncludeHierarchy) {
-					if(inkFile.metaInfo.hasCompileErrors) {
+					if(inkFile.metaInfo.hasUnhandledCompileErrors) {
 						return true;
 					} else if(inkFile.metaInfo.lastEditDate > lastCompileDate) {
 						return true;
@@ -178,22 +178,26 @@ namespace Ink.UnityIntegration {
 		// The InkFiles in the include hierarchy of this file.
 		public List<InkFile> inkFilesInIncludeHierarchy {
 			get {
-				List<InkFile> _includesInkFiles = new List<InkFile>();
-				_includesInkFiles.Add(inkFile);
+				List<InkFile> _inkFilesInIncludeHierarchy = new List<InkFile>();
+				_inkFilesInIncludeHierarchy.Add(inkFile);
 				foreach(var child in includesInkFiles) {
-					if (child.metaInfo == null)
+					if (child == null || child.metaInfo == null)
 						return null;
-					_includesInkFiles.AddRange(child.metaInfo.inkFilesInIncludeHierarchy);
+					_inkFilesInIncludeHierarchy.AddRange(child.metaInfo.inkFilesInIncludeHierarchy);
 				}
-				return _includesInkFiles;
+				return _inkFilesInIncludeHierarchy;
 			}
 		}
 
 //		public string content;
 		// The contents of the .ink file
 		public string GetFileContents () {
-			if(inkFile.inkAsset == null) {
+			if(inkFile == null) {
 				Debug.LogWarning("Ink file is null! Rebuild library using Assets > Rebuild Ink Library");
+				return "";
+            }
+			if(inkFile.inkAsset == null) {
+				Debug.LogWarning("Ink file asset is null! Rebuild library using Assets > Rebuild Ink Library");
 				return "";
 			}
 			return File.OpenText(inkFile.absoluteFilePath).ReadToEnd();
