@@ -24,7 +24,7 @@ namespace Ink.Runtime
         class Reader
         {
 			
-			private const char UTF8_BOM_char = (char)65279;
+			const char UTF8_BOM_char = (char)65279;
 			
             public Reader (string text)
             {
