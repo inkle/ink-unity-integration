@@ -6,6 +6,7 @@ using Ink.UnityIntegration;
 using Ink.Runtime;
 
 [CustomEditor(typeof(BasicInkExample))]
+[InitializeOnLoad]
 public class BasicInkExampleEditor : Editor {
 
     static BasicInkExampleEditor () {
