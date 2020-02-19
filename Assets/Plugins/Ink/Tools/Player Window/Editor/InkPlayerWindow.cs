@@ -442,11 +442,13 @@ namespace Ink.UnityIntegration {
 
 		[MenuItem("Window/Ink Player %#i", false, 2300)]
 		public static InkPlayerWindow GetWindow () {
-			return GetWindow<InkPlayerWindow>(false, windowTitle, true);
+            System.Type windowType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.InspectorWindow");
+			return GetWindow<InkPlayerWindow>(windowTitle, true, windowType);
 		}
 
 		public static InkPlayerWindow GetWindow (bool focus) {
-			return GetWindow<InkPlayerWindow>(false, windowTitle, focus);
+            System.Type windowType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.InspectorWindow");
+			return GetWindow<InkPlayerWindow>(windowTitle, focus, windowType);
 		}
 		
 		void OnEnable () {
