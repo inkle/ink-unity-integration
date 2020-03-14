@@ -4,11 +4,11 @@ This Unity package allows you to integrate inkle's [ink narrative scripting lang
 
 Features:
 
- - **Running ink in game**: Allows usage of JSON-compiled ink files in Unity via the included `ink-engine.dll`.
-
- - **Auto Compilation**: Instantly creates and updates a JSON story file when a `.ink` is updated. Errors in your `.ink` script are displayed as errors in Unity's own console.
+ - **Using ink in your game**: Allows usage of JSON-compiled ink files in Unity via the included `ink-engine.dll`.
  	
- - **Ink Player**: Provides a powerful player window for playing and debugging stories.
+ - **ink player**: Provides a powerful player window for playing and debugging stories.
+ 
+ - **Auto compilation**: Instantly creates and updates a JSON story file when a `.ink` is updated. Errors in your `.ink` script are displayed as errors in Unity's own console.
  	
  - **Inspector tools**: Provides an icon for ink files, and a custom inspector that provides information about a file.
 
@@ -30,15 +30,15 @@ This package has been designed to be modular. You can delete many of the folders
 
 You should never delete the DLL folder (although you may delete the windows/mac dlls if you are sure no team members are on a certain platform)
 
-## Using ink in game your game. 
+## Using ink in your game
 
 The **ink player** is the core feature of this package; the minimal requirements to actually run a compiled JSON story file is the source code in the InkRuntime folder. 
 
 Alternatively, the `ink-engine-runtime.dll` file can be used instead of the source code in the InkRuntime folder. It may otherwise be safely deleted.
 
-## Ink Player
+## Ink player
 
-The Ink Player (**Ink > Player Window**) allows you to play stories in an editor window, and provides functionality to edit variables on the fly, test functions, profile, save and load states, and divert.
+The ink player (**Ink > Player Window**) allows you to play stories in an editor window, and provides functionality to edit variables on the fly, test functions, profile, save and load states, and divert.
 
 To play a story, click the "play" button shown on the inspector of a compiled ink file, or drag a compiled ink story TextAsset into the window.
 
@@ -62,13 +62,13 @@ Currently compilation is Editor-only, although it's a very solvable problem if y
 
 **Play mode delay**: By default, ink does not compile while in play mode. This can be disabled in the InkSettings file.
 
-## Inspector Tools
+## Inspector tools
 
 This package also replaces the icon for ink files to make them easier to spot, and populates the inspector for a selected ink file.
 
 **The Inspector**: To replace the inspector for ink files, we've created a system that allows you to provide a custom inspector for any file. If this conflicts with existing behaviour in your project, you can delete the Ink Inspector folder altogether.
 
-## Updating Ink manually
+## Updating ink manually
 
 The ink git repo is updated far more frequently than this asset store package. 
 
