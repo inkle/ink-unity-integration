@@ -6,9 +6,9 @@ Features:
 
  - **Running ink in game**: Allows usage of JSON-compiled ink files in Unity via the included `ink-engine.dll`.
 
- - **Auto Compilation**: Instantly creates and updates a JSON story file when a `.ink` is updated. Errors in your `.ink` script are displayed as errors in Unity's own console.
+ - **Auto compilation**: Instantly creates and updates a JSON story file when a `.ink` script is updated. Errors in your `.ink` script are displayed as errors in Unity's own console.
  	
- - **Ink Player**: Provides a powerful player window for playing and debugging stories.
+ - **Ink player**: Provides a powerful player window for playing and debugging stories.
  	
  - **Inspector tools**: Provides an icon for ink files, and a custom inspector that provides information about a file.
 
@@ -20,6 +20,8 @@ Features:
 
 For more information on **ink**, see [the documentation in the main ink repo](https://github.com/inkle/ink). For convenience, the package also creates an (**Ink > Help**) menu option.
 
+For assistance with writing or code, [Inkle's Discord forum](https://discord.gg/tD8Am2K) is full of lovely people who can help you out!
+
 To keep up to date with the latest news about ink [sign up for the mailing list](http://www.inklestudios.com/ink#signup).
 
 ## Customisation
@@ -30,13 +32,22 @@ You should never delete the DLL folder (although you may delete the windows/mac 
 
 ## Using ink in game your game. 
 
-The **ink player** is the core feature of this package; the minimal requirements to actually run a compiled JSON story file is the `ink-engine.dll` library.
+The **ink player** is the core feature of this package; the minimal requirements to actually run a compiled JSON story file is the source code in the InkRuntime folder. 
+
+Alternatively, the `ink-engine-runtime.dll` file can be used instead of the source code in the InkRuntime folder. It may otherwise be safely deleted.
 
 ## Ink Player
 
 The Ink Player (**Ink > Player Window**) allows you to play stories in an editor window, and provides functionality to edit variables on the fly, test functions, profile, save and load states, and divert.
 
 To play a story, click the "play" button shown on the inspector of a compiled ink file, or drag a compiled ink story TextAsset into the window.
+
+**Editor Attaching**: Attach the InkStory instance used by your game to the Ink Player window allows you to view and edit your story as it runs in game. 
+
+See BasicInkExampleEditor.cs in the Examples folder for an example of how to:
+* Show an attach/detach button on an inspector
+* Automatically attach on entering play mode
+
 
 ## Automatic compilation
 	
@@ -46,7 +57,8 @@ This package provides tools to automate this process when a .ink file is edited.
 
 **Disabling auto-compilation**: You might want to have manual control over ink compilation. If this is the case, you can disable "Compile ink automatically" in the InkSettings file or delete the InkPostProcessor class.
 
-**Manual compilation**: If you have disabled auto-compilation, you can manually compile ink using the **Assets > Recompile Ink** menu item, via the inspector of an ink file, or using the functions in the InkCompiler class.
+**Manual compilation**: If you have disabled auto-compilation, you can manually compile ink using the **Assets > Recompile Ink** menu item, via the inspector of an ink file, or using the functions in the InkCompiler class which execute the files in the InkCompiler folder.
+Currently compilation is Editor-only, although it's a very solvable problem if you need the functionality.
 
 **Play mode delay**: By default, ink does not compile while in play mode. This can be disabled in the InkSettings file.
 
@@ -55,10 +67,6 @@ This package provides tools to automate this process when a .ink file is edited.
 This package also replaces the icon for ink files to make them easier to spot, and populates the inspector for a selected ink file.
 
 **The Inspector**: To replace the inspector for ink files, we've created a system that allows you to provide a custom inspector for any file. If this conflicts with existing behaviour in your project, you can delete the Ink Inspector folder altogether.
-
-## Advanced
-
-**Editor Attaching**: It can be handy to attach the InkStory instance used by your game to the Ink Player window. You can do this in a single line using the InkEditorUtils.DrawStoryPropertyField function in an editor class.
 
 ## Updating Ink manually
 
@@ -77,10 +85,6 @@ We'd love to see this supported more if you'd like to assist the effort!
 * Is the Linux Unity Editor supported?
 
   *Yes!*
-  
-* What happened to Newtonsoft.Json.Net? Do I still need my API compatibility set to .NET 2.0?
-
-  We removed our dependency on Newtonsoft.Json.Net, so you can keep (or revert) your API compatibility to .NET 2.0 Subset, if you're upgrading your ink Unity integration plugin.
 
 # License
 
