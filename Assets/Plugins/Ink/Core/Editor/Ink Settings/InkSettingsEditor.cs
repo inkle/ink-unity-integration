@@ -47,8 +47,8 @@ namespace Ink.UnityIntegration {
 		#endif
 
 		static void DrawSettings (SerializedObject settings) {
-			EditorGUILayout.HelpBox("Ink Story Version "+Ink.Runtime.Story.inkVersionCurrent, MessageType.Info);
-			
+			EditorGUILayout.HelpBox("Ink Unity Integration version "+InkLibrary.versionCurrent+"\nInk Story Version "+Ink.Runtime.Story.inkVersionCurrent, MessageType.Info);
+
 			if(settings.FindProperty("templateFile").objectReferenceValue == null) {
 				EditorGUILayout.HelpBox("Template not found. Ink files created via Assets > Create > Ink will be blank.", MessageType.Info);
 			}
