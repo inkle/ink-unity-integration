@@ -488,21 +488,6 @@ namespace Ink.UnityIntegration {
 
 
 
-
-		// The asset store version of this plugin removes execute permissions. We can't run unless they're restored.
-		private static void SetInklecateFilePermissions (string inklecatePath) {
-			Process process = new Process();
-			process.StartInfo.WorkingDirectory = Path.GetDirectoryName(inklecatePath);
-			process.StartInfo.FileName = "chmod";
-			process.StartInfo.Arguments = "+x "+ Path.GetFileName(inklecatePath);
-			process.StartInfo.RedirectStandardError = true;
-			process.StartInfo.RedirectStandardOutput = true;
-			process.StartInfo.UseShellExecute = false;
-			process.EnableRaisingEvents = true;
-			process.Start();
-			process.WaitForExit();
-		}
-
 		public static List<InkFile> GetUniqueMasterInkFilesToCompile (List<string> importedInkAssets) {
 			List<InkFile> masterInkFiles = new List<InkFile>();
 			foreach (var importedAssetPath in importedInkAssets) {
@@ -528,20 +513,5 @@ namespace Ink.UnityIntegration {
             Debug.Assert(inkFile.metaInfo.masterInkFileIncludingSelf != null);
             return inkFile.metaInfo.masterInkFileIncludingSelf;
         }
-
-
-
-		//Replacement until Unity upgrades .Net
-		public static bool IsNullOrWhiteSpace(string s){
-			return (string.IsNullOrEmpty(s) || IsWhiteSpace(s));
-		}
-
-		//Returns true if string is only white space
-		public static bool IsWhiteSpace(string s){
-			foreach(char c in s){
-				if(c != ' ' && c != '\t') return false;
-			}
-			return true;
-		}
 	}
 }
