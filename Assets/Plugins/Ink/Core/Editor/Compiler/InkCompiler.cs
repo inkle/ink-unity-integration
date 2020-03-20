@@ -90,18 +90,20 @@ namespace Ink.UnityIntegration {
 			EditorApplication.playmodeStateChanged += LegacyOnPlayModeChange;
 			#endif
 			EditorApplication.update += Update;
+            // I really don't know if this can fire, since it assumes that it compiled so can't have been locked. But safety first!
+            EditorApplication.UnlockReloadAssemblies();
 		}
 
 		private static void Update () {
-			if(!InkLibrary.created) 
-				return;
-
 			// If we're not compiling but have locked C# compilation then now is the time to reset
-			if (!compiling && hasLockedUnityCompilation)
+			if ((!InkLibrary.created || !compiling) && hasLockedUnityCompilation)
 			{
 				hasLockedUnityCompilation = false;
 				EditorApplication.UnlockReloadAssemblies();
 			}
+
+			if(!InkLibrary.created) 
+				return;
 
 			// When all files have compiled, run the complete function.
 			if(compiling && InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count == 0) {
@@ -505,8 +507,11 @@ namespace Ink.UnityIntegration {
 			List<InkFile> masterInkFiles = new List<InkFile>();
 			foreach (var importedAssetPath in importedInkAssets) {
                 var masterInkFile = GetMasterFileFromInkAssetPath(importedAssetPath);
-                if (!masterInkFiles.Contains(masterInkFile.metaInfo.masterInkFileIncludingSelf) && (InkSettings.Instance.compileAutomatically || masterInkFile.metaInfo.masterInkFileIncludingSelf.compileAutomatically)) {
-                    masterInkFiles.Add(masterInkFile.metaInfo.masterInkFileIncludingSelf);
+				// This was being used instead of masterInkFile for the following lines, which seems obviously stupid. Changed and added this assert.
+				// If this ever fires then I guess I should put it back!
+				Debug.Assert(masterInkFile == masterInkFile.metaInfo.masterInkFileIncludingSelf);
+                if (!masterInkFiles.Contains(masterInkFile.metaInfo.masterInkFileIncludingSelf) && (InkSettings.Instance.compileAutomatically || masterInkFile.compileAutomatically)) {
+                    masterInkFiles.Add(masterInkFile);
                 }
             }
 			return masterInkFiles;

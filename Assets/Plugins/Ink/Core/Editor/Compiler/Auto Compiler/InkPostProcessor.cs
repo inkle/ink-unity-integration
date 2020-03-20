@@ -61,7 +61,9 @@ namespace Ink.UnityIntegration {
 				inkFile.metaInfo.FindIncludedFiles();
 			}
 			foreach(InkFile masterFile in masterFilesAffected) {
-				InkCompiler.CompileInk(masterFile);
+				if(InkSettings.Instance.compileAutomatically || masterFile.compileAutomatically) {
+					InkCompiler.CompileInk(masterFile);
+				}
 			}
 		}
 
@@ -131,8 +133,11 @@ namespace Ink.UnityIntegration {
 
 				// Compile any ink files that are deemed master files a rebuild
 				foreach(var inkFile in filesToCompile) {
-					if(inkFile.metaInfo.isMaster)
-						InkCompiler.CompileInk(inkFile);
+					if(inkFile.metaInfo.isMaster) {
+						if(InkSettings.Instance.compileAutomatically || inkFile.compileAutomatically) {
+							InkCompiler.CompileInk(inkFile);
+						}
+					}
 				}
 			}
 		}
@@ -161,6 +166,8 @@ namespace Ink.UnityIntegration {
 		}
 
 		private static void PostprocessInklecate (string inklecateFileLocation) {
+			// This should probably only recompile files marked to compile automatically, but it's such a rare case, and one where you probably do want to compile.
+			// To fix, one day!
 			Debug.Log("Inklecate updated. Recompiling all Ink files...");
 			InkEditorUtils.RecompileAll();
 		}
