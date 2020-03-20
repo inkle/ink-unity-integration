@@ -254,7 +254,8 @@ namespace Ink.UnityIntegration {
 			get {
 				return _storyJSONTextAsset;
 			} set {
-				_storyJSONTextAsset = value;
+				if(_storyJSONTextAsset == value) return;
+                _storyJSONTextAsset = value;
 				if (_storyJSONTextAsset != null) {
                     InkPlayerWindowState.Instance.lastStoryJSONAssetPath = AssetDatabase.GetAssetPath(storyJSONTextAsset);
 					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(InkPlayerWindowState.Instance.lastStoryJSONAssetPath);
@@ -297,8 +298,9 @@ namespace Ink.UnityIntegration {
 			}
 		}
 		
-		private static UndoHistory<InkPlayerHistoryItem> storyStateHistory;
-		private static List<InkPlayerHistoryContentItem> storyHistory;
+		private static UndoHistory<InkPlayerHistoryItem> storyStateHistory = new UndoHistory<InkPlayerHistoryItem>();
+		private static List<InkPlayerHistoryContentItem> storyHistory = new List<InkPlayerHistoryContentItem>();
+
 		
 		private static Exception playStoryException;
 		private static bool storyStateValid = false;
@@ -363,13 +365,13 @@ namespace Ink.UnityIntegration {
                     public string inkListVariablePath;
 
                     public void RefreshInkVariableValue (Story story) {
-                        if(!StringIsNullOrWhiteSpace(inkVariablePath)) inkVariableValue = story.variablesState[inkVariablePath];
+                        if(!string.IsNullOrWhiteSpace(inkVariablePath)) inkVariableValue = story.variablesState[inkVariablePath];
                         else inkVariableValue = null;
                     }
                     public void RefreshInkListVariableValue (Story story) {
                         inkListVariableValue = null;
                         try {
-                            if(!StringIsNullOrWhiteSpace(inkListVariablePath)) 
+                            if(!string.IsNullOrWhiteSpace(inkListVariablePath)) 
                                 inkListVariableValue = Ink.Runtime.InkList.FromString(inkListVariablePath, story);
                         } catch {}
                     }
@@ -415,6 +417,11 @@ namespace Ink.UnityIntegration {
 
         public static InkPlayerParams playerParams;
 
+        static GUIStyle searchTextFieldStyle;
+        static GUIStyle searchCancelButtonStyle;
+        
+        public static DateTime dateTimeNow;
+
 
         static float lastOnGUITime = -1f;
         static float lastUpdateTime = -1f;
@@ -454,9 +461,7 @@ namespace Ink.UnityIntegration {
 		void OnEnable () {
 			if(isOpen) return;
 			isOpen = true;
-			if(storyStateHistory == null) storyStateHistory = new UndoHistory<InkPlayerHistoryItem>();
-			if(storyHistory == null) storyHistory = new List<InkPlayerHistoryContentItem>();
-			
+
             InkPlayerWindowState.OnCreateOrLoad += () => {
                 functionPanelState.functionParams = InkPlayerWindowState.Instance.functionParams;
                 BuildFunctionInputList();
@@ -619,20 +624,11 @@ namespace Ink.UnityIntegration {
 
 
 
-		public static InkPlayerWindow Attach (Story story) {
-            return Attach(story, InkPlayerWindow.InkPlayerParams.ForAttachedStories);
-        }
-		public static InkPlayerWindow Attach (Story story, InkPlayerParams inkPlayerParams) {
-			InkPlayerWindow window = GetWindow();
-			InkPlayerWindow.AttachInstance(story, inkPlayerParams);
-            return window;
-		}
-
-        public static void AttachInstance (Story story) {
-            AttachInstance(story, InkPlayerWindow.InkPlayerParams.ForAttachedStories);
-        }
         // Loads an existing story to the player window. Handy for debugging stories running in games in editor.
-        public static void AttachInstance (Story story, InkPlayerParams inkPlayerParams) {
+		public static void Attach (Story story) {
+            Attach(story, InkPlayerWindow.InkPlayerParams.ForAttachedStories);
+        }
+		public static void Attach (Story story, InkPlayerParams inkPlayerParams) {
 			Clear();
 			playerOptions.continueAutomatically = false;
 			playerOptions.chooseAutomatically = false;
@@ -640,8 +636,8 @@ namespace Ink.UnityIntegration {
 			InkPlayerWindow.story = story;
 			attached = true;
 			attachedWhileInPlayMode = EditorApplication.isPlaying;
-        }
-
+		}
+		
 		public static void Detach () {
 			GetWindow();
 			DetachInstance();
@@ -847,7 +843,11 @@ namespace Ink.UnityIntegration {
 			// }
 		}
 		
-		void OnGUI () {
+		void OnGUI () {			            
+            if(searchTextFieldStyle == null) searchTextFieldStyle = GUI.skin.FindStyle("ToolbarSeachTextField");
+            if(searchCancelButtonStyle == null) searchCancelButtonStyle = GUI.skin.FindStyle("ToolbarSeachCancelButton");
+
+            dateTimeNow = System.DateTime.Now;
             var time = Time.realtimeSinceStartup;
             var deltaTime = 0f;
             if(lastOnGUITime != -1)
@@ -1047,40 +1047,48 @@ namespace Ink.UnityIntegration {
         }
 
         bool ShouldShowContentWithSearchString (string contentString, string searchString) {
-            if(StringIsNullOrWhiteSpace(InkPlayerWindowState.Instance.storyPanelState.searchString)) return true;
             if(StringContains(contentString, InkPlayerWindowState.Instance.storyPanelState.searchString, StringComparison.OrdinalIgnoreCase)) return true;
             return false;
         }
-        bool ShouldShowContent (InkPlayerHistoryContentItem content) {
-            if(content.content == string.Empty && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.EmptyEntries) == 0) {
-                return false;
-            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryContent && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Content) != 0) {
-                return true;
-            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.SelectedStoryChoice && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.SelectedChoice) != 0) {
-                return true;
-            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.PresentedStoryChoice && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.PresentedChoices) != 0) {
-                return true;
-            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.DebugNote && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.DebugNotes) != 0) {
-                return true;
-            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryWarning && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Warnings) != 0) {
-                return true;
-            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryError && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Errors) != 0) {
-                return true;
-            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryChoosePathString && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.ChoosePathString) != 0) {
-                return true;
-            } else if(content.contentType == InkPlayerHistoryContentItem.ContentType.StoryEvaluateFunction && (InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions & DisplayOptions.VisibilityOptions.Function) != 0) {
-                return true;
+
+        bool ShouldShowContent (InkPlayerHistoryContentItem content, DisplayOptions.VisibilityOptions visibilityOpts) {
+            switch(content.contentType) {
+                case InkPlayerHistoryContentItem.ContentType.StoryContent: {
+                    if((visibilityOpts & DisplayOptions.VisibilityOptions.Content) != 0) {
+                        if(content.content.Length == 0 && (visibilityOpts & DisplayOptions.VisibilityOptions.EmptyEntries) == 0) return false;
+                        else return true;
+                    } else return false;
+                }
+                case InkPlayerHistoryContentItem.ContentType.SelectedStoryChoice:
+                    return (visibilityOpts & DisplayOptions.VisibilityOptions.SelectedChoice) != 0;
+                case InkPlayerHistoryContentItem.ContentType.PresentedStoryChoice:
+                    return (visibilityOpts & DisplayOptions.VisibilityOptions.PresentedChoices) != 0;
+                case InkPlayerHistoryContentItem.ContentType.DebugNote:
+                    return (visibilityOpts & DisplayOptions.VisibilityOptions.DebugNotes) != 0;
+                case InkPlayerHistoryContentItem.ContentType.StoryWarning:
+                    return (visibilityOpts & DisplayOptions.VisibilityOptions.Warnings) != 0;
+                case InkPlayerHistoryContentItem.ContentType.StoryError:
+                    return (visibilityOpts & DisplayOptions.VisibilityOptions.Errors) != 0;
+                case InkPlayerHistoryContentItem.ContentType.StoryChoosePathString:
+                    return (visibilityOpts & DisplayOptions.VisibilityOptions.ChoosePathString) != 0;
+                case InkPlayerHistoryContentItem.ContentType.StoryEvaluateFunction:
+                    return (visibilityOpts & DisplayOptions.VisibilityOptions.Function) != 0;
+                default: break;
             }
             return false;
         }
         
+        // TODO - Only update this when the story or the search string/visibility options change.
         static List<InkPlayerHistoryContentItem> validHistory = new List<InkPlayerHistoryContentItem>();
         void GetValidHistory () {
             validHistory.Clear();
-            for(int i = 0; i < storyHistory.Count; i++) {
+            bool doingSearch = !string.IsNullOrWhiteSpace(InkPlayerWindowState.Instance.storyPanelState.searchString);
+            var visibilityOpts = InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions;
+            var count = storyHistory.Count;
+            for(int i = 0; i < count; i++) {
                 var content = storyHistory[i];
-                if(!ShouldShowContentWithSearchString(content.content, InkPlayerWindowState.Instance.storyPanelState.searchString)) continue;
-				if(!ShouldShowContent(content)) continue;
+                if(doingSearch && !ShouldShowContentWithSearchString(content.content, InkPlayerWindowState.Instance.storyPanelState.searchString)) continue;
+				if(!ShouldShowContent(content, visibilityOpts)) continue;
                 validHistory.Add(content);
             }
         }
@@ -1294,7 +1302,7 @@ namespace Ink.UnityIntegration {
         }
 
 		void DisplayLine (Rect rect, InkPlayerHistoryContentItem content) {
-            float timeSinceLastWrite = (float)(System.DateTime.Now - content.time).TotalSeconds;
+            float timeSinceLastWrite = (float)(dateTimeNow - content.time).TotalSeconds;
             var revealTime = 1f;
             var l = Mathf.InverseLerp(revealTime, 0, timeSinceLastWrite);
             var newColor = new Color(GUI.color.r, GUI.color.g, GUI.color.b, 0);
@@ -1455,6 +1463,13 @@ namespace Ink.UnityIntegration {
 		}
 
         void DrawFunctionInput () {
+			// TODO - Autocomplete function names using this, which I should add to Story.cs ( ask joe first! )	
+			// public IEnumerable<string> allFunctionNames {
+			//     get {
+			//         return mainContentContainer.namedContent.Keys;
+			//     }
+			// }
+
             GUILayout.BeginVertical(GUI.skin.box);
 			EditorGUI.BeginChangeCheck();
 			functionPanelState.functionParams.functionName = EditorGUILayout.TextField("Function Name", functionPanelState.functionParams.functionName);
@@ -1606,7 +1621,7 @@ namespace Ink.UnityIntegration {
 			string variableToChange = null;
 			object newVariableValue = null;
 			foreach(string variable in story.variablesState) {
-				if(!StringIsNullOrWhiteSpace(InkPlayerWindowState.Instance.variablesPanelState.searchString) && !StringContains(variable, InkPlayerWindowState.Instance.variablesPanelState.searchString, StringComparison.OrdinalIgnoreCase)) continue;
+				if(!string.IsNullOrWhiteSpace(InkPlayerWindowState.Instance.variablesPanelState.searchString) && !StringContains(variable, InkPlayerWindowState.Instance.variablesPanelState.searchString, StringComparison.OrdinalIgnoreCase)) continue;
 				EditorGUILayout.BeginHorizontal();
 				object variableValue = story.variablesState[variable];
 				EditorGUI.BeginChangeCheck();
@@ -1854,11 +1869,8 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		static bool StringIsNullOrWhiteSpace (string str) {
-			return str == null || str.All(c => Char.IsWhiteSpace(c));
-		}
-
 		static bool StringContains(string str, string toCheck, StringComparison comp) {
+            if(toCheck.Length == 0) return false;
 			return str.IndexOf(toCheck, comp) >= 0;
 		}
 
@@ -1873,11 +1885,10 @@ namespace Ink.UnityIntegration {
 
 
         
-
 		static bool DrawSearchBar (ref string searchString) {
 			var lastString = searchString;
-			searchString = GUILayout.TextField(searchString, GUI.skin.FindStyle("ToolbarSeachTextField"));
-			if (GUILayout.Button("", GUI.skin.FindStyle("ToolbarSeachCancelButton"))) {
+			searchString = GUILayout.TextField(searchString, searchTextFieldStyle);
+			if (GUILayout.Button("", searchCancelButtonStyle)) {
 				searchString = string.Empty;
 			}
 			return lastString != searchString;
