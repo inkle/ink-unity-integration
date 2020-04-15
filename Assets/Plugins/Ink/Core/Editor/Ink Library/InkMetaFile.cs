@@ -200,7 +200,7 @@ namespace Ink.UnityIntegration {
 				Debug.LogWarning("Ink file asset is null! Rebuild library using Assets > Rebuild Ink Library");
 				return "";
 			}
-			return File.OpenText(inkFile.absoluteFilePath).ReadToEnd();
+			return File.ReadAllText(inkFile.absoluteFilePath);
 		}
 
 		public void ParseContent () {
@@ -213,9 +213,12 @@ namespace Ink.UnityIntegration {
 			foreach(string includePath in includePaths) {
 				string localIncludePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(inkFile.filePath), includePath);
 				DefaultAsset includedInkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
+				if(includedInkFileAsset == null) {
+					Debug.LogError(inkFile.filePath+ " expected child .ink asset at "+localIncludePath+" but file was not found.");
+				}
 				InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileAsset);
 				if(includedInkFile == null) {
-					Debug.LogError(inkFile.filePath+ " expected child Ink file at "+localIncludePath+" but file was not found.");
+					Debug.LogError(inkFile.filePath+ " expected child InkFile from .ink asset at "+localIncludePath+" but file was not found.");
 				} else if (includedInkFile.metaInfo.includes.Contains(inkAsset)) {
 					Debug.LogError("Circular INCLUDE reference between "+inkFile.filePath+" and "+includedInkFile.metaInfo.inkFile.filePath+".");
 				} else
