@@ -47,7 +47,7 @@ namespace Ink.UnityIntegration {
 			public string compiledJson;
 			public string inkAbsoluteFilePath;
 			public string jsonAbsoluteFilePath;
-			public List<string> output = new List<string>();
+			public List<InkCompilerLog> logOutput = new List<InkCompilerLog>();
 			public List<string> unhandledErrorOutput = new List<string>();
 			public DateTime startTime;
 
@@ -74,7 +74,8 @@ namespace Ink.UnityIntegration {
 			
 			public string ResolveInkFilename(string includeName)
 			{
-				return Path.Combine(rootDirectory, includeName);
+				// Convert to Unix style, and then use FileInfo.FullName to parse any ..\
+				return new FileInfo(Path.Combine(rootDirectory, includeName).Replace('\\', '/')).FullName;
 			}
 
 			public string LoadInkFileContents(string fullFilename)
@@ -276,7 +277,15 @@ namespace Ink.UnityIntegration {
 			var compiler = new Compiler(inputString, new Compiler.Options
 			{
 				countAllVisits = true,
-				fileHandler = new UnityInkFileHandler(Path.GetDirectoryName(item.inkAbsoluteFilePath))
+				fileHandler = new UnityInkFileHandler(Path.GetDirectoryName(item.inkAbsoluteFilePath)),
+				errorHandler = (string message, ErrorType type) => {
+					InkCompilerLog log;
+					if(InkCompilerLog.TryParse(message, out log)) {
+						item.logOutput.Add(log);
+					} else {
+						Debug.LogWarning("Couldn't parse log "+message);
+					}
+				}
 			});
 
 			try
@@ -292,8 +301,6 @@ namespace Ink.UnityIntegration {
 					e.StackTrace));
 			}
 
-			item.output.AddRange(compiler.errors);
-			item.output.AddRange(compiler.warnings);
 			
 			item.state = CompilationStackItem.State.Complete;
 		}
@@ -414,7 +421,8 @@ namespace Ink.UnityIntegration {
             }
             onCompleteActions.Clear();
 		}
-
+		
+		
 		private static void SetOutputLog (CompilationStackItem pendingFile) {
 			pendingFile.inkFile.metaInfo.errors.Clear();
 			pendingFile.inkFile.metaInfo.warnings.Clear();
@@ -427,57 +435,20 @@ namespace Ink.UnityIntegration {
 				childInkFile.metaInfo.todos.Clear();
 			}
 
-			foreach(string output in pendingFile.output) {
-				var match = _errorRegex.Match(output);
-				if (match.Success) {
-					string errorType = null;
-					string filename = null;
-					int lineNo = -1;
-					string message = null;
-					
-					var errorTypeCapture = match.Groups["errorType"];
-					if( errorTypeCapture != null ) {
-						errorType = errorTypeCapture.Value;
-					}
-					
-					var filenameCapture = match.Groups["filename"];
-					if (filenameCapture != null)
-						filename = filenameCapture.Value;
-					
-					var lineNoCapture = match.Groups["lineNo"];
-					if (lineNoCapture != null)
-						lineNo = int.Parse (lineNoCapture.Value);
-					
-					var messageCapture = match.Groups["message"];
-					if (messageCapture != null)
-						message = messageCapture.Value.Trim();
-					
-					
-					string logFilePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(pendingFile.inkFile.filePath), filename);
-					InkFile inkFile = InkLibrary.GetInkFileWithPath(logFilePath);
-					if(inkFile == null)
-						inkFile = pendingFile.inkFile;
-					
-					string pathAndLineNumberString = "\n"+inkFile.filePath+":"+lineNo;
-					if(errorType == "ERROR") {
-						inkFile.metaInfo.errors.Add(new InkMetaFile.InkFileLog(message, lineNo));
-						Debug.LogError("INK "+errorType+": "+message + pathAndLineNumberString, inkFile.inkAsset);
-					} else if (errorType == "WARNING") {
-						inkFile.metaInfo.warnings.Add(new InkMetaFile.InkFileLog(message, lineNo));
-						Debug.LogWarning("INK "+errorType+": "+message + pathAndLineNumberString, inkFile.inkAsset);
-					} else if (errorType == "TODO") {
-						inkFile.metaInfo.todos.Add(new InkMetaFile.InkFileLog(message, lineNo));
-						Debug.Log("INK "+errorType+": "+message + pathAndLineNumberString, inkFile.inkAsset);
-					}
+			foreach(var output in pendingFile.logOutput) {
+				if(output.type == ErrorType.Error) {
+					pendingFile.inkFile.metaInfo.errors.Add(output);
+					Debug.LogError("Ink "+output.type+": "+output.content + " (at "+output.fileName+":"+output.lineNumber+")", pendingFile.inkFile.inkAsset);
+				} else if (output.type == ErrorType.Warning) {
+					pendingFile.inkFile.metaInfo.warnings.Add(output);
+					Debug.LogWarning("Ink "+output.type+": "+output.content + " "+output.fileName+" "+output.lineNumber, pendingFile.inkFile.inkAsset);
+				} else if (output.type == ErrorType.Author) {
+					pendingFile.inkFile.metaInfo.todos.Add(output);
+					Debug.Log("Ink "+output.type+": "+output.content + " "+output.fileName+" "+output.lineNumber, pendingFile.inkFile.inkAsset);
 				}
 			}
 		}
 
-		private static Regex _errorRegex = new Regex(@"(?<errorType>ERROR|WARNING|TODO|RUNTIME ERROR):(?:\s(?:'(?<filename>[^']*)'\s)?line (?<lineNo>\d+):)?(?<message>.*)");
-
-
-
-        
 
         static void RemoveFromPendingCompilationStack (InkFile inkFile) {
             InkLibrary.Instance.pendingCompilationStack.Remove(inkFile.filePath);
@@ -502,6 +473,7 @@ namespace Ink.UnityIntegration {
 			return masterInkFiles;
 		}
 
+		// An ink file might actually have several owners! This should be reflected here.
         public static InkFile GetMasterFileFromInkAssetPath (string importedAssetPath) {
             InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
             // Trying to catch a rare (and not especially important) bug that seems to happen occasionally when opening a project

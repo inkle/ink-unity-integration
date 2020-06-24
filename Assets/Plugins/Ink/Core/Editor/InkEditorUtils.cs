@@ -8,6 +8,7 @@ using System.Linq;
 using Ink.Runtime;
 using UnityEditor.ProjectWindowCallback;
 using UnityEditor.Callbacks;
+using Path = System.IO.Path;	
 
 namespace Ink.UnityIntegration {
 

@@ -9,7 +9,7 @@ namespace Ink.Runtime
     /// Simple custom JSON serialisation implementation that takes JSON-able System.Collections that
     /// are produced by the ink engine and converts to and from JSON text.
     /// </summary>
-    internal static class SimpleJson
+    public static class SimpleJson
     {
         public static Dictionary<string, object> TextToDictionary (string text)
         {
@@ -23,16 +23,11 @@ namespace Ink.Runtime
 
         class Reader
         {
-			
-			const char UTF8_BOM_char = (char)65279;
-			
             public Reader (string text)
             {
                 _text = text;
                 _offset = 0;
-				if (_text[_offset] == UTF8_BOM_char) {
-                    _offset++;
-                }
+
                 SkipWhitespace ();
 
                 _rootObject = ReadObject ();
@@ -288,9 +283,7 @@ namespace Ink.Runtime
                     throw new System.Exception (message);
                 }
             }
-			
-			
-			
+
             void SkipWhitespace ()
             {
                 while (_offset < _text.Length) {

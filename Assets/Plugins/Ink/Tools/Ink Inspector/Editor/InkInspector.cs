@@ -141,7 +141,7 @@ namespace Ink.UnityIntegration {
 			errorList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
 				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
 				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
-				InkMetaFile.InkFileLog log = ((List<InkMetaFile.InkFileLog>)errorList.list)[index];
+				InkCompilerLog log = ((List<InkCompilerLog>)errorList.list)[index];
 				string label = log.content;
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
@@ -160,7 +160,7 @@ namespace Ink.UnityIntegration {
 			warningList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
 				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
 				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
-				InkMetaFile.InkFileLog log = ((List<InkMetaFile.InkFileLog>)warningList.list)[index];
+				InkCompilerLog log = ((List<InkCompilerLog>)warningList.list)[index];
 				string label = log.content;
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
@@ -179,7 +179,7 @@ namespace Ink.UnityIntegration {
 			todosList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
 				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
 				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
-				InkMetaFile.InkFileLog log = ((List<InkMetaFile.InkFileLog>)todosList.list)[index];
+				InkCompilerLog log = ((List<InkCompilerLog>)todosList.list)[index];
 				string label = log.content;
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");

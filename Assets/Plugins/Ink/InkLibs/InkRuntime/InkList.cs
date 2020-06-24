@@ -40,13 +40,13 @@ namespace Ink.Runtime
             this.itemName = nameParts [1];
         }
 
-        internal static InkListItem Null {
+        public static InkListItem Null {
             get {
                 return new InkListItem (null, null);
             }
         }
 
-        internal bool isNull {
+        public bool isNull {
             get {
                 return originName == null && itemName == null;
             }
@@ -139,33 +139,10 @@ namespace Ink.Runtime
                 throw new System.Exception ("InkList origin could not be found in story when constructing new list: " + singleOriginListName);
         }
 
-        internal InkList (KeyValuePair<InkListItem, int> singleElement)
+        public InkList (KeyValuePair<InkListItem, int> singleElement)
         {
             Add (singleElement.Key, singleElement.Value);
 		}
-
-
-		/// <summary>
-		/// Converts an integer value into a list containing an item from a given list
-		/// </summary>
-
-		public static InkList FromValue(InkList list, int itemVal) 
-		{
-			if (list.origins == null || list.origins.Count == 0)
-			{
-				throw new System.Exception ("LIST_GET_ITEM: No origin exists in list passed into InkList.FromValue");
-			}
-			var origin = list.origins[0];
-			InkListItem foundItem;
-			if (origin.TryGetItemWithValue(itemVal, out foundItem))
-			{ 
-				return new Ink.Runtime.InkList {
-					{foundItem, itemVal}
-				};
-			}
-			throw new System.Exception ("LIST_GET_ITEM: Item with value " + itemVal + " couldn't be found in list " + origin.name);
-		}
-
 
 		/// <summary>
 		/// Converts a string to an ink list and returns for use in the story.
@@ -255,8 +232,8 @@ namespace Ink.Runtime
         // necessary for certain operations (e.g. interacting with ints).
         // Only the story has access to the full set of lists, so that
         // the origin can be resolved from the originListName.
-        internal List<ListDefinition> origins;
-        internal ListDefinition originOfMaxItem {
+        public List<ListDefinition> origins;
+        public ListDefinition originOfMaxItem {
             get {
                 if (origins == null) return null;
 
@@ -273,7 +250,7 @@ namespace Ink.Runtime
         // Origin name needs to be serialised when content is empty,
         // assuming a name is availble, for list definitions with variable
         // that is currently empty.
-        internal List<string> originNames {
+        public List<string> originNames {
             get {
                 if (this.Count > 0) {
                     if (_originNames == null && this.Count > 0)
@@ -290,12 +267,12 @@ namespace Ink.Runtime
         }
         List<string> _originNames;
 
-        internal void SetInitialOriginName (string initialOriginName)
+        public void SetInitialOriginName (string initialOriginName)
         {
             _originNames = new List<string> { initialOriginName };
         }
 
-        internal void SetInitialOriginNames (List<string> initialOriginNames)
+        public void SetInitialOriginNames (List<string> initialOriginNames)
         {
             if (initialOriginNames == null)
                 _originNames = null;
@@ -349,22 +326,6 @@ namespace Ink.Runtime
                 return list;
             }
         }
-
-		/// <summary>
-		/// Get the integer value of the maximum value of the "all" of the list.
-		/// </summary>
-		public int maxValueOfAll {
-			get {
-				var maxValue = int.MinValue;
-				if (origins != null) 
-					foreach (var origin in origins) 
-						foreach (var kv in origin.items)
-								if (kv.Value > maxValue)
-									maxValue = kv.Value;
-				
-				return maxValue;
-			}
-		}
 
         /// <summary>
         /// The list of all items from the original list definition, equivalent to calling
@@ -492,7 +453,7 @@ namespace Ink.Runtime
                 && minItem.Value <= otherList.minItem.Value;
         }
 
-        internal InkList MaxAsList ()
+        public InkList MaxAsList ()
         {
             if (Count > 0)
                 return new InkList (maxItem);
@@ -500,7 +461,7 @@ namespace Ink.Runtime
                 return new InkList ();
         }
 
-        internal InkList MinAsList ()
+        public InkList MinAsList ()
         {
             if (Count > 0)
                 return new InkList (minItem);

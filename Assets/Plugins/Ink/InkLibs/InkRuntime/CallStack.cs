@@ -4,9 +4,9 @@ using System.Diagnostics;
 
 namespace Ink.Runtime
 {
-    internal class CallStack
+    public class CallStack
     {
-        internal class Element
+        public class Element
         {
             public Pointer currentPointer;
 
@@ -40,7 +40,7 @@ namespace Ink.Runtime
             }
         }
 
-        internal class Thread
+        public class Thread
         {
             public List<Element> callstack;
             public int threadIndex;
@@ -364,7 +364,7 @@ namespace Ink.Runtime
             var contextElement = callStack [contextIndex-1];
             
             if (!declareNew && !contextElement.temporaryVariables.ContainsKey(name)) {
-                throw new StoryException ("Could not find temporary variable to set: " + name);
+                throw new System.Exception ("Could not find temporary variable to set: " + name);
             }
 
             Runtime.Object oldValue;
@@ -404,7 +404,7 @@ namespace Ink.Runtime
             }
         }
 
-		internal string callStackTrace {
+		public string callStackTrace {
 			get {
 				var sb = new System.Text.StringBuilder();
 

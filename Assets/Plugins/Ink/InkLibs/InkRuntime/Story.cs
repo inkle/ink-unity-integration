@@ -91,6 +91,8 @@ namespace Ink.Runtime
 
         /// <summary>
         /// Whether the currentErrors list contains any errors.
+        /// THIS MAY BE REMOVED - you should be setting an error handler directly
+        /// using Story.onError.
         /// </summary>
         public bool hasError { get { return state.hasError; } }
 
@@ -106,7 +108,7 @@ namespace Ink.Runtime
         /// </summary>
         public VariablesState variablesState{ get { return state.variablesState; } }
 
-        internal ListDefinitionsOrigin listDefinitions {
+        public ListDefinitionsOrigin listDefinitions {
             get {
                 return _listDefinitions;
             }
@@ -124,6 +126,14 @@ namespace Ink.Runtime
         /// </summary>
         public StoryState state { get { return _state; } }
         
+        /// <summary>
+        /// Error handler for all runtime errors in ink - i.e. problems
+        /// with the source ink itself that are only discovered when playing
+        /// the story.
+        /// It's strongly recommended that you assign an error handler to your
+        /// story instance to avoid getting exceptions for ink errors.
+        /// </summary>
+        public event Ink.ErrorHandler onError;
         
         /// <summary>
         /// Callback for when ContinueInternal is complete
@@ -168,14 +178,14 @@ namespace Ink.Runtime
         // Warning: When creating a Story using this constructor, you need to
         // call ResetState on it before use. Intended for compiler use only.
         // For normal use, use the constructor that takes a json string.
-        internal Story (Container contentContainer, List<Runtime.ListDefinition> lists = null)
+        public Story (Container contentContainer, List<Runtime.ListDefinition> lists = null)
 		{
 			_mainContentContainer = contentContainer;
 
             if (lists != null)
                 _listDefinitions = new ListDefinitionsOrigin (lists);
 
-            _externals = new Dictionary<string, ExternalFunction> ();
+            _externals = new Dictionary<string, ExternalFunctionDef> ();
 		}
 
         /// <summary>
@@ -285,10 +295,7 @@ namespace Ink.Runtime
             ResetGlobals ();
         }
 
-        /// <summary>
-        /// Reset the runtime error and warning list within the state.
-        /// </summary>
-        public void ResetErrors()
+        void ResetErrors()
         {
             _state.ResetErrors ();
         }
@@ -395,7 +402,7 @@ namespace Ink.Runtime
                 _asyncContinueActive = isAsyncTimeLimited;
 				
                 if (!canContinue) {
-                    throw new StoryException ("Can't continue - should check canContinue before calling Continue");
+                    throw new Exception ("Can't continue - should check canContinue before calling Continue");
                 }
 
                 _state.didSafeExit = false;
@@ -413,6 +420,7 @@ namespace Ink.Runtime
             durationStopwatch.Start ();
 
             bool outputStreamEndsInNewline = false;
+            _sawLookaheadUnsafeFunctionAfterNewline = false;
             do {
 
                 try {
@@ -466,6 +474,7 @@ namespace Ink.Runtime
                 }
 
                 state.didSafeExit = false;
+                _sawLookaheadUnsafeFunctionAfterNewline = false;
 
                 if (_recursiveContinueCount == 1)
                     _state.variablesState.batchObservingVariableChanges = false;
@@ -478,6 +487,57 @@ namespace Ink.Runtime
 
             if( _profiler != null )
                 _profiler.PostContinue();
+
+            // Report any errors that occured during evaluation.
+            // This may either have been StoryExceptions that were thrown
+            // and caught during evaluation, or directly added with AddError.
+            if( state.hasError || state.hasWarning ) {
+                if( onError != null ) {
+                    if( state.hasError ) {
+                        foreach(var err in state.currentErrors) {
+                            onError(err, ErrorType.Error);
+                        }
+                    }
+                    if( state.hasWarning ) {
+                        foreach(var err in state.currentWarnings) {
+                            onError(err, ErrorType.Warning);
+                        }
+                    }
+                    ResetErrors();
+                } 
+                
+                // Throw an exception since there's no error handler
+                else {
+                    var sb = new StringBuilder();
+                    sb.Append("Ink had ");
+                    if( state.hasError ) {
+                        sb.Append(state.currentErrors.Count);
+                        sb.Append(state.currentErrors.Count == 1 ? " error" : " errors");
+                        if( state.hasWarning ) sb.Append(" and ");
+                    }
+                    if( state.hasWarning ) {
+                        sb.Append(state.currentWarnings.Count);
+                        sb.Append(state.currentWarnings.Count == 1 ? " warning" : " warnings");
+                    }
+                    sb.Append(". It is strongly suggested that you assign an error handler to story.onError. The first issue was: ");
+                    sb.Append(state.hasError ? state.currentErrors[0] : state.currentWarnings[0]);
+
+                    // If you get this exception, please assign an error handler to your story.
+                    // If you're using Unity, you can do something like this when you create
+                    // your story:
+                    //
+                    // var story = new Ink.Runtime.Story(jsonTxt);
+                    // story.onError = (errorMessage, errorType) => {
+                    //     if( errorType == ErrorType.Warning )
+                    //         Debug.LogWarning(errorMessage);
+                    //     else
+                    //         Debug.LogError(errorMessage);
+                    // };
+                    //
+                    // 
+                    throw new StoryException(sb.ToString());
+                }
+            }
         }
 
         bool ContinueSingleStep ()
@@ -515,7 +575,7 @@ namespace Ink.Runtime
 
                     // The last time we saw a newline, it was definitely the end of the line, so we
                     // want to rewind to that point.
-                    if (change == OutputStateChange.ExtendedBeyondNewline) {
+                    if (change == OutputStateChange.ExtendedBeyondNewline || _sawLookaheadUnsafeFunctionAfterNewline) {
                         RestoreStateSnapshot ();
 
                         // Hit a newline for sure, we're done
@@ -630,12 +690,12 @@ namespace Ink.Runtime
             return sb.ToString ();
         }
 
-        internal SearchResult ContentAtPath(Path path)
+        public SearchResult ContentAtPath(Path path)
         {
             return mainContentContainer.ContentAtPath (path);
         }
 
-        internal Runtime.Container KnotContainerWithName (string name)
+        public Runtime.Container KnotContainerWithName (string name)
         {
             INamedContent namedContainer;
             if (mainContentContainer.namedContent.TryGetValue (name, out namedContainer))
@@ -644,7 +704,7 @@ namespace Ink.Runtime
                 return null;
         }
 
-        internal Pointer PointerAtPath (Path path)
+        public Pointer PointerAtPath (Path path)
         {
             if (path.length == 0)
                 return Pointer.Null;
@@ -1560,7 +1620,7 @@ namespace Ink.Runtime
                 throw new System.Exception ("Can't " + activityStr + ". Story is in the middle of a ContinueAsync(). Make more ContinueAsync() calls or a single Continue() call beforehand.");
         }
             
-        internal void ChoosePath(Path p, bool incrementingTurnIndex = true)
+        public void ChoosePath(Path p, bool incrementingTurnIndex = true)
         {
             state.SetChosenPath (p, incrementingTurnIndex);
 
@@ -1666,7 +1726,7 @@ namespace Ink.Runtime
 
         // Evaluate a "hot compiled" piece of ink content, as used by the REPL-like
         // CommandLinePlayer.
-        internal Runtime.Object EvaluateExpression(Runtime.Container exprContainer)
+        public Runtime.Object EvaluateExpression(Runtime.Container exprContainer)
         {
             int startCallStackHeight = state.callStack.elements.Count;
 
@@ -1706,12 +1766,19 @@ namespace Ink.Runtime
         /// </summary>
         public bool allowExternalFunctionFallbacks { get; set; }
 
-        internal void CallExternalFunction(string funcName, int numberOfArguments)
+        public void CallExternalFunction(string funcName, int numberOfArguments)
         {
-            ExternalFunction func = null;
+            ExternalFunctionDef funcDef;
             Container fallbackFunctionContainer = null;
 
-            var foundExternal = _externals.TryGetValue (funcName, out func);
+            var foundExternal = _externals.TryGetValue (funcName, out funcDef);
+
+            // Should this function break glue? Abort run if we've already seen a newline.
+            // Set a bool to tell it to restore the snapshot at the end of this instruction.
+            if( foundExternal && !funcDef.lookaheadSafe && _stateSnapshotAtLastNewline != null ) {
+                _sawLookaheadUnsafeFunctionAfterNewline = true;
+                return;
+            }
 
             // Try to use fallback function?
             if (!foundExternal) {
@@ -1745,7 +1812,7 @@ namespace Ink.Runtime
             arguments.Reverse ();
 
             // Run the function!
-            object funcResult = func (arguments.ToArray());
+            object funcResult = funcDef.function (arguments.ToArray());
 
             // Convert return value (if any) to the a type that the ink engine can use
             Runtime.Object returnObj = null;
@@ -1773,11 +1840,23 @@ namespace Ink.Runtime
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
         /// <param name="func">The C# function to bind.</param>
-        public void BindExternalFunctionGeneral(string funcName, ExternalFunction func)
+        /// <param name="lookaheadSafe">The ink engine often evaluates further 
+        /// than you might expect beyond the current line just in case it sees 
+        /// glue that will cause the two lines to become one. In this case it's 
+        /// possible that a function can appear to be called twice instead of 
+        /// just once, and earlier than you expect. If it's safe for your 
+        /// function to be called in this way (since the result and side effect 
+        /// of the function will not change), then you can pass 'true'. 
+        /// Usually, you want to pass 'false', especially if you want some action 
+        /// to be performed in game code when this function is called.</param>
+        public void BindExternalFunctionGeneral(string funcName, ExternalFunction func, bool lookaheadSafe = true)
         {
             IfAsyncWeCant ("bind an external function");
             Assert (!_externals.ContainsKey (funcName), "Function '" + funcName + "' has already been bound.");
-            _externals [funcName] = func;
+            _externals [funcName] = new ExternalFunctionDef {
+                function = func,
+                lookaheadSafe = lookaheadSafe
+            };
         }
 
         object TryCoerce<T>(object value)
@@ -1820,14 +1899,23 @@ namespace Ink.Runtime
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
         /// <param name="func">The C# function to bind.</param>
-        public void BindExternalFunction(string funcName, Func<object> func)
+        /// <param name="lookaheadSafe">The ink engine often evaluates further 
+        /// than you might expect beyond the current line just in case it sees 
+        /// glue that will cause the two lines to become one. In this case it's 
+        /// possible that a function can appear to be called twice instead of 
+        /// just once, and earlier than you expect. If it's safe for your 
+        /// function to be called in this way (since the result and side effect 
+        /// of the function will not change), then you can pass 'true'. 
+        /// Usually, you want to pass 'false', especially if you want some action 
+        /// to be performed in game code when this function is called.</param>
+        public void BindExternalFunction(string funcName, Func<object> func, bool lookaheadSafe=false)
         {
 			Assert(func != null, "Can't bind a null function");
 
             BindExternalFunctionGeneral (funcName, (object[] args) => {
                 Assert(args.Length == 0, "External function expected no arguments");
                 return func();
-            });
+            }, lookaheadSafe);
         }
 
         /// <summary>
@@ -1835,7 +1923,16 @@ namespace Ink.Runtime
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
         /// <param name="act">The C# action to bind.</param>
-        public void BindExternalFunction(string funcName, Action act)
+        /// <param name="lookaheadSafe">The ink engine often evaluates further 
+        /// than you might expect beyond the current line just in case it sees 
+        /// glue that will cause the two lines to become one. In this case it's 
+        /// possible that a function can appear to be called twice instead of 
+        /// just once, and earlier than you expect. If it's safe for your 
+        /// function to be called in this way (since the result and side effect 
+        /// of the function will not change), then you can pass 'true'. 
+        /// Usually, you want to pass 'false', especially if you want some action 
+        /// to be performed in game code when this function is called.</param>
+        public void BindExternalFunction(string funcName, Action act, bool lookaheadSafe=false)
         {
 			Assert(act != null, "Can't bind a null function");
 
@@ -1843,7 +1940,7 @@ namespace Ink.Runtime
                 Assert(args.Length == 0, "External function expected no arguments");
                 act();
                 return null;
-            });
+            }, lookaheadSafe);
         }
 
         /// <summary>
@@ -1851,14 +1948,23 @@ namespace Ink.Runtime
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
         /// <param name="func">The C# function to bind.</param>
-        public void BindExternalFunction<T>(string funcName, Func<T, object> func)
+        /// <param name="lookaheadSafe">The ink engine often evaluates further 
+        /// than you might expect beyond the current line just in case it sees 
+        /// glue that will cause the two lines to become one. In this case it's 
+        /// possible that a function can appear to be called twice instead of 
+        /// just once, and earlier than you expect. If it's safe for your 
+        /// function to be called in this way (since the result and side effect 
+        /// of the function will not change), then you can pass 'true'. 
+        /// Usually, you want to pass 'false', especially if you want some action 
+        /// to be performed in game code when this function is called.</param>
+        public void BindExternalFunction<T>(string funcName, Func<T, object> func, bool lookaheadSafe=false)
         {
 			Assert(func != null, "Can't bind a null function");
 
             BindExternalFunctionGeneral (funcName, (object[] args) => {
                 Assert(args.Length == 1, "External function expected one argument");
                 return func( (T)TryCoerce<T>(args[0]) );
-            });
+            }, lookaheadSafe);
         }
 
         /// <summary>
@@ -1866,7 +1972,16 @@ namespace Ink.Runtime
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
         /// <param name="act">The C# action to bind.</param>
-        public void BindExternalFunction<T>(string funcName, Action<T> act)
+        /// <param name="lookaheadSafe">The ink engine often evaluates further 
+        /// than you might expect beyond the current line just in case it sees 
+        /// glue that will cause the two lines to become one. In this case it's 
+        /// possible that a function can appear to be called twice instead of 
+        /// just once, and earlier than you expect. If it's safe for your 
+        /// function to be called in this way (since the result and side effect 
+        /// of the function will not change), then you can pass 'true'. 
+        /// Usually, you want to pass 'false', especially if you want some action 
+        /// to be performed in game code when this function is called.</param>
+        public void BindExternalFunction<T>(string funcName, Action<T> act, bool lookaheadSafe=false)
         {
 			Assert(act != null, "Can't bind a null function");
 
@@ -1874,7 +1989,7 @@ namespace Ink.Runtime
                 Assert(args.Length == 1, "External function expected one argument");
                 act( (T)TryCoerce<T>(args[0]) );
                 return null;
-            });
+            }, lookaheadSafe);
         }
 
 
@@ -1883,7 +1998,16 @@ namespace Ink.Runtime
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
         /// <param name="func">The C# function to bind.</param>
-        public void BindExternalFunction<T1, T2>(string funcName, Func<T1, T2, object> func)
+        /// <param name="lookaheadSafe">The ink engine often evaluates further 
+        /// than you might expect beyond the current line just in case it sees 
+        /// glue that will cause the two lines to become one. In this case it's 
+        /// possible that a function can appear to be called twice instead of 
+        /// just once, and earlier than you expect. If it's safe for your 
+        /// function to be called in this way (since the result and side effect 
+        /// of the function will not change), then you can pass 'true'. 
+        /// Usually, you want to pass 'false', especially if you want some action 
+        /// to be performed in game code when this function is called.</param>
+        public void BindExternalFunction<T1, T2>(string funcName, Func<T1, T2, object> func, bool lookaheadSafe = false)
         {
 			Assert(func != null, "Can't bind a null function");
 
@@ -1893,7 +2017,7 @@ namespace Ink.Runtime
                     (T1)TryCoerce<T1>(args[0]), 
                     (T2)TryCoerce<T2>(args[1])
                 );
-            });
+            }, lookaheadSafe);
         }
 
         /// <summary>
@@ -1901,7 +2025,16 @@ namespace Ink.Runtime
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
         /// <param name="act">The C# action to bind.</param>
-        public void BindExternalFunction<T1, T2>(string funcName, Action<T1, T2> act)
+        /// <param name="lookaheadSafe">The ink engine often evaluates further 
+        /// than you might expect beyond the current line just in case it sees 
+        /// glue that will cause the two lines to become one. In this case it's 
+        /// possible that a function can appear to be called twice instead of 
+        /// just once, and earlier than you expect. If it's safe for your 
+        /// function to be called in this way (since the result and side effect 
+        /// of the function will not change), then you can pass 'true'. 
+        /// Usually, you want to pass 'false', especially if you want some action 
+        /// to be performed in game code when this function is called.</param>
+        public void BindExternalFunction<T1, T2>(string funcName, Action<T1, T2> act, bool lookaheadSafe=false)
         {
 			Assert(act != null, "Can't bind a null function");
 
@@ -1912,7 +2045,7 @@ namespace Ink.Runtime
                     (T2)TryCoerce<T2>(args[1])
                 );
                 return null;
-            });
+            }, lookaheadSafe);
         }
 
         /// <summary>
@@ -1920,7 +2053,16 @@ namespace Ink.Runtime
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
         /// <param name="func">The C# function to bind.</param>
-        public void BindExternalFunction<T1, T2, T3>(string funcName, Func<T1, T2, T3, object> func)
+        /// <param name="lookaheadSafe">The ink engine often evaluates further 
+        /// than you might expect beyond the current line just in case it sees 
+        /// glue that will cause the two lines to become one. In this case it's 
+        /// possible that a function can appear to be called twice instead of 
+        /// just once, and earlier than you expect. If it's safe for your 
+        /// function to be called in this way (since the result and side effect 
+        /// of the function will not change), then you can pass 'true'. 
+        /// Usually, you want to pass 'false', especially if you want some action 
+        /// to be performed in game code when this function is called.</param>
+        public void BindExternalFunction<T1, T2, T3>(string funcName, Func<T1, T2, T3, object> func, bool lookaheadSafe=false)
         {
 			Assert(func != null, "Can't bind a null function");
 
@@ -1931,7 +2073,7 @@ namespace Ink.Runtime
                     (T2)TryCoerce<T2>(args[1]),
                     (T3)TryCoerce<T3>(args[2])
                 );
-            });
+            }, lookaheadSafe);
         }
 
         /// <summary>
@@ -1939,7 +2081,16 @@ namespace Ink.Runtime
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
         /// <param name="act">The C# action to bind.</param>
-        public void BindExternalFunction<T1, T2, T3>(string funcName, Action<T1, T2, T3> act)
+        /// <param name="lookaheadSafe">The ink engine often evaluates further 
+        /// than you might expect beyond the current line just in case it sees 
+        /// glue that will cause the two lines to become one. In this case it's 
+        /// possible that a function can appear to be called twice instead of 
+        /// just once, and earlier than you expect. If it's safe for your 
+        /// function to be called in this way (since the result and side effect 
+        /// of the function will not change), then you can pass 'true'. 
+        /// Usually, you want to pass 'false', especially if you want some action 
+        /// to be performed in game code when this function is called.</param>
+        public void BindExternalFunction<T1, T2, T3>(string funcName, Action<T1, T2, T3> act, bool lookaheadSafe=false)
         {
 			Assert(act != null, "Can't bind a null function");
 
@@ -1951,7 +2102,7 @@ namespace Ink.Runtime
                     (T3)TryCoerce<T3>(args[2])
                 );
                 return null;
-            });
+            }, lookaheadSafe);
         }
 
         /// <summary>
@@ -1959,7 +2110,16 @@ namespace Ink.Runtime
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
         /// <param name="func">The C# function to bind.</param>
-        public void BindExternalFunction<T1, T2, T3, T4>(string funcName, Func<T1, T2, T3, T4, object> func)
+        /// <param name="lookaheadSafe">The ink engine often evaluates further 
+        /// than you might expect beyond the current line just in case it sees 
+        /// glue that will cause the two lines to become one. In this case it's 
+        /// possible that a function can appear to be called twice instead of 
+        /// just once, and earlier than you expect. If it's safe for your 
+        /// function to be called in this way (since the result and side effect 
+        /// of the function will not change), then you can pass 'true'. 
+        /// Usually, you want to pass 'false', especially if you want some action 
+        /// to be performed in game code when this function is called.</param>
+        public void BindExternalFunction<T1, T2, T3, T4>(string funcName, Func<T1, T2, T3, T4, object> func, bool lookaheadSafe=false)
         {
 			Assert(func != null, "Can't bind a null function");
 
@@ -1971,7 +2131,7 @@ namespace Ink.Runtime
                     (T3)TryCoerce<T3>(args[2]),
                     (T4)TryCoerce<T4>(args[3])
                 );
-            });
+            }, lookaheadSafe);
         }
 
         /// <summary>
@@ -1979,7 +2139,16 @@ namespace Ink.Runtime
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
         /// <param name="act">The C# action to bind.</param>
-        public void BindExternalFunction<T1, T2, T3, T4>(string funcName, Action<T1, T2, T3, T4> act)
+        /// <param name="lookaheadSafe">The ink engine often evaluates further 
+        /// than you might expect beyond the current line just in case it sees 
+        /// glue that will cause the two lines to become one. In this case it's 
+        /// possible that a function can appear to be called twice instead of 
+        /// just once, and earlier than you expect. If it's safe for your 
+        /// function to be called in this way (since the result and side effect 
+        /// of the function will not change), then you can pass 'true'. 
+        /// Usually, you want to pass 'false', especially if you want some action 
+        /// to be performed in game code when this function is called.</param>
+        public void BindExternalFunction<T1, T2, T3, T4>(string funcName, Action<T1, T2, T3, T4> act, bool lookaheadSafe=false)
         {
 			Assert(act != null, "Can't bind a null function");
 
@@ -1992,7 +2161,7 @@ namespace Ink.Runtime
                     (T4)TryCoerce<T4>(args[3])
                 );
                 return null;
-            });
+            }, lookaheadSafe);
         }
         
         /// <summary>
@@ -2095,7 +2264,7 @@ namespace Ink.Runtime
                 _variableObservers = new Dictionary<string, VariableObserver> ();
 
 			if( !state.variablesState.GlobalVariableExistsWithName(variableName) ) 
-				throw new StoryException("Cannot observe variable '"+variableName+"' because it wasn't declared in the ink story.");
+				throw new Exception("Cannot observe variable '"+variableName+"' because it wasn't declared in the ink story.");
 
             if (_variableObservers.ContainsKey (variableName)) {
                 _variableObservers[variableName] += observer;
@@ -2427,14 +2596,14 @@ namespace Ink.Runtime
 
         // Throw an exception that gets caught and causes AddError to be called,
         // then exits the flow.
-        internal void Error(string message, bool useEndLineNumber = false)
+        public void Error(string message, bool useEndLineNumber = false)
         {
             var e = new StoryException (message);
             e.useEndLineNumber = useEndLineNumber;
             throw e;
         }
 
-        internal void Warning (string message)
+        public void Warning (string message)
         {
             AddError (message, isWarning:true);
         }
@@ -2526,7 +2695,7 @@ namespace Ink.Runtime
             }
         }
 
-        internal Container mainContentContainer {
+        public Container mainContentContainer {
             get {
                 if (_temporaryEvaluationContainer) {
                     return _temporaryEvaluationContainer;
@@ -2539,7 +2708,11 @@ namespace Ink.Runtime
         Container _mainContentContainer;
         ListDefinitionsOrigin _listDefinitions;
 
-        Dictionary<string, ExternalFunction> _externals;
+        struct ExternalFunctionDef {
+            public ExternalFunction function;
+            public bool lookaheadSafe;
+        }
+        Dictionary<string, ExternalFunctionDef> _externals;
         Dictionary<string, VariableObserver> _variableObservers;
         bool _hasValidatedExternals;
 
@@ -2549,6 +2722,7 @@ namespace Ink.Runtime
 
         bool _asyncContinueActive;
         StoryState _stateSnapshotAtLastNewline = null;
+        bool _sawLookaheadUnsafeFunctionAfterNewline = false;
 
         int _recursiveContinueCount = 0;
 
