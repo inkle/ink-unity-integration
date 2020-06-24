@@ -33,16 +33,17 @@ namespace Ink.UnityIntegration {
 		public class CompilationStackItem {
 			public enum State {
 				// Default state, item is about to be queued for compilation
-				Idle,
+				Queued,
 				
-				// Item is no owned by the thread pool and being compiled
+				// Item is now owned by the thread pool and being compiled
 				Compiling,
 				
 				// Compilation has finished, item to be processed for errors and result handled
 				Complete,
 			}
 
-			public State state = State.Idle;
+			public State state = State.Queued;
+			public bool immediate;
 			public InkFile inkFile;
 			public string compiledJson;
 			public string inkAbsoluteFilePath;
@@ -50,16 +51,16 @@ namespace Ink.UnityIntegration {
 			public List<InkCompilerLog> logOutput = new List<InkCompilerLog>();
 			public List<string> unhandledErrorOutput = new List<string>();
 			public DateTime startTime;
+			public DateTime endTime;
 
 			public float timeTaken {
 				get {
-					return (float)(DateTime.Now - startTime).TotalSeconds;
+					if(state == State.Complete) return (float)(endTime - startTime).TotalSeconds;
+					else return (float)(DateTime.Now - startTime).TotalSeconds;
 				}
 			}
 
-			public CompilationStackItem () {
-				startTime = DateTime.Now;
-			}
+			public CompilationStackItem () {}
 		}
 
 		// Utility class for the ink compiler, used to work out how to find include files and their contents
@@ -107,7 +108,7 @@ namespace Ink.UnityIntegration {
 				return;
 
 			// When all files have compiled, run the complete function.
-			if(compiling && InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count == 0) {
+			if(compiling && InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Queued) == 0 && InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Compiling) == 0) {
 				DelayedComplete();
 			}
 			
@@ -119,7 +120,8 @@ namespace Ink.UnityIntegration {
                         // TODO - Cancel the thread if it's still going. Not critical, since its kinda fine if it compiles a bit later, but it's not clear.
                         RemoveCompilingFile(i);
                         Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+".\nCompilation should never take more than a few seconds, but for large projects or slow computers you may want to increase the timeout time in the InkSettings file.\nIf this persists there may be another issue; or else check an ink file exists at this path and try Assets/Recompile Ink, else please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+string.Join("\n",compilingFile.unhandledErrorOutput.ToArray()));
-                    }
+						TryCompileNextFileInStack();
+					}
                 }
             }
 
@@ -142,7 +144,7 @@ namespace Ink.UnityIntegration {
 
 		static void UpdateProgressBar () {
 			if(InkLibrary.Instance.compilationStack.Count == 0) return;
-			int numCompiling = InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count;
+			int numCompiling = InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Compiling);
 			string message = "Compiling .Ink File "+(InkLibrary.Instance.compilationStack.Count-numCompiling)+" of "+InkLibrary.Instance.compilationStack.Count+".";
 			if(playModeBlocked) message += " Will enter play mode when complete.";
 			if(buildBlocked || playModeBlocked || EditorApplication.isPlaying) EditorUtility.DisplayProgressBar("Compiling Ink...", message, GetEstimatedCompilationProgress());
@@ -205,7 +207,11 @@ namespace Ink.UnityIntegration {
             CompileInk(inkFiles, false, null);
         }
 		public static void CompileInk (InkFile[] inkFiles, bool immediate, Action onComplete) {
-            InkLibrary.Validate();
+			#if UNITY_2019_1_OR_NEWER
+			AssetDatabase.DisallowAutoRefresh();
+			#endif
+            
+			InkLibrary.Validate();
             if(onComplete != null) onCompleteActions.Add(onComplete);
 			StringBuilder filesCompiledLog = new StringBuilder("Files compiled:");
 			foreach (var inkFile in inkFiles) filesCompiledLog.AppendLine().Append(inkFile.filePath);
@@ -226,6 +232,12 @@ namespace Ink.UnityIntegration {
 		/// </summary>
 		/// <param name="inkFile">Ink file.</param>
 		private static void CompileInkInternal (InkFile inkFile, bool immediate) {
+			if(inkFile == null) {
+				Debug.LogError("Tried to compile ink file but input was null.");
+				return;
+			}
+			if(!inkFile.metaInfo.isMaster)
+				Debug.LogWarning("Compiling InkFile which is an include. Any file created is likely to be invalid. Did you mean to call CompileInk on inkFile.master?");
 
 			// If we've not yet locked C# compilation do so now
 			if (!hasLockedUnityCompilation)
@@ -234,14 +246,8 @@ namespace Ink.UnityIntegration {
 				EditorApplication.LockReloadAssemblies();
 			}
 
+			// If we're already compiling this, then stop!
             RemoveFromPendingCompilationStack(inkFile);
-
-			if(inkFile == null) {
-				Debug.LogError("Tried to compile ink file but input was null.");
-				return;
-			}
-			if(!inkFile.metaInfo.isMaster)
-				Debug.LogWarning("Compiling InkFile which is an include. Any file created is likely to be invalid. Did you mean to call CompileInk on inkFile.master?");
 			if(InkLibrary.GetCompilationStackItem(inkFile) != null) {
 				UnityEngine.Debug.LogWarning("Tried compiling ink file, but file is already compiling. "+inkFile.filePath);
 				return;
@@ -255,23 +261,57 @@ namespace Ink.UnityIntegration {
 				inkFile = InkLibrary.GetInkFileWithAbsolutePath(inputPath),
 				inkAbsoluteFilePath = inputPath,
 				jsonAbsoluteFilePath = inkFile.jsonPath,
-				state = CompilationStackItem.State.Compiling
+				state = CompilationStackItem.State.Queued,
+				immediate = immediate
 			};
 
 			InkLibrary.Instance.compilationStack.Add(pendingFile);
 			InkLibrary.Save();
-			if(immediate) {
-                CompileInkThreaded(pendingFile);
-                Update();
-			} else {
-                if(EditorApplication.isCompiling) Debug.LogWarning("Was compiling scripts when ink compilation started! This seems to cause the thread to cancel and complete, but the work isn't done. It may cause a timeout.");
-                ThreadPool.QueueUserWorkItem(CompileInkThreaded, pendingFile);
-            }
+
+			TryCompileNextFileInStack();
 		}
 
-		private static void CompileInkThreaded(object itemObj)
-		{
+
+
+
+		private static void TryCompileNextFileInStack () {
+			if(!compiling) return;
+			InkCompiler.CompilationStackItem fileToCompile = null;
+			foreach(var x in InkLibrary.Instance.compilationStack) {
+				if(x.state == CompilationStackItem.State.Compiling) return;
+				if(x.state == CompilationStackItem.State.Queued) {
+					fileToCompile = x;
+					break;
+				}
+			}
+			if(fileToCompile != null) {
+				BeginCompilingFile(fileToCompile);
+				if(fileToCompile.immediate) {
+					CompileInkThreaded(fileToCompile);
+				} else {
+					if(EditorApplication.isCompiling) Debug.LogWarning("Was compiling scripts when ink compilation started! This seems to cause the thread to cancel and complete, but the work isn't done. It may cause a timeout.");
+					ThreadPool.QueueUserWorkItem(CompileInkThreaded, fileToCompile);
+				}
+			}
+		}
+
+		private static void BeginCompilingFile(CompilationStackItem item) {
+			if(item.state != CompilationStackItem.State.Queued) return;
+			item.state = CompilationStackItem.State.Compiling;
+			item.startTime = DateTime.Now;
+		}
+		private static void CompleteCompilingFile(CompilationStackItem item) {
+			if(item.state != CompilationStackItem.State.Compiling) return;
+			item.state = CompilationStackItem.State.Complete;
+			item.endTime = DateTime.Now;
+			if (item.timeTaken > InkSettings.Instance.compileTimeout * 0.6f)
+				Debug.LogWarning ("Compilation for "+Path.GetFileName(item.inkFile.filePath)+" took over 60% of the time required to timeout the compiler. Consider increasing the compile timeout on the InkSettings file.");
+		}
+
+		private static void CompileInkThreaded(object itemObj) {
 			CompilationStackItem item = (CompilationStackItem) itemObj;
+			// This should be called before this point, but just in case.
+			BeginCompilingFile(item);
 
 			var inputString = File.ReadAllText(item.inkAbsoluteFilePath);
 			var compiler = new Compiler(inputString, new Compiler.Options
@@ -302,18 +342,19 @@ namespace Ink.UnityIntegration {
 			}
 
 			
-			item.state = CompilationStackItem.State.Complete;
+			CompleteCompilingFile(item);
+			TryCompileNextFileInStack();
 		}
 
 		// When all files in stack have been compiled. This is called via update because Process events run in another thread.
 		private static void DelayedComplete () {
-			if(InkLibrary.FilesInCompilingStackInState(CompilationStackItem.State.Compiling).Count > 0) {
+			if(InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Compiling) > 0) {
 				Debug.LogWarning("Delayed, but a file is now compiling! You can ignore this warning.");
 				return;
 			}
-			float longestTimeTaken = 0;
 			bool errorsFound = false;
 			StringBuilder filesCompiledLog = new StringBuilder("Files compiled:");
+			AssetDatabase.StartAssetEditing();
 			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
 				
 				// Complete status is also set when an error occured, in these cases 'compiledJson' will be null so there's no import to process
@@ -328,7 +369,6 @@ namespace Ink.UnityIntegration {
 					compilingFile.inkFile.jsonAsset = jsonObject;
 				}
 
-				longestTimeTaken = Mathf.Max (compilingFile.timeTaken);
 				filesCompiledLog.AppendLine().Append(compilingFile.inkFile.filePath);
 				filesCompiledLog.Append(string.Format(" ({0}s)", compilingFile.timeTaken));
 				if(compilingFile.unhandledErrorOutput.Count > 0) {
@@ -365,9 +405,8 @@ namespace Ink.UnityIntegration {
 					}
 				}
 			}
-
-			if (longestTimeTaken > InkSettings.Instance.compileTimeout * 0.6f)
-				Debug.LogWarning ("Compilation took over 60% of the time required to timeout the compiler. Consider increasing the compile timeout on the InkSettings file.");
+			AssetDatabase.StopAssetEditing();
+			
 
 			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
 				if (OnCompileInk != null) {
@@ -396,6 +435,10 @@ namespace Ink.UnityIntegration {
 			EditorUtility.ClearProgressBar();
 			#endif
 			
+			#if UNITY_2019_1_OR_NEWER
+			AssetDatabase.AllowAutoRefresh();
+			#endif
+
             // This is now allowed, if compiled manually. I've left this code commented out because at some point we might want to track what caused a file to compile. 
             // if(EditorApplication.isPlayingOrWillChangePlaymode && InkSettings.Instance.delayInPlayMode) {
 			// 	Debug.LogError("Ink just finished recompiling while in play mode. This should never happen when InkSettings.Instance.delayInPlayMode is true!");

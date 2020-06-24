@@ -8,7 +8,6 @@ using System.Linq;
 using Ink.Runtime;
 using UnityEditor.ProjectWindowCallback;
 using UnityEditor.Callbacks;
-using Path = System.IO.Path;	
 
 namespace Ink.UnityIntegration {
 
@@ -66,15 +65,16 @@ namespace Ink.UnityIntegration {
 
 		[MenuItem("Assets/Recompile Ink", false, 61)]
 		public static void RecompileAll() {
-			InkCompiler.CompileInk(InkLibrary.FilesCompiledByRecompileAll().ToArray());
-			string logString = InkLibrary.FilesCompiledByRecompileAll().Any() ? 
-				"Recompile All will compile "+string.Join(", ", InkLibrary.FilesCompiledByRecompileAll().Select(x => Path.GetFileName(x.filePath)).ToArray()) :
+			var filesToRecompile = InkLibrary.FilesCompiledByRecompileAll().ToArray();
+			string logString = filesToRecompile.Any() ? 
+				"Recompile All will compile "+string.Join(", ", filesToRecompile.Select(x => Path.GetFileName(x.filePath)).ToArray()) :
 				"No valid ink found. Note that only files with 'Compile Automatic' checked are compiled if not set to compile all files automatically in InkSettings file.";
 			Debug.Log(logString);
+			InkCompiler.CompileInk(filesToRecompile);
 		}
 
 
-		[MenuItem("Assets/Create/Ink Script", false, 120)]
+		[MenuItem("Assets/Create/Ink", false, 120)]
 		public static void CreateNewInkFile () {
 			string fileName = "New Ink.ink";
 			string filePath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(GetSelectedPathOrFallback(), fileName));
