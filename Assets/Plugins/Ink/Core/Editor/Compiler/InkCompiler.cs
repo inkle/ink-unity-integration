@@ -245,8 +245,7 @@ namespace Ink.UnityIntegration {
 				hasLockedUnityCompilation = true;
 				EditorApplication.LockReloadAssemblies();
 			}
-
-			// If we're already compiling this, then stop!
+			
             RemoveFromPendingCompilationStack(inkFile);
 			if(InkLibrary.GetCompilationStackItem(inkFile) != null) {
 				UnityEngine.Debug.LogWarning("Tried compiling ink file, but file is already compiling. "+inkFile.filePath);
