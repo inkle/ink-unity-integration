@@ -210,8 +210,13 @@ namespace Ink.UnityIntegration {
 
 		public void FindIncludedFiles () {
 			includes.Clear();
-			foreach(string includePath in includePaths) {
-				string localIncludePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(inkFile.filePath), includePath);
+			string directory = Path.GetDirectoryName(inkFile.filePath);
+			int assetsPathOffset = Path.GetFullPath(Application.dataPath).Length - 6; // "Assets".Length == 6
+			foreach(string includePath in includePaths)
+			{
+				string localIncludePath = Path.GetFullPath(Path.Combine(directory, includePath))
+					.Substring(assetsPathOffset)
+					.Replace('\\', '/');
 				DefaultAsset includedInkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
 				if(includedInkFileAsset == null) {
 					Debug.LogError(inkFile.filePath+ " expected child .ink asset at "+localIncludePath+" but file was not found.");
