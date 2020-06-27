@@ -70,7 +70,7 @@ This package also replaces the icon for ink files to make them easier to spot, a
 
 ## Updating ink manually
 
-The ink git repo is updated far more frequently than this asset store package. 
+The ink git repo is updated far more frequently than the Unity Asset Store package. 
 
 If you're interested in keeping up-to-date with cutting edge features, you can download the [latest releases from the GitHub repo](https://github.com/inkle/ink/releases).
 
