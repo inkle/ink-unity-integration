@@ -4,11 +4,11 @@ This Unity package allows you to integrate inkle's [ink narrative scripting lang
 
 Features:
 
- - **Using ink in your game**: Allows usage of JSON-compiled ink files in Unity via the included `ink-engine.dll`.
+ - **Using ink in your game**: Allows usage of JSON-compiled ink files in Unity via the [C# runtime API](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md).
  	
- - **ink player**: Provides a powerful player window for playing and debugging stories.
+ - **ink player**: Provides a powerful [Ink Player Window](https://github.com/inkle/ink-unity-integration/blob/master/Documentation/InkPlayerWindow.md) for playing and debugging stories.
  
- - **Auto compilation**: Instantly creates and updates a JSON story file when a `.ink` is updated. Errors in your `.ink` script are displayed as errors in Unity's own console.
+ - **Auto compilation**: Instantly creates and updates a JSON story file when a `.ink` is updated.
  	
  - **Inspector tools**: Provides an icon for ink files, and a custom inspector that provides information about a file.
 
@@ -16,9 +16,14 @@ Features:
 ## Getting started
 
 * Download the [latest Unity package release](https://github.com/inkle/ink-unity-integration/releases), and add to your Unity project.
+* Play the Demo scene for a simple example of how to control an ink story with code.
 * Select one of the sample `.ink` stories included in the package. In Unity's Inspector window, you should see a *Play* button. Click it to open the **ink player** window, useful for playing (previewing) ink stories.
 
-For more information on **ink**, see [the documentation in the main ink repo](https://github.com/inkle/ink). For convenience, the package also creates an (**Ink > Help**) menu option.
+## Tutorials & Help
+
+* An overview of the [C# API in the main ink repo](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md)
+
+* For more information on writing with **ink**, see [the documentation in the main ink repo](https://github.com/inkle/ink). For convenience, the package also creates an (**Ink > Help**) menu option.
 
 For assistance with writing or code, [Inkle's Discord forum](https://discord.gg/tD8Am2K) is full of lovely people who can help you out!
 
@@ -70,7 +75,7 @@ This package also replaces the icon for ink files to make them easier to spot, a
 
 ## Updating ink manually
 
-The ink git repo is updated far more frequently than this asset store package. 
+The ink git repo is updated far more frequently than the Unity Asset Store package. 
 
 If you're interested in keeping up-to-date with cutting edge features, you can download the [latest releases from the GitHub repo](https://github.com/inkle/ink/releases).
 
@@ -86,11 +91,14 @@ We'd love to see this supported more if you'd like to assist the effort!
 
   *Yes!*
 
+# Support us!
+
+Ink is free, forever; but we'd really appreciate your support!
+If you're able to give back, generous donations at our [Patreon](https://www.patreon.com/inkle) mean the world to us. 
+
 # License
 
 **ink** and this package is released under the MIT license. Although we don't require attribution, we'd love to know if you decide to use **ink** a project! Let us know on [Twitter](http://www.twitter.com/inkleStudios) or [by email](mailto:info@inklestudios.com).
-
-[Newtonsoft's Json.NET](http://www.newtonsoft.com/json) is included, and also has the MIT License.
 
 ### The MIT License (MIT)
 Copyright (c) 2016 inkle Ltd.
