@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,8 +11,7 @@ using Debug = UnityEngine.Debug;
 /// Provides helper functions to easily obtain these files.
 /// </summary>
 namespace Ink.UnityIntegration {
-	public class InkLibrary : ScriptableObject, IEnumerable<InkFile> {
-		public static System.Version versionCurrent = new System.Version(0,9,24);
+	public class InkLibrary : ScriptableObject {
 		public static bool created {
 			get {
 				// If it's null, there's no InkLibrary asset in the project
@@ -24,140 +22,44 @@ namespace Ink.UnityIntegration {
 		public static InkLibrary Instance {
 			get {
 				if(_Instance == null) {
-                    InkLibrary newInstance = null;
-					if(InkEditorUtils.FindOrCreateSingletonScriptableObjectOfType<InkLibrary>(defaultPath, out newInstance)) {
-                        Instance = newInstance;
-                        Rebuild();
-					} else {
-                        Instance = newInstance;
-                    }
+					if(InkEditorUtils.FindOrCreateSingletonScriptableObjectOfType<InkLibrary>(defaultPath, out _Instance)) {
+						Rebuild();
+					}
 				}
 				return _Instance;
-			} private set {
-                _Instance = value;
-                CreateDictionary();
-                Validate();
-            }
+			}
 		}
 		public const string defaultPath = "Assets/InkLibrary.asset";
 
 		public List<InkFile> inkLibrary = new List<InkFile>();
-		Dictionary<DefaultAsset, InkFile> inkLibraryDictionary;
 		// If InkSettings' delayInPlayMode option is true, dirty files are added here when they're changed in play mode
 		// This ensures they're remembered when you exit play mode and can be compiled
 		public List<string> pendingCompilationStack = new List<string>();
 		// The state of files currently being compiled. You can ignore this!
 		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
 
-        public int Count {
-            get {
-                return inkLibrary.Count;
-            }
-        }
-        public InkFile this[int key] {
-            get {
-                return inkLibrary[key];
-            } set {
-                inkLibrary[key] = value;
-            }
-        }
-        IEnumerator<InkFile> IEnumerable<InkFile>.GetEnumerator() {
-            return inkLibrary.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() {
-            return inkLibrary.GetEnumerator();
-        }
-
 		private void OnEnable() {
-			Instance = this;
+			_Instance = this;
 		}
 
 		private void OnDisable() {
-			Instance = null;
+			_Instance = null;
 		}
-
-        static void CreateDictionary () {
-            Instance.inkLibraryDictionary = new Dictionary<DefaultAsset, InkFile>();
-            foreach(var inkFile in Instance.inkLibrary) {
-                Instance.inkLibraryDictionary.Add(inkFile.inkAsset, inkFile);
-            }
-        }
-        
-		/// <summary>
-		/// Checks if the library is corrupt and rebuilds if necessary.
-		/// </summary>
-        public static void Validate () {
-            if(RequiresRebuild()) {
-                Rebuild();
-                Debug.LogWarning("InkLibrary was invalid and has been rebuilt. You can ignore this warning.");
-            }
-        }
-        
-		/// <summary>
-		/// Checks if the library is corrupt and requires a Rebuild. 
-        /// This can happen when asset IDs change, causing the wrong file to be referenced.
-        /// This occassionally occurs from source control.
-        /// This is a fairly performant check.
-		/// </summary>
-        public static bool RequiresRebuild () {
-            foreach(var inkFile in Instance.inkLibrary) {
-                if(inkFile == null) {
-                    return true;
-                }
-                if(inkFile.inkAsset == null) {
-                    return true;
-                }
-                if(!Instance.inkLibraryDictionary.ContainsKey(inkFile.inkAsset)) {
-                    return true;
-                }
-                if(inkFile.metaInfo == null) {
-                    return true;
-                }
-                if(inkFile.metaInfo.inkAsset == null) {
-                    return true;
-                }
-                if(inkFile.metaInfo.inkAsset != inkFile.inkAsset) {
-                    return true;
-                }
-                foreach(var include in inkFile.metaInfo.includes) {
-                    if(include == null) {
-                        return true;
-                    }
-                    if(!Instance.inkLibraryDictionary.ContainsKey(include)) {
-                        return true;
-                    }
-                } 
-            }
-            return false;
-        }
 
 		/// <summary>
 		/// Removes and null references in the library
 		/// </summary>
 		public static bool Clean () {
             bool wasDirty = false;
-			for (int i = InkLibrary.Instance.Count - 1; i >= 0; i--) {
-				InkFile inkFile = InkLibrary.Instance[i];
+			for (int i = InkLibrary.Instance.inkLibrary.Count - 1; i >= 0; i--) {
+				InkFile inkFile = InkLibrary.Instance.inkLibrary[i];
 				if (inkFile.inkAsset == null) {
-					InkLibrary.RemoveAt(i);
+					InkLibrary.Instance.inkLibrary.RemoveAt(i);
                     wasDirty = true;
                 }
 			}
             return wasDirty;
 		}
-
-        public static void Add (InkFile inkFile) {
-            Instance.inkLibrary.Add(inkFile);
-            Instance.inkLibraryDictionary.Add(inkFile.inkAsset, inkFile);
-            InkMetaLibrary.Instance.metaLibrary.Add(new InkMetaFile(inkFile));
-        }
-        public static void RemoveAt (int index) {
-            var inkFile = Instance.inkLibrary[index];
-            Instance.inkLibrary.RemoveAt(index);
-            Instance.inkLibraryDictionary.Remove(inkFile.inkAsset);
-            InkMetaLibrary.Instance.metaLibrary.Remove(inkFile.metaInfo);
-        }
 
 		/// <summary>
 		/// Updates the ink library. Executed whenever an ink file is changed by InkToJSONPostProcessor
@@ -193,7 +95,6 @@ namespace Ink.UnityIntegration {
 			}
 			if(inkLibraryChanged)
 				Instance.inkLibrary = newInkLibrary;
-            CreateDictionary();
 
             // Validate the meta files
 			var metaFiles = Instance.inkLibrary.Select(x => x.metaInfo);
@@ -215,7 +116,8 @@ namespace Ink.UnityIntegration {
 				if(inkFile == null) {
 					DefaultAsset asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(importedAssetPath);
 					inkFile = new InkFile(asset);
-					Add(inkFile);
+					Instance.inkLibrary.Add(inkFile);
+					InkMetaLibrary.Instance.metaLibrary.Add(new InkMetaFile(inkFile));
 				} else {
 					inkFile.metaInfo.ParseContent();
 				}
@@ -235,7 +137,6 @@ namespace Ink.UnityIntegration {
 
 		public static void Save () {
 			EditorUtility.SetDirty(Instance);
-			AssetDatabase.SaveAssets();
 			EditorApplication.RepaintProjectWindow();
 		}
 
@@ -271,11 +172,13 @@ namespace Ink.UnityIntegration {
 		/// <param name="path">Path.</param>
 		public static InkFile GetInkFileWithFile (DefaultAsset file) {
 			if(InkLibrary.Instance.inkLibrary == null) return null;
-			InkFile inkFile = null;
-            if(!Instance.inkLibraryDictionary.TryGetValue(file, out inkFile)) {
-                Debug.LogWarning (file + " missing from ink library. Please rebuild.");
-            }
-			return inkFile;
+			foreach(InkFile inkFile in Instance.inkLibrary) {
+				if(inkFile.inkAsset == file) {
+					return inkFile;
+				}
+			}
+			Debug.LogWarning (file + " missing from ink library. Please rebuild.");
+			return null;
 		}
 
 		/// <summary>
@@ -308,6 +211,14 @@ namespace Ink.UnityIntegration {
 			return null;
 		}
 
+		public static int NumFilesInCompilingStackInState (InkCompiler.CompilationStackItem.State state) {
+			int count = 0;
+			foreach(var x in Instance.compilationStack) {
+				if(x.state == state) 
+					count++;
+			}
+			return count;
+		}
 		public static List<InkCompiler.CompilationStackItem> FilesInCompilingStackInState (InkCompiler.CompilationStackItem.State state) {
 			List<InkCompiler.CompilationStackItem> items = new List<InkCompiler.CompilationStackItem>();
 			foreach(var x in Instance.compilationStack) {
@@ -324,5 +235,5 @@ namespace Ink.UnityIntegration {
 			}
 			return null;
 		}
-	}
+	}	
 }
