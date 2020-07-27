@@ -1119,7 +1119,6 @@ namespace Ink.UnityIntegration {
             contentWidth -= contentTypeWidth;
             contentWidth -= contentSpacing;
             
-			// TODO - Replace this with a manually controlled height panel! Use EditorGUIUtility.AddCursorRect to change the cursor.
             float minScrollRectHeight = 30;
             float maxScrollRectHeight = 480;
             float totalHeight = 0;
@@ -1153,6 +1152,12 @@ namespace Ink.UnityIntegration {
             var panelBottom = storyPanelViewState.scrollPosition.y + scrollRectHeight;
             // int numShown = 0;
             // var log = "";
+
+			// This appears to be necessary, else the selected text moves around when scrolling!
+			if(doingAutoscroll) {
+				GUI.FocusControl(null);
+			}
+
             for(int i = 0; i < validHistory.Count; i++) {
                 var endY = y + heights[i];
                 if(panelTop <= endY && panelBottom >= y) {
@@ -1167,11 +1172,17 @@ namespace Ink.UnityIntegration {
                     if(selectedLine == content) lineStyle = historyItemBGStyleSelected.guiStyle;
                     else lineStyle = i % 2 == 0 ? historyItemBGStyleDark.guiStyle : historyItemBGStyleLight.guiStyle;
                     
-                    if(GUI.Button(lineContainerRect, GUIContent.none, lineStyle)) {
-                        selectedLine = content;
-                        ScrollToSelectedLine();
-                    }
-
+					GUI.Box(lineContainerRect, GUIContent.none, lineStyle);
+					if(Event.current.type == EventType.MouseDown && lineContainerRect.Contains(Event.current.mousePosition)) {
+						if(Event.current.button == 0) {
+							selectedLine = content;
+							// To avoid disruption, only scroll when the line is close to the edge of the panel
+							var targetY = GetTargetScrollPositionToCenterStoryLine(i, false);
+							if(Mathf.Abs(targetY-storyPanelViewState.scrollPosition.y) > viewportRect.height * 0.25f) {
+								ScrollToSelectedLine();
+							}
+						}
+					}
                     string textToDisplay = String.Empty;
                     
                     var x = lineRect.x;
@@ -1187,8 +1198,23 @@ namespace Ink.UnityIntegration {
                     x += contentSpacing;
                     
                     var contentRect = new Rect(x, lineRect.y, contentWidth, lineRect.height);
-                    DisplayLine(contentRect, content);
-                    // log += i+", ";
+					DisplayLine(contentRect, content);
+
+                    if(Event.current.type == EventType.MouseDown && lineContainerRect.Contains(Event.current.mousePosition)) {
+						if(Event.current.button == 1) {
+							if(GUI.GetNameOfFocusedControl() != content.GetHashCode().ToString()) {
+								GUI.FocusControl(null);
+								var contextMenu = new GenericMenu();
+								contextMenu.AddItem(new GUIContent("Copy"), false, () => {
+									GUIUtility.systemCopyBuffer = content.content;
+								});
+								contextMenu.ShowAsContext();
+								Event.current.Use();
+							}
+						}
+					}
+
+					// log += i+", ";
                 }
                 y = endY;
             }
@@ -1223,7 +1249,7 @@ namespace Ink.UnityIntegration {
                     markedForScrollToBottom = AutoScrollMode.NONE;
                 }
                 if(markedForScrollToSelectedLine != AutoScrollMode.NONE && selectedLineIndex != -1) {
-                    var targetPosition = Mathf.Clamp((selectedLineY + heights[selectedLineIndex] * 0.5f) - viewportRect.height * 0.5f, 0, totalHeight - viewportRect.height);
+                    var targetPosition = GetTargetScrollPositionToCenterStoryLine(selectedLineIndex);
                     if(markedForScrollToSelectedLine == AutoScrollMode.Smooth) {
                         doingAutoscroll = true;
                         autoscrollTarget = targetPosition;
@@ -1235,12 +1261,18 @@ namespace Ink.UnityIntegration {
                     markedForScrollToSelectedLine = AutoScrollMode.NONE;
                 }
             }
+
+			float GetTargetScrollPositionToCenterStoryLine (int lineIndex, bool clamped = true) {
+				var targetY = (selectedLineY + heights[lineIndex] * 0.5f) - viewportRect.height * 0.5f;
+				if(clamped) targetY = Mathf.Clamp(targetY, 0, totalHeight - viewportRect.height);
+				return targetY;
+			}
 		}
 
         static ColoredBackgroundGUIStyle _historyItemBGStyleDark;
         static ColoredBackgroundGUIStyle historyItemBGStyleDark {
             get {
-                if(_historyItemBGStyleDark == null) _historyItemBGStyleDark = new ColoredBackgroundGUIStyle(new Color(0.8470589f,0.8470589f,0.8470589f,1), new Color(0.21f,0.21f,0.21f,1f));
+                if(_historyItemBGStyleDark == null) _historyItemBGStyleDark = new ColoredBackgroundGUIStyle(new Color(0.8470589f,0.8470589f,0.8470589f,1), new Color(0.21f,0.21f,0.21f,1f), new Color(0.92f,0.92f,0.92f,1), new Color(0.3f,0.3f,0.3f,1f));
                 return _historyItemBGStyleDark;
             }
         }
@@ -1248,7 +1280,7 @@ namespace Ink.UnityIntegration {
         static ColoredBackgroundGUIStyle _historyItemBGStyleLight;
         static ColoredBackgroundGUIStyle historyItemBGStyleLight {
             get {
-                if(_historyItemBGStyleLight == null) _historyItemBGStyleLight = new ColoredBackgroundGUIStyle(new Color(0.8745099f,0.8745099f,0.8745099f,1f), new Color(0.23f,0.23f,0.23f,1f));
+                if(_historyItemBGStyleLight == null) _historyItemBGStyleLight = new ColoredBackgroundGUIStyle(new Color(0.8745099f,0.8745099f,0.8745099f,1f), new Color(0.23f,0.23f,0.23f,1f), new Color(0.92f,0.92f,0.92f,1), new Color(0.3f,0.3f,0.3f,1f));
                 return _historyItemBGStyleLight;
             }
         }
@@ -1256,7 +1288,7 @@ namespace Ink.UnityIntegration {
         static ColoredBackgroundGUIStyle _historyItemBGStyleSelected;
         static ColoredBackgroundGUIStyle historyItemBGStyleSelected {
             get {
-                if(_historyItemBGStyleSelected == null) _historyItemBGStyleSelected = new ColoredBackgroundGUIStyle(new Color(0.2392157f,0.5019608f,0.8745099f,1f));
+                if(_historyItemBGStyleSelected == null) _historyItemBGStyleSelected = new ColoredBackgroundGUIStyle(new Color(0.3920879f,0.6161963f,0.9339623f,1f));
                 return _historyItemBGStyleSelected;
             }
         }
@@ -1312,6 +1344,7 @@ namespace Ink.UnityIntegration {
             var color = Color.Lerp(GUI.color, newColor, l);
             var oldGUIColor = GUI.color; 
             GUI.color = color;
+			GUI.SetNextControlName(content.GetHashCode().ToString());
             EditorGUI.SelectableLabel(rect, content.content, EditorStyles.wordWrappedLabel);
             GUI.color = oldGUIColor;
         }
@@ -1992,11 +2025,25 @@ namespace Ink.UnityIntegration {
         public GUIStyle guiStyle;
         public ColoredBackgroundGUIStyle (Color color) : this (color, color) {}
         public ColoredBackgroundGUIStyle (Color colorFree, Color colorPro) {
+            guiStyle = new GUIStyle();
+
             var texture = new Texture2D( 1, 1 );
             texture.SetPixel(0, 0, EditorGUIUtility.isProSkin ? colorPro : colorFree);
             texture.Apply();
-            guiStyle = new GUIStyle();
             guiStyle.normal.background = texture;
+        }
+        public ColoredBackgroundGUIStyle (Color colorFree, Color colorPro, Color hoverColorFree, Color hoverColorPro) {
+            guiStyle = new GUIStyle();
+
+            var texture = new Texture2D( 1, 1 );
+            texture.SetPixel(0, 0, EditorGUIUtility.isProSkin ? colorPro : colorFree);
+            texture.Apply();
+            guiStyle.normal.background = texture;
+
+            var hoverTexture = new Texture2D( 1, 1 );
+            hoverTexture.SetPixel(0, 0, EditorGUIUtility.isProSkin ? hoverColorPro : hoverColorFree);
+            hoverTexture.Apply();
+			guiStyle.hover.background = hoverTexture;
         }
     }
 
