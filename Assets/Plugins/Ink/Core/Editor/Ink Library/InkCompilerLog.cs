@@ -28,7 +28,7 @@ namespace Ink.UnityIntegration
 				var errorTypeCapture = match.Groups["errorType"];
 				if( errorTypeCapture != null ) {
 					var errorTypeStr = errorTypeCapture.Value;
-					if(errorTypeStr == "AUTHOR") errorType = Ink.ErrorType.Author;
+					if(errorTypeStr == "AUTHOR" || errorTypeStr == "TODO") errorType = Ink.ErrorType.Author;
 					else if(errorTypeStr == "WARNING") errorType = Ink.ErrorType.Warning;
 					else if(errorTypeStr == "ERROR") errorType = Ink.ErrorType.Error;
 					else Debug.LogWarning("Could not parse error type from "+errorTypeStr);
