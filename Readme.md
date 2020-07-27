@@ -29,12 +29,6 @@ For assistance with writing or code, [Inkle's Discord forum](https://discord.gg/
 
 To keep up to date with the latest news about ink [sign up for the mailing list](http://www.inklestudios.com/ink#signup).
 
-## Customisation
-
-This package has been designed to be modular. You can delete many of the folders to remove functionality without causing errors.
-
-You should never delete the DLL folder (although you may delete the windows/mac dlls if you are sure no team members are on a certain platform)
-
 ## Using ink in your game
 
 The **ink player** is the core feature of this package; the minimal requirements to actually run a compiled JSON story file is the source code in the InkRuntime folder. 
