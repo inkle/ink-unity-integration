@@ -320,6 +320,7 @@ namespace Ink.UnityIntegration {
 				errorHandler = (string message, ErrorType type) => {
 					InkCompilerLog log;
 					if(InkCompilerLog.TryParse(message, out log)) {
+						if(string.IsNullOrEmpty(log.fileName)) log.fileName = Path.GetFileName(item.inkAbsoluteFilePath);
 						item.logOutput.Add(log);
 					} else {
 						Debug.LogWarning("Couldn't parse log "+message);
