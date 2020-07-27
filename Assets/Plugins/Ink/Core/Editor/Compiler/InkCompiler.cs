@@ -484,10 +484,10 @@ namespace Ink.UnityIntegration {
 					Debug.LogError("Ink "+output.type+": "+output.content + " (at "+output.fileName+":"+output.lineNumber+")", pendingFile.inkFile.inkAsset);
 				} else if (output.type == ErrorType.Warning) {
 					pendingFile.inkFile.metaInfo.warnings.Add(output);
-					Debug.LogWarning("Ink "+output.type+": "+output.content + " "+output.fileName+" "+output.lineNumber, pendingFile.inkFile.inkAsset);
+					Debug.LogWarning("Ink "+output.type+": "+output.content + " (at "+output.fileName+" "+output.lineNumber+")", pendingFile.inkFile.inkAsset);
 				} else if (output.type == ErrorType.Author) {
 					pendingFile.inkFile.metaInfo.todos.Add(output);
-					Debug.Log("Ink "+output.type+": "+output.content + " "+output.fileName+" "+output.lineNumber, pendingFile.inkFile.inkAsset);
+					Debug.Log("Ink Log: "+output.content + " (at "+output.fileName+" "+output.lineNumber+")", pendingFile.inkFile.inkAsset);
 				}
 			}
 		}
