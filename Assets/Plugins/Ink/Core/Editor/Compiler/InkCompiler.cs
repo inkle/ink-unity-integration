@@ -63,28 +63,6 @@ namespace Ink.UnityIntegration {
 			public CompilationStackItem () {}
 		}
 
-		// Utility class for the ink compiler, used to work out how to find include files and their contents
-		private class UnityInkFileHandler : IFileHandler
-		{
-			private readonly string rootDirectory;
-
-			public UnityInkFileHandler(string rootDirectory)
-			{
-				this.rootDirectory = rootDirectory;
-			}
-			
-			public string ResolveInkFilename(string includeName)
-			{
-				// Convert to Unix style, and then use FileInfo.FullName to parse any ..\
-				return new FileInfo(Path.Combine(rootDirectory, includeName).Replace('\\', '/')).FullName;
-			}
-
-			public string LoadInkFileContents(string fullFilename)
-			{
-				return File.ReadAllText(fullFilename);
-			}
-		}
-
 		static InkCompiler () {
 			#if UNITY_2017_1_OR_NEWER
 			EditorApplication.playModeStateChanged += OnPlayModeChange;
@@ -316,7 +294,7 @@ namespace Ink.UnityIntegration {
 			var compiler = new Compiler(inputString, new Compiler.Options
 			{
 				countAllVisits = true,
-				fileHandler = new UnityInkFileHandler(Path.GetDirectoryName(item.inkAbsoluteFilePath)),
+				fileHandler = new Compiler.UnityInkFileHandler(Path.GetDirectoryName(item.inkAbsoluteFilePath)),
 				errorHandler = (string message, ErrorType type) => {
 					InkCompilerLog log;
 					if(InkCompilerLog.TryParse(message, out log)) {
