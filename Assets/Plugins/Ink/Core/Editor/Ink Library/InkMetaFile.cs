@@ -63,6 +63,10 @@ namespace Ink.UnityIntegration {
 				if(masterInkFileIncludingSelf.jsonAsset == null || masterInkFileIncludingSelf.metaInfo == null) 
 					return true;
 
+				if(masterInkFileIncludingSelf.metaInfo.lastEditDate > lastCompileDate) {
+					return true;
+				}
+				
 				var inkFilesInIncludeHierarchy = masterInkFileIncludingSelf.metaInfo.inkFilesInIncludeHierarchy;
 				// This should never happen, but would indicate that the meta file isn't properly loaded by the system.
 				if (inkFilesInIncludeHierarchy == null)
@@ -70,8 +74,6 @@ namespace Ink.UnityIntegration {
 				
 				foreach(InkFile inkFile in inkFilesInIncludeHierarchy) {
 					if(inkFile.metaInfo.hasUnhandledCompileErrors) {
-						return true;
-					} else if(inkFile.metaInfo.lastEditDate > lastCompileDate) {
 						return true;
 					}
 				}
