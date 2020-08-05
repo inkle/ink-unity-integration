@@ -237,7 +237,7 @@ namespace Ink.UnityIntegration {
 			{
 				inkFile = InkLibrary.GetInkFileWithAbsolutePath(inputPath),
 				inkAbsoluteFilePath = inputPath,
-				jsonAbsoluteFilePath = inkFile.jsonPath,
+				jsonAbsoluteFilePath = inkFile.absoluteJSONPath,
 				state = CompilationStackItem.State.Queued,
 				immediate = immediate
 			};
@@ -332,21 +332,23 @@ namespace Ink.UnityIntegration {
 			}
 			bool errorsFound = false;
 			StringBuilder filesCompiledLog = new StringBuilder("Files compiled:");
+
+			// Create and import compiled files
 			AssetDatabase.StartAssetEditing();
 			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
-				
 				// Complete status is also set when an error occured, in these cases 'compiledJson' will be null so there's no import to process
-				if (compilingFile.compiledJson != null)
-				{
-					// Write new compiled data to the file system
-					File.WriteAllText(compilingFile.jsonAbsoluteFilePath, compilingFile.compiledJson, Encoding.UTF8);
-                    AssetDatabase.ImportAsset(compilingFile.jsonAbsoluteFilePath);
-                    var jsonObject = AssetDatabase.LoadAssetAtPath<TextAsset>(compilingFile.inkFile.jsonPath);
+				if (compilingFile.compiledJson == null) continue;
+				
+				// Write new compiled data to the file system
+				File.WriteAllText(compilingFile.jsonAbsoluteFilePath, compilingFile.compiledJson, Encoding.UTF8);
+				AssetDatabase.ImportAsset(compilingFile.inkFile.jsonPath);
+			}
+			AssetDatabase.StopAssetEditing();
 
-					// Update the jsonAsset reference
-					compilingFile.inkFile.jsonAsset = jsonObject;
-				}
-
+			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
+				// Load and store a reference to the compiled file
+				compilingFile.inkFile.FindCompiledJSONAsset();
+				
 				filesCompiledLog.AppendLine().Append(compilingFile.inkFile.filePath);
 				filesCompiledLog.Append(string.Format(" ({0}s)", compilingFile.timeTaken));
 				if(compilingFile.unhandledErrorOutput.Count > 0) {
@@ -383,7 +385,6 @@ namespace Ink.UnityIntegration {
 					}
 				}
 			}
-			AssetDatabase.StopAssetEditing();
 			
 
 			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
