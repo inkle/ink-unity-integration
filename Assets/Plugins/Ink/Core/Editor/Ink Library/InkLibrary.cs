@@ -271,6 +271,10 @@ namespace Ink.UnityIntegration {
 		/// <param name="path">Path.</param>
 		public static InkFile GetInkFileWithFile (DefaultAsset file) {
 			if(InkLibrary.Instance.inkLibrary == null) return null;
+            if(Instance.inkLibraryDictionary == null) {
+				Debug.LogWarning("GetInkFileWithFile: inkLibraryDictionary was null! This should never occur, but is handled following a user reported bug. If this has never been seen long after 12/08/2020, it can be safely removed");
+				CreateDictionary();
+			}
 			foreach(InkFile inkFile in Instance.inkLibrary) {
 				if(inkFile.inkAsset == file) {
 					return inkFile;
