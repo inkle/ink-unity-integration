@@ -6,7 +6,7 @@ using Debug = UnityEngine.Debug;
 namespace Ink.UnityIntegration {
 	// Helper class for ink files that maintains INCLUDE connections between ink files
 	[System.Serializable]
-	public sealed class InkFile {
+	public class InkFile {
 		
 		public bool compileAutomatically = false;
 		// A reference to the ink file

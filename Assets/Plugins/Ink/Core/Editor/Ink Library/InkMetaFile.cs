@@ -10,7 +10,7 @@ using System.Collections.Generic;
 namespace Ink.UnityIntegration {
 	// Information about the current state of an ink file
 	[System.Serializable]
-	public sealed class InkMetaFile {
+	public class InkMetaFile {
 
 		public DefaultAsset inkAsset;
 		// Used for when the data gets lost.
