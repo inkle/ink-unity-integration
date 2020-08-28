@@ -185,7 +185,7 @@ namespace Ink.UnityIntegration {
             CompileInk(inkFiles, false, null);
         }
 		public static void CompileInk (InkFile[] inkFiles, bool immediate, Action onComplete) {
-			#if UNITY_2019_1_OR_NEWER
+			#if UNITY_2019_4_OR_NEWER
 			AssetDatabase.DisallowAutoRefresh();
 			#endif
             
@@ -414,7 +414,7 @@ namespace Ink.UnityIntegration {
 			EditorUtility.ClearProgressBar();
 			#endif
 			
-			#if UNITY_2019_1_OR_NEWER
+			#if UNITY_2019_4_OR_NEWER
 			AssetDatabase.AllowAutoRefresh();
 			#endif
 
