@@ -1769,6 +1769,10 @@ namespace Ink.UnityIntegration {
                 EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.IntField(guiContent, (int)variableValue);
                 EditorGUI.EndDisabledGroup();
+			} else if(variableValue is bool) {
+                EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
+				variableValue = EditorGUILayout.Toggle(guiContent, (bool)variableValue);
+                EditorGUI.EndDisabledGroup();
 			} else if(variableValue is InkList) {
                 EditorGUILayoutInkListField(guiContent, (InkList)variableValue, variableName);
 			} else if(variableValue == null) {

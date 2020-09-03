@@ -294,7 +294,7 @@ namespace Ink.UnityIntegration {
 			var compiler = new Compiler(inputString, new Compiler.Options
 			{
 				countAllVisits = true,
-				fileHandler = new Compiler.UnityInkFileHandler(Path.GetDirectoryName(item.inkAbsoluteFilePath)),
+				fileHandler = new UnityInkFileHandler(Path.GetDirectoryName(item.inkAbsoluteFilePath)),
 				errorHandler = (string message, ErrorType type) => {
 					InkCompilerLog log;
 					if(InkCompilerLog.TryParse(message, out log)) {

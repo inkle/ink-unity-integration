@@ -16,7 +16,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the ink story file format.
         /// </summary>
-        public const int inkVersionCurrent = 19;
+        public const int inkVersionCurrent = 20;
 
         // Version numbers are for engine itself and story file, rather
         // than the story state save format
@@ -1880,6 +1880,11 @@ namespace Ink.Runtime
             if (value is int && typeof(T) == typeof(bool)) {
                 int intVal = (int)value;
                 return intVal == 0 ? false : true;
+            }
+
+            if (value is bool && typeof(T) == typeof(int)) {
+                bool boolVal = (bool)value;
+                return boolVal ? 1 : 0;
             }
 
             if (typeof(T) == typeof(string)) {
