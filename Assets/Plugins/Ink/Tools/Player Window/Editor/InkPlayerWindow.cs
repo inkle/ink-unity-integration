@@ -140,8 +140,8 @@ namespace Ink.UnityIntegration {
             } 
         }
 
-        // To make this actually practical to use it needs to remember the loaded story.
-        // Right now it loses values before attaching.
+
+		
         [System.Serializable]
         public class InkPlayerWindowState {
             static string settingsEditorPrefsKey = typeof(InkPlayerWindowState).Name +" Settings";
@@ -176,7 +176,7 @@ namespace Ink.UnityIntegration {
             }
 
             static void Load () {
-                if(!EditorPrefs.HasKey(settingsEditorPrefsKey)) return;
+				if(!EditorPrefs.HasKey(settingsEditorPrefsKey)) return;
                 string data = EditorPrefs.GetString(settingsEditorPrefsKey);
                 try {
                     _Instance = JsonUtility.FromJson<InkPlayerWindowState>(data);
@@ -198,11 +198,15 @@ namespace Ink.UnityIntegration {
                 return asset;
             }
 
-		    public StoryPanelState storyPanelState = new StoryPanelState();
-            public DivertPanelState divertPanelState = new DivertPanelState();        
-            public FunctionPanelState.FunctionParams functionParams = new FunctionPanelState.FunctionParams();
+		    public StoryPanelState storyPanelState = new StoryPanelState() {showing=true};
+    		public BaseStoryPanelState choicePanelState = new BaseStoryPanelState() {showing=true};
+            public DivertPanelState divertPanelState = new DivertPanelState();
+			public FunctionPanelState functionPanelState = new FunctionPanelState();
+            // public FunctionPanelState.FunctionParams functionParams = new FunctionPanelState.FunctionParams();
     		public VariablesPanelState variablesPanelState = new VariablesPanelState();
-		
+    		public ObservedVariablesPanelState observedVariablesPanelState = new ObservedVariablesPanelState();
+    		public BaseStoryPanelState saveLoadPanelState = new BaseStoryPanelState();
+    		public BaseStoryPanelState profilerPanelState = new BaseStoryPanelState();
         }
 
         
@@ -213,30 +217,6 @@ namespace Ink.UnityIntegration {
 			public bool chooseAutomatically = false;
 			public float continueAutomaticallyTimeInterval = 0.1f;
 			public float chooseAutomaticallyTimeInterval = 0.1f;
-		}
-
-		public static StoryPanelViewState storyPanelViewState = new StoryPanelViewState();
-        [System.Serializable]
-		public class StoryPanelViewState {
-            public bool showingContentPanel = true;
-            [SerializeField]
-            Vector2 _scrollPosition;
-            public Vector2 scrollPosition {
-                get {
-                    return _scrollPosition;
-                } set {
-                    if(_scrollPosition == value) return;
-                    _scrollPosition = value;
-                    // Deselect lines on scrolling because otherwise unity does weird things with the selection
-                    // Disabled because it was deselecting the search field as you typed
-                    // GUI.FocusControl(null);
-                }
-            }
-        }
-        [System.Serializable]
-        public class StoryPanelState {
-            public DisplayOptions displayOptions = new DisplayOptions();
-            public string searchString = string.Empty; 
 		}
 
         
@@ -268,7 +248,6 @@ namespace Ink.UnityIntegration {
 			}
 		}
 		static string storyJSON;
-		static string currentStoryJSONPath;
 		static DateTime currentStoryJSONLastEditDateTime;
 
 		private static Story _story;
@@ -318,33 +297,43 @@ namespace Ink.UnityIntegration {
                 _scrollPosition = value;
             }
         }
-		public static bool showingChoicesPanel = true;
-		public static bool showingSaveLoadPanel;
-		public static bool showingProfileData;
-
-		public static bool showingFunctionsPanel;
-
-		public static Vector2 variablesScrollPosition;
 //		}
 
-
-
-
-		private static DivertPanelViewState divertPanelViewState = new DivertPanelViewState();
-		[System.Serializable]
-		public class DivertPanelViewState {
-		    public bool showingDivertsPanel;
-			public Vector2 divertsScrollPosition;
-        }
+		
+		
         [System.Serializable]
-		public class DivertPanelState {
-			public string divertCommand = String.Empty;
+        public class BaseStoryPanelState {
+			public bool showing;
+            [SerializeField]
+            Vector2 _scrollPosition;
+            public Vector2 scrollPosition {
+                get {
+                    return _scrollPosition;
+                } set {
+                    if(_scrollPosition == value) return;
+                    _scrollPosition = value;
+                    // Deselect lines on scrolling because otherwise unity does weird things with the selection
+                    // Disabled because it was deselecting the search field as you typed
+                    // GUI.FocusControl(null);
+                }
+            }
 		}
 
-		private static FunctionPanelState functionPanelState = new FunctionPanelState();
+		[System.Serializable]
+        public class StoryPanelState : BaseStoryPanelState {
+            public DisplayOptions displayOptions = new DisplayOptions();
+            public string searchString = string.Empty;
+		}
+
+
+        [System.Serializable]
+		public class DivertPanelState : BaseStoryPanelState {
+		    public string divertCommand = String.Empty;
+		}
+
 		static ReorderableList functionInputList;
         [System.Serializable]
-		public class FunctionPanelState {
+		public class FunctionPanelState : BaseStoryPanelState {
             [System.Serializable]
 		    public class FunctionParams {
                 [System.Serializable]
@@ -385,12 +374,12 @@ namespace Ink.UnityIntegration {
 			public object functionReturnValue = null;
 		}
 
-		public static bool showingVariablesPanel;
-		public static bool showingObservedVariablesPanel;
 		[System.Serializable]
-        public class VariablesPanelState {
+        public class VariablesPanelState : BaseStoryPanelState {
 			public string searchString = string.Empty;
 			public List<string> expandedVariables = new List<string>();
+		}
+        public class ObservedVariablesPanelState : BaseStoryPanelState {
 			public List<string> observedVariableNames = new List<string>();
 			public Dictionary<string, ObservedVariable> observedVariables = new Dictionary<string, ObservedVariable>();
 		}
@@ -464,7 +453,7 @@ namespace Ink.UnityIntegration {
 			isOpen = true;
 
             InkPlayerWindowState.OnCreateOrLoad += () => {
-                functionPanelState.functionParams = InkPlayerWindowState.Instance.functionParams;
+                // InkPlayerWindowState.Instance.functionPanelState.functionParams = InkPlayerWindowState.Instance.functionParams;
                 BuildFunctionInputList();
             };
             
@@ -485,7 +474,7 @@ namespace Ink.UnityIntegration {
 
         private void OnBecameVisible() {
             if(doingAutoscroll) {
-                storyPanelViewState.scrollPosition = new Vector2(storyPanelViewState.scrollPosition.x, autoscrollTarget);
+                InkPlayerWindowState.Instance.storyPanelState.scrollPosition = new Vector2(InkPlayerWindowState.Instance.storyPanelState.scrollPosition.x, autoscrollTarget);
                 doingAutoscroll = false;
             }
         }
@@ -678,6 +667,8 @@ namespace Ink.UnityIntegration {
 			Play(storyJSONTextAsset, InkPlayerParams.Standard);
 		}
 		static void Play (TextAsset storyJSONTextAsset, InkPlayerParams inkPlayerParams) {
+            // This forces a refresh
+			InkPlayerWindow.storyJSONTextAsset = null;
             InkPlayerWindow.storyJSONTextAsset = storyJSONTextAsset;
 			if(storyJSONTextAsset == null || !InkEditorUtils.CheckStoryIsValid(storyJSONTextAsset.text, out playStoryException))
 				return;
@@ -708,10 +699,10 @@ namespace Ink.UnityIntegration {
             _story.onEvaluateFunction -= OnEvaluateFunction;
             _story.onCompleteEvaluateFunction -= OnCompleteEvaluateFunction;
             _story.onChoosePathString -= OnChoosePathString;
-            foreach(var observedVariableName in InkPlayerWindowState.Instance.variablesPanelState.observedVariableNames) {
+            foreach(var observedVariableName in InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames) {
                 UnobserveVariable(observedVariableName, false);
             }
-            InkPlayerWindowState.Instance.variablesPanelState.observedVariables.Clear();
+            InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Clear();
         }
 
         static void OnSetStory () {
@@ -722,7 +713,7 @@ namespace Ink.UnityIntegration {
             _story.onChoosePathString += OnChoosePathString;
             
             // Recalculate function ink variables
-            foreach(var input in InkPlayerWindowState.Instance.functionParams.inputs) {
+            foreach(var input in InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs) {
                 if(input.type == FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.InkVariable) {
                     input.RefreshInkVariableValue(story);
                 } else if(input.type == FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.InkListVariable) {
@@ -731,9 +722,9 @@ namespace Ink.UnityIntegration {
             }
             
             // Reobserve variables
-            var variablesToObserve = new List<string>(InkPlayerWindowState.Instance.variablesPanelState.observedVariableNames);
-            InkPlayerWindowState.Instance.variablesPanelState.observedVariables.Clear();
-            InkPlayerWindowState.Instance.variablesPanelState.observedVariableNames.Clear();
+            var variablesToObserve = new List<string>(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames);
+            InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Clear();
+            InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Clear();
             foreach(var observedVariableName in variablesToObserve) {
                 if(_story.variablesState.Contains(observedVariableName)) {
                     var observedVariable = ObserveVariable(observedVariableName, true);
@@ -857,9 +848,9 @@ namespace Ink.UnityIntegration {
             lastOnGUITime = time;
             
             if(doingAutoscroll) {
-                var newY = Mathf.SmoothDamp(storyPanelViewState.scrollPosition.y, autoscrollTarget, ref autoscrollVelocity, autoscrollSmoothTime, Mathf.Infinity, deltaTime);
-                storyPanelViewState.scrollPosition = new Vector2(storyPanelViewState.scrollPosition.x, newY);
-                if(Mathf.Abs(storyPanelViewState.scrollPosition.y - autoscrollTarget) < 0.1f) doingAutoscroll = false;
+                var newY = Mathf.SmoothDamp(InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y, autoscrollTarget, ref autoscrollVelocity, autoscrollSmoothTime, Mathf.Infinity, deltaTime);
+                InkPlayerWindowState.Instance.storyPanelState.scrollPosition = new Vector2(InkPlayerWindowState.Instance.storyPanelState.scrollPosition.x, newY);
+                if(Mathf.Abs(InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y - autoscrollTarget) < 0.1f) doingAutoscroll = false;
             }
 
             this.Repaint();
@@ -919,7 +910,19 @@ namespace Ink.UnityIntegration {
 					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(storyJSONTextAsset));
 					var updatedStoryJSONLastEditDateTime = File.GetLastWriteTime(fullJSONFilePath);
 					if (currentStoryJSONLastEditDateTime != updatedStoryJSONLastEditDateTime ) {
-						EditorGUILayout.HelpBox ("Story JSON file has changed. Restart to play updated story.", MessageType.Warning);
+						EditorGUILayout.BeginHorizontal();
+						EditorGUILayout.HelpBox ("Story JSON file has changed. Reload or restart to play updated story.", MessageType.Warning);
+						EditorGUILayout.BeginVertical();
+						if(GUILayout.Button("Reload")) {
+							var storyStateJSON = story.state.ToJson();
+							Play(storyJSONTextAsset, InkPlayerWindow.playerParams);
+							story.state.LoadJson(storyStateJSON);
+						}
+						if(GUILayout.Button("Restart")) {
+							Restart();
+						}
+						EditorGUILayout.EndVertical();
+						EditorGUILayout.EndHorizontal();
 					}
 				}
 				EditorGUILayout.EndVertical();
@@ -996,15 +999,20 @@ namespace Ink.UnityIntegration {
 			GUILayout.EndHorizontal();
 		}
 			
+
+
+
+		
+		#region Story
 		void DrawStoryHistory () {
 			DisplayStoryHeader();
-			if(storyPanelViewState.showingContentPanel)
+			if(InkPlayerWindowState.Instance.storyPanelState.showing)
 				DisplayStoryBody ();
 		}
 
         void DisplayStoryHeader () {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-			storyPanelViewState.showingContentPanel = EditorGUILayout.Foldout(storyPanelViewState.showingContentPanel, "Content", true);
+			InkPlayerWindowState.Instance.storyPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.storyPanelState.showing, "Content", true);
 			
             if(GUILayout.Button(new GUIContent("Clear", "Clears the output"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false))) {
                 storyHistory.Clear();
@@ -1141,15 +1149,15 @@ namespace Ink.UnityIntegration {
             var viewportRect = new Rect(0,lastRect.yMax,position.width, scrollRectHeight);
             var containerRect = new Rect(0,0,containerWidth, totalHeight);
             
-            var newScrollPos = GUI.BeginScrollView(viewportRect, storyPanelViewState.scrollPosition, containerRect, false, true);
-            if(newScrollPos != storyPanelViewState.scrollPosition) {
+            var newScrollPos = GUI.BeginScrollView(viewportRect, InkPlayerWindowState.Instance.storyPanelState.scrollPosition, containerRect, false, true);
+            if(newScrollPos != InkPlayerWindowState.Instance.storyPanelState.scrollPosition) {
                 doingAutoscroll = false;
-                storyPanelViewState.scrollPosition = newScrollPos;
+                InkPlayerWindowState.Instance.storyPanelState.scrollPosition = newScrollPos;
             }
 
             var y = 0f;
-            var panelTop = storyPanelViewState.scrollPosition.y;
-            var panelBottom = storyPanelViewState.scrollPosition.y + scrollRectHeight;
+            var panelTop = InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y;
+            var panelBottom = InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y + scrollRectHeight;
             // int numShown = 0;
             // var log = "";
 
@@ -1162,7 +1170,7 @@ namespace Ink.UnityIntegration {
                 var endY = y + heights[i];
                 if(panelTop <= endY && panelBottom >= y) {
                     // if(numShown == 0) {
-                    //     log += "Total space "+totalHeight+" Scroll "+storyPanelViewState.storyScrollPosition.y+" Space "+y+", showing: ";
+                    //     log += "Total space "+totalHeight+" Scroll "+InkPlayerWindowState.Instance.storyPanelState.storyScrollPosition.y+" Space "+y+", showing: ";
                     // }
                     var content = validHistory[i];
                     var lineContainerRect = new Rect(0, y, containerWidth, heights[i]);
@@ -1178,7 +1186,7 @@ namespace Ink.UnityIntegration {
 							selectedLine = content;
 							// To avoid disruption, only scroll when the line is close to the edge of the panel
 							var targetY = GetTargetScrollPositionToCenterStoryLine(i, false);
-							if(Mathf.Abs(targetY-storyPanelViewState.scrollPosition.y) > viewportRect.height * 0.25f) {
+							if(Mathf.Abs(targetY-InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y) > viewportRect.height * 0.25f) {
 								ScrollToSelectedLine();
 							}
 						}
@@ -1243,7 +1251,7 @@ namespace Ink.UnityIntegration {
                         autoscrollTarget = targetPosition;
                     } else if(markedForScrollToBottom == AutoScrollMode.Snap) {
                         doingAutoscroll = false;
-                        storyPanelViewState.scrollPosition = new Vector2(storyPanelViewState.scrollPosition.x, targetPosition);
+                        InkPlayerWindowState.Instance.storyPanelState.scrollPosition = new Vector2(InkPlayerWindowState.Instance.storyPanelState.scrollPosition.x, targetPosition);
                     }
                     autoscrollVelocity = 0;
                     markedForScrollToBottom = AutoScrollMode.NONE;
@@ -1255,7 +1263,7 @@ namespace Ink.UnityIntegration {
                         autoscrollTarget = targetPosition;
                     } else if(markedForScrollToSelectedLine == AutoScrollMode.Snap) {
                         doingAutoscroll = false;
-                        storyPanelViewState.scrollPosition = new Vector2(storyPanelViewState.scrollPosition.x, targetPosition);
+                        InkPlayerWindowState.Instance.storyPanelState.scrollPosition = new Vector2(InkPlayerWindowState.Instance.storyPanelState.scrollPosition.x, targetPosition);
                     }
                     autoscrollVelocity = 0;
                     markedForScrollToSelectedLine = AutoScrollMode.NONE;
@@ -1288,7 +1296,7 @@ namespace Ink.UnityIntegration {
         static ColoredBackgroundGUIStyle _historyItemBGStyleSelected;
         static ColoredBackgroundGUIStyle historyItemBGStyleSelected {
             get {
-                if(_historyItemBGStyleSelected == null) _historyItemBGStyleSelected = new ColoredBackgroundGUIStyle(new Color(0.3920879f,0.6161963f,0.9339623f,1f));
+                if(_historyItemBGStyleSelected == null) _historyItemBGStyleSelected = new ColoredBackgroundGUIStyle(new Color(0.3920879f,0.6161963f,0.9339623f,1f), new Color(0.243137255f,0.37254902f,0.588235294f,1f));
                 return _historyItemBGStyleSelected;
             }
         }
@@ -1338,7 +1346,7 @@ namespace Ink.UnityIntegration {
 
 		void DisplayLine (Rect rect, InkHistoryContentItem content) {
             float timeSinceLastWrite = (float)(dateTimeNow - content.time).TotalSeconds;
-            var revealTime = 1f;
+            var revealTime = 0.8f;
             var l = Mathf.InverseLerp(revealTime, 0, timeSinceLastWrite);
             var newColor = new Color(GUI.color.r, GUI.color.g, GUI.color.b, 0);
             var color = Color.Lerp(GUI.color, newColor, l);
@@ -1348,14 +1356,19 @@ namespace Ink.UnityIntegration {
             EditorGUI.SelectableLabel(rect, content.content, EditorStyles.wordWrappedLabel);
             GUI.color = oldGUIColor;
         }
+		#endregion
 
 
 
+
+
+
+		#region Choices
 		void DrawChoices () {
 			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-			showingChoicesPanel = EditorGUILayout.Foldout(showingChoicesPanel, "Choices", true);
+			InkPlayerWindowState.Instance.choicePanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.choicePanelState.showing, "Choices", true);
 			EditorGUILayout.EndHorizontal();
-			if(showingChoicesPanel)
+			if(InkPlayerWindowState.Instance.choicePanelState.showing)
 				DisplayChoices ();
 		}
 
@@ -1400,12 +1413,18 @@ namespace Ink.UnityIntegration {
 			if(!playerParams.disableUndoHistory) AddToStateHistory();
 			TryContinue();
 		}
+		#endregion
+		
 
+
+
+
+		#region SaveLoad
 		static void DrawSaveLoad () {
 			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-			showingSaveLoadPanel = EditorGUILayout.Foldout(showingSaveLoadPanel, "Story State", true);
+			InkPlayerWindowState.Instance.saveLoadPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.saveLoadPanelState.showing, "Story State", true);
 			EditorGUILayout.EndHorizontal();
-			if(showingSaveLoadPanel)
+			if(InkPlayerWindowState.Instance.saveLoadPanelState.showing)
 				DrawSaveLoadPanel ();
 		}
 
@@ -1445,18 +1464,23 @@ namespace Ink.UnityIntegration {
 			GUILayout.EndVertical();
 			EditorGUI.EndDisabledGroup();
 		}
+		#endregion
 
 
 
+
+		
+
+		#region Diverts
 		void DrawDiverts () {
 			DrawDivertsHeader();
-			if(divertPanelViewState.showingDivertsPanel)
+			if(InkPlayerWindowState.Instance.divertPanelState.showing)
 				DrawDivertsPanel ();
 		}
 
         void DrawDivertsHeader () {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-			divertPanelViewState.showingDivertsPanel = EditorGUILayout.Foldout(divertPanelViewState.showingDivertsPanel, "Diverts", true);
+			InkPlayerWindowState.Instance.divertPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.divertPanelState.showing, "Diverts", true);
 			EditorGUILayout.EndHorizontal();
         }
 
@@ -1474,18 +1498,21 @@ namespace Ink.UnityIntegration {
 			GUILayout.EndHorizontal();
 			GUILayout.EndVertical();
 		}
+		#endregion
 
 
 
+
+		#region Functions
 		void DrawFunctions () {
 			DrawFunctionsHeader();
-			if(showingFunctionsPanel)
+			if(InkPlayerWindowState.Instance.functionPanelState.showing)
 				DrawFunctionsPanel ();
 		}
 
         void DrawFunctionsHeader () {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-			showingFunctionsPanel = EditorGUILayout.Foldout(showingFunctionsPanel, "Functions", true);
+			InkPlayerWindowState.Instance.functionPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.functionPanelState.showing, "Functions", true);
 			EditorGUILayout.EndHorizontal();
         }
 
@@ -1508,20 +1535,20 @@ namespace Ink.UnityIntegration {
 
             GUILayout.BeginVertical(GUI.skin.box);
 			EditorGUI.BeginChangeCheck();
-			functionPanelState.functionParams.functionName = EditorGUILayout.TextField("Function Name", functionPanelState.functionParams.functionName);
+			InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName = EditorGUILayout.TextField("Function Name", InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName);
 			if(EditorGUI.EndChangeCheck()) {
-				functionPanelState.testedFunctionName = null;
-				functionPanelState.functionReturnValue = null;
+				InkPlayerWindowState.Instance.functionPanelState.testedFunctionName = null;
+				InkPlayerWindowState.Instance.functionPanelState.functionReturnValue = null;
 			}
 			functionInputList.DoLayoutList();
-			bool functionIsValid = functionPanelState.functionParams.functionName != String.Empty && story.HasFunction(functionPanelState.functionParams.functionName);
+			bool functionIsValid = InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName != String.Empty && story.HasFunction(InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName);
 			EditorGUI.BeginDisabledGroup(!functionIsValid);
 			if (GUILayout.Button(new GUIContent("Execute", "Runs the function"))) {
-				AddToHistory(InkHistoryContentItem.CreateForDebugNote("Execute function '"+functionPanelState.functionParams.functionName+"'"));
+				AddToHistory(InkHistoryContentItem.CreateForDebugNote("Execute function '"+InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName+"'"));
 				string outputContent = null;
-				object[] allInput = new object[functionPanelState.functionParams.inputs.Count];
-				for (int i = 0; i < functionPanelState.functionParams.inputs.Count; i++) {
-					var input = functionPanelState.functionParams.inputs[i];
+				object[] allInput = new object[InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs.Count];
+				for (int i = 0; i < InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs.Count; i++) {
+					var input = InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs[i];
 					object obj = null;
 					switch(input.type) {
 					case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Int:
@@ -1543,44 +1570,44 @@ namespace Ink.UnityIntegration {
 					allInput[i] = obj;
 				}
 
-				functionPanelState.functionReturnValue = story.EvaluateFunction(functionPanelState.functionParams.functionName, out outputContent, allInput);
+				InkPlayerWindowState.Instance.functionPanelState.functionReturnValue = story.EvaluateFunction(InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName, out outputContent, allInput);
 				if(outputContent != null)
 					AddStoryContent(outputContent);
-				functionPanelState.testedFunctionName = functionPanelState.functionParams.functionName;
+				InkPlayerWindowState.Instance.functionPanelState.testedFunctionName = InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName;
 			}
 			EditorGUI.EndDisabledGroup();
 			GUILayout.EndVertical();
         }
 
         void DrawFunctionOutput () {
-            bool functionIsValid = functionPanelState.functionParams.functionName != String.Empty && story.HasFunction(functionPanelState.functionParams.functionName);
-            if(functionIsValid && functionPanelState.functionParams.functionName == functionPanelState.testedFunctionName) {
+            bool functionIsValid = InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName != String.Empty && story.HasFunction(InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName);
+            if(functionIsValid && InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName == InkPlayerWindowState.Instance.functionPanelState.testedFunctionName) {
                 GUILayout.BeginVertical(GUI.skin.box);
-				if(functionPanelState.functionReturnValue == null) {
+				if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue == null) {
 					EditorGUILayout.LabelField("Output (Null)");
-				} else if(functionPanelState.functionReturnValue is string) {
-					EditorGUILayout.TextField("Output (String)", (string)functionPanelState.functionReturnValue);
-				} else if(functionPanelState.functionReturnValue is float) {
-					EditorGUILayout.FloatField("Output (Float)", (float)functionPanelState.functionReturnValue);
-				} else if(functionPanelState.functionReturnValue is int) {
-					EditorGUILayout.IntField("Output (Int)", (int)functionPanelState.functionReturnValue);
-				} else if(functionPanelState.functionReturnValue is InkList) {
-					EditorGUILayoutInkListField(new GUIContent("Output (InkList)"), (InkList)functionPanelState.functionReturnValue);
+				} else if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue is string) {
+					EditorGUILayout.TextField("Output (String)", (string)InkPlayerWindowState.Instance.functionPanelState.functionReturnValue);
+				} else if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue is float) {
+					EditorGUILayout.FloatField("Output (Float)", (float)InkPlayerWindowState.Instance.functionPanelState.functionReturnValue);
+				} else if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue is int) {
+					EditorGUILayout.IntField("Output (Int)", (int)InkPlayerWindowState.Instance.functionPanelState.functionReturnValue);
+				} else if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue is InkList) {
+					EditorGUILayoutInkListField(new GUIContent("Output (InkList)"), (InkList)InkPlayerWindowState.Instance.functionPanelState.functionReturnValue);
 				} else {
-					EditorGUILayout.LabelField("Function returned unexpected type "+functionPanelState.functionReturnValue.GetType().Name+".");
+					EditorGUILayout.LabelField("Function returned unexpected type "+InkPlayerWindowState.Instance.functionPanelState.functionReturnValue.GetType().Name+".");
 				}
                 GUILayout.EndVertical();
 			}
         }
 
 		void BuildFunctionInputList () {
-			functionInputList = new ReorderableList(functionPanelState.functionParams.inputs, typeof(FunctionPanelState.FunctionParams.FunctionInput), true, true, true, true);
+			functionInputList = new ReorderableList(InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs, typeof(FunctionPanelState.FunctionParams.FunctionInput), true, true, true, true);
 			functionInputList.drawHeaderCallback = (Rect rect) => {
 				EditorGUI.LabelField(rect, "Inputs");
 			};
 			functionInputList.elementHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing * 2;
 			functionInputList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
-				var input = functionPanelState.functionParams.inputs[index];
+				var input = InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs[index];
 				Rect typeRect = new Rect(rect.x, rect.y, 80, EditorGUIUtility.singleLineHeight);
 				input.type = (FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType)EditorGUI.EnumPopup(typeRect, input.type);
 				Rect inputRect = new Rect(rect.x + 90, rect.y, rect.width - 90, EditorGUIUtility.singleLineHeight);
@@ -1622,18 +1649,21 @@ namespace Ink.UnityIntegration {
 				}
 			};
 		}
+		#endregion
 
 
 
+		
+		#region Variables
 		void DrawVariables () {
 			if(InkEditorUtils.StoryContainsVariables(story)) {
 				DrawVariablesHeader();
-				if(showingVariablesPanel)
+				if(InkPlayerWindowState.Instance.variablesPanelState.showing)
 					DrawVariablesPanel ();
 
-				if(InkPlayerWindowState.Instance.variablesPanelState.observedVariables.Count > 0) {
+				if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count > 0) {
 					DrawObservedVariablesHeader();
-					if(showingObservedVariablesPanel)
+					if(InkPlayerWindowState.Instance.observedVariablesPanelState.showing)
 						DrawObservedVariablesPanel ();
 				}
 			}
@@ -1641,11 +1671,11 @@ namespace Ink.UnityIntegration {
 
         void DrawVariablesHeader () {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            showingVariablesPanel = EditorGUILayout.Foldout(showingVariablesPanel, "Variables", true);
+            InkPlayerWindowState.Instance.variablesPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.variablesPanelState.showing, "Variables", true);
 
-            EditorGUI.BeginDisabledGroup(!showingVariablesPanel);
+            EditorGUI.BeginDisabledGroup(!InkPlayerWindowState.Instance.variablesPanelState.showing);
             bool changed = DrawSearchBar(ref InkPlayerWindowState.Instance.variablesPanelState.searchString);
-            if(changed) variablesScrollPosition = Vector2.zero;
+            if(changed) InkPlayerWindowState.Instance.variablesPanelState.scrollPosition = Vector2.zero;
             EditorGUI.EndDisabledGroup();
 
             EditorGUILayout.EndHorizontal();
@@ -1653,7 +1683,7 @@ namespace Ink.UnityIntegration {
 
 		void DrawVariablesPanel () {
 			GUILayout.BeginVertical(GUI.skin.box, GUILayout.ExpandHeight(true));
-			variablesScrollPosition = EditorGUILayout.BeginScrollView(variablesScrollPosition);
+			InkPlayerWindowState.Instance.variablesPanelState.scrollPosition = EditorGUILayout.BeginScrollView(InkPlayerWindowState.Instance.variablesPanelState.scrollPosition);
 			string variableToChange = null;
 			object newVariableValue = null;
 			foreach(string variable in story.variablesState) {
@@ -1667,7 +1697,7 @@ namespace Ink.UnityIntegration {
 					newVariableValue = variableValue;
 				}
 
-				if(InkPlayerWindowState.Instance.variablesPanelState.observedVariables.ContainsKey(variable)) {
+				if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.ContainsKey(variable)) {
 					if(GUILayout.Button(new GUIContent("<-", "Un-observe this variable"), GUILayout.Width(24))) {
 						UnobserveVariable(variable, true);
 					}
@@ -1691,36 +1721,36 @@ namespace Ink.UnityIntegration {
 		}
 
         static ObservedVariable ObserveVariable (string variableName, bool alsoAddToCache) {
-            if(InkPlayerWindowState.Instance.variablesPanelState.observedVariables.ContainsKey(variableName)) return InkPlayerWindowState.Instance.variablesPanelState.observedVariables[variableName];
+            if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.ContainsKey(variableName)) return InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables[variableName];
             var observedVariable = new ObservedVariable(variableName);
             observedVariable.variableObserver = (_variableName, newValue) => {
                 observedVariable.AddValueState(newValue);
             };
             story.ObserveVariable(variableName, observedVariable.variableObserver);
-            InkPlayerWindowState.Instance.variablesPanelState.observedVariables.Add(variableName, observedVariable);
+            InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Add(variableName, observedVariable);
             if(alsoAddToCache) {
-                InkPlayerWindowState.Instance.variablesPanelState.observedVariableNames.Add(variableName);
-                if(InkPlayerWindowState.Instance.variablesPanelState.observedVariables.Count != InkPlayerWindowState.Instance.variablesPanelState.observedVariableNames.Count) {
-                    Debug.LogError(InkPlayerWindowState.Instance.variablesPanelState.observedVariables.Count +" "+ InkPlayerWindowState.Instance.variablesPanelState.observedVariableNames.Count);
-                    InkPlayerWindowState.Instance.variablesPanelState.observedVariableNames.Clear();
-                    InkPlayerWindowState.Instance.variablesPanelState.observedVariables.Clear();
+                InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Add(variableName);
+                if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count != InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Count) {
+                    Debug.LogError(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count +" "+ InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Count);
+                    InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Clear();
+                    InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Clear();
                 }
             }
             return observedVariable;
         }
 
         static void UnobserveVariable (string variableName, bool alsoRemoveFromCache) {
-            if(!InkPlayerWindowState.Instance.variablesPanelState.observedVariables.ContainsKey(variableName)) return;
+            if(!InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.ContainsKey(variableName)) return;
             
-            var observedVariable = InkPlayerWindowState.Instance.variablesPanelState.observedVariables[variableName];
+            var observedVariable = InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables[variableName];
             story.RemoveVariableObserver(observedVariable.variableObserver, variableName);
-            InkPlayerWindowState.Instance.variablesPanelState.observedVariables.Remove(variableName);
+            InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Remove(variableName);
             if(alsoRemoveFromCache) {
-                InkPlayerWindowState.Instance.variablesPanelState.observedVariableNames.Remove(variableName);
-                if(InkPlayerWindowState.Instance.variablesPanelState.observedVariables.Count != InkPlayerWindowState.Instance.variablesPanelState.observedVariableNames.Count) {
-                    Debug.LogError(InkPlayerWindowState.Instance.variablesPanelState.observedVariables.Count +" "+ InkPlayerWindowState.Instance.variablesPanelState.observedVariableNames.Count);
-                    InkPlayerWindowState.Instance.variablesPanelState.observedVariableNames.Clear();
-                    InkPlayerWindowState.Instance.variablesPanelState.observedVariables.Clear();
+                InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Remove(variableName);
+                if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count != InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Count) {
+                    Debug.LogError(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count +" "+ InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Count);
+                    InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Clear();
+                    InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Clear();
                 }
             }
         }
@@ -1782,13 +1812,13 @@ namespace Ink.UnityIntegration {
 
 		void DrawObservedVariablesHeader () {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            showingObservedVariablesPanel = EditorGUILayout.Foldout(showingObservedVariablesPanel, "Observed Variables", true);
+            InkPlayerWindowState.Instance.observedVariablesPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.observedVariablesPanelState.showing, "Observed Variables", true);
             EditorGUILayout.EndHorizontal();
         }
 
 		void DrawObservedVariablesPanel () {
 			List<string> allToRemove = new List<string>();
-			foreach(var observedVariable in InkPlayerWindowState.Instance.variablesPanelState.observedVariables) {
+			foreach(var observedVariable in InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables) {
 				bool removeVariable = DrawObservedVariable(observedVariable.Value);
 				if(removeVariable)
 					allToRemove.Add(observedVariable.Key);
@@ -1820,11 +1850,13 @@ namespace Ink.UnityIntegration {
 
 			return false;
 		}
+		#endregion
 
 
 
 
 
+		#region Profiler
 		bool isProfiling {
 			get {
 				return _currentStoryProfiler != null;
@@ -1846,6 +1878,10 @@ namespace Ink.UnityIntegration {
 				}
 			}
 		}
+		ProfileNode _profilerResultRootNode;
+		Ink.Runtime.Profiler _currentStoryProfiler;
+		Ink.Runtime.Profiler _previousStoryProfiler;
+
 
 		void DrawProfilerData() {
 
@@ -1853,7 +1889,7 @@ namespace Ink.UnityIntegration {
 			if( _profilerResultRootNode == null && !isProfiling ) return;
 
 			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-			showingProfileData = EditorGUILayout.Foldout(showingProfileData, "Profiler data", true);
+			InkPlayerWindowState.Instance.profilerPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.profilerPanelState.showing, "Profiler data", true);
 			GUILayout.FlexibleSpace();
 			if( _previousStoryProfiler != null && GUILayout.Button("Save mega log", EditorStyles.toolbarButton) ) {
 
@@ -1868,8 +1904,8 @@ namespace Ink.UnityIntegration {
 			}
 			EditorGUILayout.EndHorizontal();
 
-			if( showingProfileData ) {
-				if( isProfiling ) {
+			if(InkPlayerWindowState.Instance.profilerPanelState.showing) {
+				if(isProfiling) {
 					EditorGUILayout.LabelField("Click 'Stop Profiling' to show profiling results.", EditorStyles.centeredGreyMiniLabel);
 				} else {
 					DisplayProfileDataNode(_profilerResultRootNode);
@@ -1878,7 +1914,6 @@ namespace Ink.UnityIntegration {
 		}
 
 		void DisplayProfileDataNode(ProfileNode node) {
-
 			var key = node.key;
 			if( key == null ) {
 				if( node == _profilerResultRootNode )
@@ -1904,23 +1939,22 @@ namespace Ink.UnityIntegration {
 				EditorGUILayout.LabelField(nodeText);
 			}
 		}
+		#endregion
+		
 
+
+
+
+        
+
+
+        
+		#region Utils
 		static bool StringContains(string str, string toCheck, StringComparison comp) {
             if(toCheck.Length == 0) return false;
 			return str.IndexOf(toCheck, comp) >= 0;
 		}
 
-		ProfileNode _profilerResultRootNode;
-		Ink.Runtime.Profiler _currentStoryProfiler;
-		Ink.Runtime.Profiler _previousStoryProfiler;
-
-
-
-
-        
-
-
-        
 		static bool DrawSearchBar (ref string searchString) {
 			var lastString = searchString;
 			searchString = GUILayout.TextField(searchString, searchTextFieldStyle);
@@ -1991,6 +2025,7 @@ namespace Ink.UnityIntegration {
                 EditorGUI.LabelField(rect, "Empty");
             }
         }
+		#endregion
 	}
 
     // Keeps a history of state changes for an ink variable. Handy for debugging.
