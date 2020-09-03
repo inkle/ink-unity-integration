@@ -1775,6 +1775,9 @@ namespace Ink.UnityIntegration {
                 EditorGUI.EndDisabledGroup();
 			} else if(variableValue is InkList) {
                 EditorGUILayoutInkListField(guiContent, (InkList)variableValue, variableName);
+			} else if(variableValue is Ink.Runtime.Path) {
+				var c = new GUIContent(((Ink.Runtime.Path)variableValue).ToString()+" (Ink.Runtime.Path)");
+				EditorGUILayout.LabelField(guiContent, c);
 			} else if(variableValue == null) {
 				EditorGUILayout.LabelField(guiContent, new GUIContent("InkPlayerError: Variable is null"));
 			} else {
@@ -1805,6 +1808,9 @@ namespace Ink.UnityIntegration {
                 } else {
                     c.text += " Empty";
                 }
+				EditorGUI.LabelField(rect, c);
+			} else if(variableValue is Ink.Runtime.Path) {
+				var c = new GUIContent(((Ink.Runtime.Path)variableValue).ToString()+" (Ink.Runtime.Path)");
 				EditorGUI.LabelField(rect, c);
 			} else if(variableValue == null) {
 				EditorGUI.LabelField(rect, variable, new GUIContent("InkPlayerError: Variable is null"));
