@@ -205,7 +205,7 @@ namespace Ink.UnityIntegration {
 			includes.Clear();
 			foreach(string includePath in includePaths) {
 				string localIncludePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(inkFile.filePath), includePath);
-				// This enables parsing ..\ and the like
+				// This enables parsing ..\ and the like. Can we use Path.GetFullPath instead?
 				var fullIncludePath = new FileInfo(localIncludePath).FullName;
 				localIncludePath = InkEditorUtils.AbsoluteToUnityRelativePath(fullIncludePath);
 				DefaultAsset includedInkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
