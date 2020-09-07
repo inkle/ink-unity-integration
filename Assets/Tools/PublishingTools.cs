@@ -7,7 +7,7 @@ public static class PublishingTools {
 	[MenuItem("Publishing/Create Example.unitypackage")]
 	public static void CreateExamplePackage () {
 		// Copy Assets/InkExample into a .unitypackage in the Ink directory.
-		var packagePath = Path.Combine(Application.dataPath, "Plugins", "Ink", "Example", "Example.unitypackage");
+		var packagePath = Path.Combine(Application.dataPath, "..", "Packages", "Ink", "Example", "Example.unitypackage");
 		var flags = ExportPackageOptions.Recurse;
 		AssetDatabase.ExportPackage("Assets/InkExample", packagePath, flags);
 
