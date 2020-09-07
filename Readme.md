@@ -16,8 +16,8 @@ Features:
 ## Getting started
 
 * Download the [latest Unity package release](https://github.com/inkle/ink-unity-integration/releases), and add to your Unity project.
-* Play the Demo scene for a simple example of how to control an ink story with code.
-* Select one of the sample `.ink` stories included in the package. In Unity's Inspector window, you should see a *Play* button. Click it to open the **ink player** window, useful for playing (previewing) ink stories.
+* Import the included `Example.unitypackage` into your Unity project and play the demo scene for a simple example of how to control an ink story with code.
+* Select the sample story (`story.ink`). In Unity's Inspector window, you should see a *Play* button. Click it to open the **ink player** window, useful for playing (previewing) ink stories.
 
 ## Tutorials & Help
 
