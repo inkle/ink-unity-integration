@@ -6,7 +6,7 @@
 [Oo]bj/
 [Uu]nityGenerated/
 Assets/AssetStoreTools*
- 
+
 # =============================================== #
 # Visual Studio / MonoDevelop / Sublime generated #
 # =============================================== #
@@ -21,7 +21,8 @@ ExportedObj/
 *.unityproj
 *.booproj
 *.sublime-project
- 
+/.vscode/
+
 # ============ #
 # OS generated #
 # ============ #
