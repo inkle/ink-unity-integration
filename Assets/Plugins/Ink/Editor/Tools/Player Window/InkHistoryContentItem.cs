@@ -62,7 +62,7 @@ namespace Ink.UnityIntegration.Debugging {
         public static InkHistoryContentItem CreateForDebugNote (string choiceText) {
             return new InkHistoryContentItem(choiceText, InkHistoryContentItem.ContentType.DebugNote);
         }
-        
+
         struct JsonDateTime {
             public long value;
             public static implicit operator DateTime(JsonDateTime jdt) {
