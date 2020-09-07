@@ -1,1 +1,1 @@
-Assets/Plugins/Ink/README.md
+Packages/Ink/README.md
