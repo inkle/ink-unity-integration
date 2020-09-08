@@ -9,7 +9,15 @@ using UnityEngine;
 public static class PublishingTools {
 	static string IntegrationPath => Path.Combine(Application.dataPath, "..", "Packages", "Ink");
 
-	[MenuItem("Publishing/Create Example.unitypackage")]
+	[MenuItem("Publishing/Prepare for publishing (run all tasks)", false, 1)]
+	public static void PreparePublish() {
+		SyncPackageJsonVersion();
+		CreateExamplePackage();
+		SyncReadme();
+		Debug.LogWarning("TODO: Create asset store unitypackage");
+	}
+
+	[MenuItem("Publishing/Tasks/Create Example.unitypackage")]
 	public static void CreateExamplePackage () {
 		// Copy Assets/InkExample into a .unitypackage in the Ink directory.
 		var packagePath = Path.Combine(IntegrationPath, "Example", "Example.unitypackage");
@@ -22,7 +30,7 @@ public static class PublishingTools {
 		Debug.Log("Created '" + packagePath + "'");
 	}
 
-	[MenuItem("Publishing/Update package.json version")]
+	[MenuItem("Publishing/Tasks/Update package.json version")]
 	public static void SyncPackageJsonVersion() {
 		const string pattern = @"""version"": ""([^""]+)""";
 		var packageJsonPath = Path.Combine(IntegrationPath, "package.json");
@@ -32,7 +40,7 @@ public static class PublishingTools {
 		var prevVersion = match.Groups[1].Value;
 		var nextVersion = InkLibrary.versionCurrent.ToString();
 		if (prevVersion == nextVersion) {
-			Debug.LogError("package.json version was already " + nextVersion);
+			Debug.LogError("package.json version was already " + nextVersion + ". Did you forget to update it in InkLibrary?");
 		} else {
 			json = Regex.Replace(
 				json,
@@ -44,7 +52,7 @@ public static class PublishingTools {
 		}
 	}
 
-	const string SyncReadmeItemName = "Publishing/Update package README.md";
+	const string SyncReadmeItemName = "Publishing/Tasks/Update package README.md";
 	[MenuItem(SyncReadmeItemName)]
 	public static void SyncReadme() {
 		var header = string.Format(@"<!--
