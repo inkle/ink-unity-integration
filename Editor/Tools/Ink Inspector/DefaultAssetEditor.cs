@@ -43,15 +43,10 @@ namespace Ink.UnityIntegration {
 		}
 
 		private DefaultAssetInspector FindObjectInspector () {
-			List<string> assembliesToCheck = new List<string>{"Assembly-CSharp-Editor", "Assembly-CSharp-Editor-firstpass", "Assembly-UnityScript-Editor", "Assembly-UnityScript-Editor-firstpass"};
-			string assetPath = AssetDatabase.GetAssetPath(target);
-			Assembly[] referencedAssemblies = System.AppDomain.CurrentDomain.GetAssemblies();
-			for(int i = 0; i < referencedAssemblies.Length; ++i) {
-				if(!assembliesToCheck.Contains(referencedAssemblies[i].GetName().Name))
-					continue;
-				foreach(var type in referencedAssemblies[i].GetTypes()) {
-					if(!type.IsSubclassOf(typeof(DefaultAssetInspector))) 
-						continue;
+			var assembly = Assembly.GetExecutingAssembly();
+			var assetPath = AssetDatabase.GetAssetPath(target);
+			foreach(var type in assembly.GetTypes()) {
+				if(type.IsSubclassOf(typeof(DefaultAssetInspector))) {
 					DefaultAssetInspector objectInspector = (DefaultAssetInspector)Activator.CreateInstance(type);
 					if(objectInspector.IsValid(assetPath)) {
 						objectInspector.target = target;
