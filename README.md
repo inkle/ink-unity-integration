@@ -16,8 +16,7 @@ This Unity package allows you to integrate inkle's [ink narrative scripting lang
 
 ### Downloading the package
 
-#### As a UPM Package (Recommended)
-**This is the easiest way to get set up.**
+#### :star:As a UPM Package (Recommended)
 * Navigate to [OpenUPM] (https://openupm.com/packages/com.inklestudios.ink-unity-integration/) and click "Download installer.unitypackage".
 * Open the downloaded file. The installer will do the rest!
 * The project will have installed at Packages > Ink Unity Integration.
@@ -38,23 +37,24 @@ You can fork the project on [GitHub](https://github.com/inkle/ink-unity-integrat
 
 
 
-### Demos
+### :video_game:Demos
 This project includes a demo scene, providing a simple example of how to control an ink story with C# code using Unity UI.
-If you imported this package as a UPM (recommended), then you must first import the demos from Packages > Ink Unity Integration > Examples.
+
+(If you imported this package as a UPM (recommended), then you must first import the demos from Packages > Ink Unity Integration > Examples)
 
 To run a demo, double-click the scene file at the root of the demo folder to open it, and press the Play button at the top of the screen to start it.
 
-### C# API
+### :page_facing_up:C# API
 The C# API provides all you need to control ink stories in code; advancing your story, making choices, diverting to knots, saving and loading, and much more.
 [It is documented in the main ink repo](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#getting-started-with-the-runtime-api)
 For convenience, the package also creates an (**Help > Ink > API Documentation**) menu option.
 
-### Writing ink
+### :pencil2:Writing ink
 For more information on writing with **ink**, see [the documentation in the main ink repo](https://github.com/inkle/ink). 
 For convenience, the package also creates an (**Help > Ink > Writing Tutorial**) menu option.
 
 
-### Further Help
+### :question:Further Help
 For assistance with writing or code, [Inkle's Discord forum](https://discord.gg/tD8Am2K) is full of lovely people who can help you out!
 
 To keep up to date with the latest news about ink [sign up for the mailing list](http://www.inklestudios.com/ink#signup).
@@ -110,8 +110,9 @@ This package replaces the icon for ink files to make them easier to spot, and ad
 There is currently no support for Bolt, Unity's official visual scripting tool. If you're interested in building one, we'd love to see it!
 
 ### PlayMaker
-There's unofficial support for PlayMaker at this link. 
-https://github.com/inkle/ink-unity-integration/issues/22
+There's [unofficial support for PlayMaker here.](https://github.com/inkle/ink-unity-integration/issues/22) 
+
+
 We'd love to see this supported more if you'd like to assist the effort!
 
 
@@ -134,7 +135,7 @@ If your game doesn't require compiling ink at runtime we recommend adding a .asm
 
   *Yes!*
 
-# Support us!
+# Support us!:heart:
 
 Ink is free, forever; but we'd really appreciate your support!
 If you're able to give back, generous donations at our [Patreon](https://www.patreon.com/inkle) mean the world to us. 
