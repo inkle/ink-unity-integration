@@ -2,7 +2,7 @@
 
 This Unity package allows you to integrate inkle's [ink narrative scripting language](http://www.inklestudios.com/ink) with Unity and provides tools to **compile**, **play** and **debug** your stories.
 
-## Features
+## Overview
 
  - **Using ink in your game**: Allows running and controlling ink files in Unity via the [C# runtime API](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md).
  	
@@ -14,9 +14,9 @@ This Unity package allows you to integrate inkle's [ink narrative scripting lang
 
 ## Getting started
 
-### Downloading the package
+### :inbox_tray: Downloading the package
 
-#### :star:As a UPM Package (Recommended)
+#### :star:As a UPM Package (Recommended):star:
 * Navigate to [OpenUPM] (https://openupm.com/packages/com.inklestudios.ink-unity-integration/) and click "Download installer.unitypackage".
 * Open the downloaded file. The installer will do the rest!
 * The project will have installed at Packages > Ink Unity Integration.
@@ -37,24 +37,28 @@ You can fork the project on [GitHub](https://github.com/inkle/ink-unity-integrat
 
 
 
-### :video_game:Demos
+
+
+
+
+### :video_game: Demos
 This project includes a demo scene, providing a simple example of how to control an ink story with C# code using Unity UI.
 
 (If you imported this package as a UPM (recommended), then you must first import the demos from Packages > Ink Unity Integration > Examples)
 
 To run a demo, double-click the scene file at the root of the demo folder to open it, and press the Play button at the top of the screen to start it.
 
-### :page_facing_up:C# API
+### :page_facing_up: C# API
 The C# API provides all you need to control ink stories in code; advancing your story, making choices, diverting to knots, saving and loading, and much more.
 [It is documented in the main ink repo](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#getting-started-with-the-runtime-api)
 For convenience, the package also creates an (**Help > Ink > API Documentation**) menu option.
 
-### :pencil2:Writing ink
+### :pencil2: Writing ink
 For more information on writing with **ink**, see [the documentation in the main ink repo](https://github.com/inkle/ink). 
 For convenience, the package also creates an (**Help > Ink > Writing Tutorial**) menu option.
 
 
-### :question:Further Help
+### :question: Further Help
 For assistance with writing or code, [Inkle's Discord forum](https://discord.gg/tD8Am2K) is full of lovely people who can help you out!
 
 To keep up to date with the latest news about ink [sign up for the mailing list](http://www.inklestudios.com/ink#signup).
