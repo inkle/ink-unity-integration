@@ -17,7 +17,7 @@ This Unity package allows you to integrate inkle's [ink narrative scripting lang
 ### :inbox_tray: Downloading the package
 
 #### :star:As a UPM Package (Recommended):star:
-* Navigate to [OpenUPM] (https://openupm.com/packages/com.inklestudios.ink-unity-integration/) and click "Download installer.unitypackage".
+* Navigate to [OpenUPM](https://openupm.com/packages/com.inklestudios.ink-unity-integration/) and click "Download installer.unitypackage".
 * Open the downloaded file. The installer will do the rest!
 * The project will have installed at Packages > Ink Unity Integration.
 * Demo projects can be imported from Packages > Ink Unity Integration > Examples
