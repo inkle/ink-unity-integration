@@ -94,7 +94,7 @@ See BasicInkExampleEditor.cs in the Examples folder for an example of how to:
 * Show an attach/detach button on an inspector
 * Automatically attach on entering play mode
 
-[More information on using and extending Ink Player Window] (https://github.com/inkle/ink-unity-integration/blob/master/Documentation/InkPlayerWindow.md)
+[More information on using and extending Ink Player Window](https://github.com/inkle/ink-unity-integration/blob/master/Documentation/InkPlayerWindow.md)
 
 
 ## Inspector tools
