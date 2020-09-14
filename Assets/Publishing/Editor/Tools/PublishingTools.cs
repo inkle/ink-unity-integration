@@ -5,6 +5,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+using System.Reflection;
+#if UNITY_2019_3_OR_NEWER
+using UnityEditor.Compilation;
+#endif
 
 public static class PublishingTools {
 	static string AssetsParentDirectory => Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
@@ -20,47 +24,55 @@ public static class PublishingTools {
 
 	[MenuItem("Publishing/Tasks/Create .unitypackage")]
 	public static void CreatePackage () {
-		// var packagePath = Path.Combine(Application.dataPath, "InkPlugin"+".unitypackage");
-		// AssetDatabase.ExportPackage("Packages/Ink", packagePath, ExportPackageOptions.Recurse);
-		
-		var integrationDirs = Directory.GetDirectories(IntegrationPath);
+		EditorApplication.LockReloadAssemblies();
+		// #if UNITY_2019_4_OR_NEWER
+		// AssetDatabase.DisallowAutoRefresh();
+		// #endif
 		var assetsInkPath = Path.Combine(Application.dataPath, "Ink");
+		List<KeyValuePair<DirectoryInfo, DirectoryInfo>> rootPaths = new List<KeyValuePair<DirectoryInfo, DirectoryInfo>>();
 		// Copy the plugin into assets, make a package
+		var integrationDirs = Directory.GetDirectories(IntegrationPath);
 		foreach(var dir in integrationDirs) {
 			var dirName = Path.GetFileName(dir);
 			if(dirName == "Demos") continue;
-			
-			CopyFilesRecursively(new DirectoryInfo(dir), new DirectoryInfo(Path.Combine(assetsInkPath, dirName)));
-			
-			// var packageDemoDirectory = Path.Combine(IntegrationPath, "Demos");
-			// if(!Directory.Exists(packageDemoDirectory)) Directory.CreateDirectory(packageDemoDirectory);
-			// var packagePath = Path.Combine(packageDemoDirectory, demoDirName+".unitypackage");
-			// Debug.Log("Created '" + packagePath + "'");
+			rootPaths.Add(new KeyValuePair<DirectoryInfo, DirectoryInfo>(new DirectoryInfo(dir), new DirectoryInfo(Path.Combine(assetsInkPath, dirName))));
 		}
-		// Refresh to reveal the unitypackage in the Project window.
-		AssetDatabase.Refresh();
-		AssetDatabase.ExportPackage("Assets/Ink", "InkPlugin"+".unitypackage", ExportPackageOptions.Recurse);
-		var assetsInkDirs = Directory.GetDirectories(assetsInkPath);
-		foreach(var dir in assetsInkDirs) {
-			var dirName = Path.GetFileName(dir);
-			if(dirName == "Demos") continue;
-			
-			var assetsRelativeDir = dir.Substring(AssetsParentDirectory.Length);
-			Debug.Log("DELETE"+ assetsRelativeDir);
-			AssetDatabase.DeleteAsset(assetsRelativeDir);
+
+		// Move files from Packages into Assets
+		foreach(var rootPath in rootPaths) {
+			MoveFilesRecursively(rootPath.Key, rootPath.Value);
 		}
+		// TODO - when we switch to 2019.4, get this working!
+		// This refresh causes errors until you alt-tab and back because it forces a script recompile but the files are moved back before it's done.
+		// To fix it, we can block recompilation (I dont think you can do this, or even if it'd work) or need to wait until compilation is done before copying the files back.
 		AssetDatabase.Refresh();
+		// We can use this callback to achieve this.
+		// CompilationPipeline.compilationFinished += (object sender) => {
+			// CompilationPipeline.RequestScriptCompilation();
+		// }
+
+		// Create a .unitypackage
+		var version = InkLibrary.versionCurrent;
+		var packageExportPath = string.Format("../Ink Unity Integration {0}.{1}.{2}.unitypackage", version.Major, version.Minor, version.Build);
+		AssetDatabase.ExportPackage("Assets/Ink", packageExportPath, ExportPackageOptions.Recurse);
+		
+		// Move files back to Packages
+		foreach(var rootPath in rootPaths) {
+			MoveFilesRecursively(rootPath.Value, rootPath.Key);
+		}
+		
+		EditorApplication.UnlockReloadAssemblies();
 	}
 
 	[MenuItem("Publishing/Tasks/Create .unitypackage for demos")]
 	public static void CreateDemoPackages () {
 		var assetsDemosDir = Path.Combine(Application.dataPath, "Ink", "Demos");
 		var demoDirs = Directory.GetDirectories(assetsDemosDir);
+		var packageDemoDirectory = Path.Combine(IntegrationPath, "Demos");
 		// Copy each demo in Assets/Demos into a .unitypackage in the Ink directory.
 		foreach(var demoDir in demoDirs) {
-			var demoDirName = Path.GetFileName(demoDir);
-			var packageDemoDirectory = Path.Combine(IntegrationPath, "Demos");
 			if(!Directory.Exists(packageDemoDirectory)) Directory.CreateDirectory(packageDemoDirectory);
+			var demoDirName = Path.GetFileName(demoDir);
 			var packagePath = Path.Combine(packageDemoDirectory, demoDirName+".unitypackage");
 			var flags = ExportPackageOptions.Recurse;
 			AssetDatabase.ExportPackage("Assets/Ink/Demos/"+demoDirName, packagePath, flags);
@@ -107,10 +119,22 @@ public static class PublishingTools {
 		Debug.Log("Updated '" + destPath + "'");
 	}
 
-	public static void CopyFilesRecursively(DirectoryInfo source, DirectoryInfo target) {
-		foreach (DirectoryInfo dir in source.GetDirectories())
-			CopyFilesRecursively(dir, target.CreateSubdirectory(dir.Name));
-		foreach (FileInfo file in source.GetFiles())
-			file.CopyTo(Path.Combine(target.FullName, file.Name));
-	}
+    public static void MoveFilesRecursively(DirectoryInfo source, DirectoryInfo target) {
+        Directory.CreateDirectory(target.FullName);
+
+        // Copy each file into the new directory.
+        foreach (FileInfo fi in source.GetFiles()) {
+            fi.MoveTo(Path.Combine(target.FullName, fi.Name));
+        }
+
+        // Copy each subdirectory using recursion.
+        foreach (DirectoryInfo diSourceSubDir in source.GetDirectories()) {
+            DirectoryInfo nextTargetSubDir =
+                target.CreateSubdirectory(diSourceSubDir.Name);
+            MoveFilesRecursively(diSourceSubDir, nextTargetSubDir);
+        }
+
+		source.Delete();
+		new FileInfo(source.FullName+".meta").Delete();
+    }
 }

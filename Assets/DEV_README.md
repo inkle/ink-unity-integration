@@ -1,6 +1,8 @@
 # Dev Readme
 
-This plugin is now contained as a Package.
+This plugin is now designed to be imported as a UPM Package.
+Our approach is to point [OpenUPM at a Git Repo](https://openupm.com/packages/com.inklestudios.ink-unity-integration/) with the assets in the Packages folder.
+Demos are packaged up as separate .unitypackage files.
 
 ## To build a new version
 - Increase the version number in InkLibrary.cs
