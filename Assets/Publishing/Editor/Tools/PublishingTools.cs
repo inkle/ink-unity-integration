@@ -7,7 +7,8 @@ using UnityEditor;
 using UnityEngine;
 
 public static class PublishingTools {
-	static string IntegrationPath => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Packages", "Ink"));
+	static string AssetsParentDirectory => Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+	static string IntegrationPath => Path.GetFullPath(Path.Combine(AssetsParentDirectory, "Packages", "Ink"));
 
 	[MenuItem("Publishing/Prepare for publishing (run all tasks)", false, 1)]
 	public static void PreparePublish() {
@@ -17,9 +18,43 @@ public static class PublishingTools {
 		Debug.LogWarning("TODO: Create asset store unitypackage");
 	}
 
+	[MenuItem("Publishing/Tasks/Create .unitypackage")]
+	public static void CreatePackage () {
+		// var packagePath = Path.Combine(Application.dataPath, "InkPlugin"+".unitypackage");
+		// AssetDatabase.ExportPackage("Packages/Ink", packagePath, ExportPackageOptions.Recurse);
+		
+		var integrationDirs = Directory.GetDirectories(IntegrationPath);
+		var assetsInkPath = Path.Combine(Application.dataPath, "Ink");
+		// Copy the plugin into assets, make a package
+		foreach(var dir in integrationDirs) {
+			var dirName = Path.GetFileName(dir);
+			if(dirName == "Demos") continue;
+			
+			CopyFilesRecursively(new DirectoryInfo(dir), new DirectoryInfo(Path.Combine(assetsInkPath, dirName)));
+			
+			// var packageDemoDirectory = Path.Combine(IntegrationPath, "Demos");
+			// if(!Directory.Exists(packageDemoDirectory)) Directory.CreateDirectory(packageDemoDirectory);
+			// var packagePath = Path.Combine(packageDemoDirectory, demoDirName+".unitypackage");
+			// Debug.Log("Created '" + packagePath + "'");
+		}
+		// Refresh to reveal the unitypackage in the Project window.
+		AssetDatabase.Refresh();
+		AssetDatabase.ExportPackage("Assets/Ink", "InkPlugin"+".unitypackage", ExportPackageOptions.Recurse);
+		var assetsInkDirs = Directory.GetDirectories(assetsInkPath);
+		foreach(var dir in assetsInkDirs) {
+			var dirName = Path.GetFileName(dir);
+			if(dirName == "Demos") continue;
+			
+			var assetsRelativeDir = dir.Substring(AssetsParentDirectory.Length);
+			Debug.Log("DELETE"+ assetsRelativeDir);
+			AssetDatabase.DeleteAsset(assetsRelativeDir);
+		}
+		AssetDatabase.Refresh();
+	}
+
 	[MenuItem("Publishing/Tasks/Create .unitypackage for demos")]
 	public static void CreateDemoPackages () {
-		var assetsDemosDir = Path.Combine(Application.dataPath, "Demos");
+		var assetsDemosDir = Path.Combine(Application.dataPath, "Ink", "Demos");
 		var demoDirs = Directory.GetDirectories(assetsDemosDir);
 		// Copy each demo in Assets/Demos into a .unitypackage in the Ink directory.
 		foreach(var demoDir in demoDirs) {
@@ -28,7 +63,7 @@ public static class PublishingTools {
 			if(!Directory.Exists(packageDemoDirectory)) Directory.CreateDirectory(packageDemoDirectory);
 			var packagePath = Path.Combine(packageDemoDirectory, demoDirName+".unitypackage");
 			var flags = ExportPackageOptions.Recurse;
-			AssetDatabase.ExportPackage("Assets/Demos/"+demoDirName, packagePath, flags);
+			AssetDatabase.ExportPackage("Assets/Ink/Demos/"+demoDirName, packagePath, flags);
 			Debug.Log("Created '" + packagePath + "'");
 		}
 		// Refresh to reveal the unitypackage in the Project window.
@@ -70,5 +105,12 @@ public static class PublishingTools {
 		AssetDatabase.Refresh();
 
 		Debug.Log("Updated '" + destPath + "'");
+	}
+
+	public static void CopyFilesRecursively(DirectoryInfo source, DirectoryInfo target) {
+		foreach (DirectoryInfo dir in source.GetDirectories())
+			CopyFilesRecursively(dir, target.CreateSubdirectory(dir.Name));
+		foreach (FileInfo file in source.GetFiles())
+			file.CopyTo(Path.Combine(target.FullName, file.Name));
 	}
 }
