@@ -19,8 +19,82 @@ public static class PublishingTools {
 		SyncPackageJsonVersion();
 		CreateDemoPackages();
 		SyncReadme();
-		Debug.LogWarning("TODO: Create asset store unitypackage");
+		CreatePackage();
 	}
+
+	[MenuItem("Publishing/Tasks/Create .unitypackage for demos")]
+	public static void CreateDemoPackages () {
+		var assetsDemosDir = Path.Combine(Application.dataPath, "Ink", "Demos");
+		var demoDirs = Directory.GetDirectories(assetsDemosDir);
+		var packageDemoDirectory = Path.Combine(IntegrationPath, "Demos");
+		// Copy each demo in Assets/Demos into a .unitypackage in the Ink directory.
+		foreach(var demoDir in demoDirs) {
+			if(!Directory.Exists(packageDemoDirectory)) Directory.CreateDirectory(packageDemoDirectory);
+			var demoDirName = Path.GetFileName(demoDir);
+			var packagePath = Path.Combine(packageDemoDirectory, demoDirName+".unitypackage");
+			var flags = ExportPackageOptions.Recurse;
+			AssetDatabase.ExportPackage("Assets/Ink/Demos/"+demoDirName, packagePath, flags);
+			Debug.Log("PublishingTools.CreateDemoPackages: Packaged "+demoDirName+" at '" + packagePath + "'");
+		}
+		// Refresh to reveal the unitypackage in the Project window.
+		AssetDatabase.Refresh();
+	}
+
+	[MenuItem("Publishing/Tasks/Update package.json version")]
+	public static void SyncPackageJsonVersion() {
+		const string pattern = @"""version"": ""([^""]+)""";
+		var packageJsonPath = Path.Combine(IntegrationPath, "package.json");
+		var json = File.ReadAllText(packageJsonPath);
+
+		var match = Regex.Match(json, pattern);
+		var prevVersion = match.Groups[1].Value;
+		var nextVersion = InkLibrary.versionCurrent.ToString();
+		if (prevVersion == nextVersion) {
+			Debug.LogWarning("SyncPackageJsonVersion: package.json version was already " + nextVersion + ". Did you forget to update it in InkLibrary?");
+		} else {
+			json = Regex.Replace(
+				json,
+				pattern,
+				"\"version\": \"" + nextVersion + "\""
+			);
+			File.WriteAllText(packageJsonPath, json);
+			Debug.Log("PublishingTools.Updated package.json from " + prevVersion + " to " + nextVersion);
+		}
+	}
+
+	const string SyncReadmeItemName = "Publishing/Tasks/Update package README.md";
+	[MenuItem(SyncReadmeItemName)]
+	public static void SyncReadme() {
+		var sourcePath = Path.Combine(Application.dataPath, "..", "README.md");
+		var destPath = Path.Combine(IntegrationPath, "README.md");
+
+		var content = File.ReadAllText(sourcePath);
+		File.WriteAllText(destPath, content);
+
+		// Refresh to reveal the README in the Project window.
+		AssetDatabase.Refresh();
+
+		Debug.Log("PublishingTools.SyncReadme: Updated '" + destPath + "'");
+	}
+
+    public static void MoveFilesRecursively(DirectoryInfo source, DirectoryInfo target) {
+        Directory.CreateDirectory(target.FullName);
+
+        // Copy each file into the new directory.
+        foreach (FileInfo fi in source.GetFiles()) {
+            fi.MoveTo(Path.Combine(target.FullName, fi.Name));
+        }
+
+        // Copy each subdirectory using recursion.
+        foreach (DirectoryInfo diSourceSubDir in source.GetDirectories()) {
+            DirectoryInfo nextTargetSubDir =
+                target.CreateSubdirectory(diSourceSubDir.Name);
+            MoveFilesRecursively(diSourceSubDir, nextTargetSubDir);
+        }
+
+		source.Delete();
+		new FileInfo(source.FullName+".meta").Delete();
+    }
 
 	[MenuItem("Publishing/Tasks/Create .unitypackage")]
 	public static void CreatePackage () {
@@ -62,79 +136,7 @@ public static class PublishingTools {
 		}
 		
 		EditorApplication.UnlockReloadAssemblies();
+
+		Debug.Log("PublishingTools.CreatePackage: Created .unitypackage at "+Path.GetFullPath(Path.Combine(Application.dataPath, packageExportPath)));
 	}
-
-	[MenuItem("Publishing/Tasks/Create .unitypackage for demos")]
-	public static void CreateDemoPackages () {
-		var assetsDemosDir = Path.Combine(Application.dataPath, "Ink", "Demos");
-		var demoDirs = Directory.GetDirectories(assetsDemosDir);
-		var packageDemoDirectory = Path.Combine(IntegrationPath, "Demos");
-		// Copy each demo in Assets/Demos into a .unitypackage in the Ink directory.
-		foreach(var demoDir in demoDirs) {
-			if(!Directory.Exists(packageDemoDirectory)) Directory.CreateDirectory(packageDemoDirectory);
-			var demoDirName = Path.GetFileName(demoDir);
-			var packagePath = Path.Combine(packageDemoDirectory, demoDirName+".unitypackage");
-			var flags = ExportPackageOptions.Recurse;
-			AssetDatabase.ExportPackage("Assets/Ink/Demos/"+demoDirName, packagePath, flags);
-			Debug.Log("Created '" + packagePath + "'");
-		}
-		// Refresh to reveal the unitypackage in the Project window.
-		AssetDatabase.Refresh();
-	}
-
-	[MenuItem("Publishing/Tasks/Update package.json version")]
-	public static void SyncPackageJsonVersion() {
-		const string pattern = @"""version"": ""([^""]+)""";
-		var packageJsonPath = Path.Combine(IntegrationPath, "package.json");
-		var json = File.ReadAllText(packageJsonPath);
-
-		var match = Regex.Match(json, pattern);
-		var prevVersion = match.Groups[1].Value;
-		var nextVersion = InkLibrary.versionCurrent.ToString();
-		if (prevVersion == nextVersion) {
-			Debug.LogError("package.json version was already " + nextVersion + ". Did you forget to update it in InkLibrary?");
-		} else {
-			json = Regex.Replace(
-				json,
-				pattern,
-				"\"version\": \"" + nextVersion + "\""
-			);
-			File.WriteAllText(packageJsonPath, json);
-			Debug.Log("Updated package.json from " + prevVersion + " to " + nextVersion);
-		}
-	}
-
-	const string SyncReadmeItemName = "Publishing/Tasks/Update package README.md";
-	[MenuItem(SyncReadmeItemName)]
-	public static void SyncReadme() {
-		var sourcePath = Path.Combine(Application.dataPath, "..", "README.md");
-		var destPath = Path.Combine(IntegrationPath, "README.md");
-
-		var content = File.ReadAllText(sourcePath);
-		File.WriteAllText(destPath, content);
-
-		// Refresh to reveal the README in the Project window.
-		AssetDatabase.Refresh();
-
-		Debug.Log("Updated '" + destPath + "'");
-	}
-
-    public static void MoveFilesRecursively(DirectoryInfo source, DirectoryInfo target) {
-        Directory.CreateDirectory(target.FullName);
-
-        // Copy each file into the new directory.
-        foreach (FileInfo fi in source.GetFiles()) {
-            fi.MoveTo(Path.Combine(target.FullName, fi.Name));
-        }
-
-        // Copy each subdirectory using recursion.
-        foreach (DirectoryInfo diSourceSubDir in source.GetDirectories()) {
-            DirectoryInfo nextTargetSubDir =
-                target.CreateSubdirectory(diSourceSubDir.Name);
-            MoveFilesRecursively(diSourceSubDir, nextTargetSubDir);
-        }
-
-		source.Delete();
-		new FileInfo(source.FullName+".meta").Delete();
-    }
 }
