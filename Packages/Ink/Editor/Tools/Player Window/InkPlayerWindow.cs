@@ -398,6 +398,7 @@ namespace Ink.UnityIntegration {
                 DebugNotes = 1 << 7,
                 TimeStamp = 1 << 8,
                 EmptyEntries = 1 << 9,
+                Tags = 1 << 10,
             }
             public VisibilityOptions visibilityOptions = VisibilityOptions.Warnings | VisibilityOptions.Errors | VisibilityOptions.Content;
 
@@ -520,7 +521,7 @@ namespace Ink.UnityIntegration {
         
 
         static void OnDidContinue () {
-			AddStoryContent(story.currentText.Trim());
+			AddStoryContent(story.currentText.Trim(), story.currentTags);
             if(story.currentChoices != null) {
                 foreach(var choice in story.currentChoices) {
                     AddToHistory(InkHistoryContentItem.CreateForPresentChoice(choice));
@@ -744,6 +745,7 @@ namespace Ink.UnityIntegration {
 			}
 		}
 		
+		
 		static void Stop () {
 			Clear ();
 		}
@@ -766,8 +768,8 @@ namespace Ink.UnityIntegration {
 			story.Continue();
 		}
 
-		static void AddStoryContent (string content) {
-			AddToHistory(InkHistoryContentItem.CreateForContent(content));
+		static void AddStoryContent (string content, List<string> tags) {
+			AddToHistory(InkHistoryContentItem.CreateForContent(content, tags));
 			if(!playerParams.disableUndoHistory) AddToStateHistory();
 		}
 		
@@ -1110,9 +1112,11 @@ namespace Ink.UnityIntegration {
             
             var timestampWidth = 58;
             var contentTypeWidth = 26;
+            var tagsWidth = 160;
 
             var visibilityOptions = InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions;
             bool showTimestamp = (visibilityOptions & DisplayOptions.VisibilityOptions.TimeStamp) != 0; 
+            bool showTags = (visibilityOptions & DisplayOptions.VisibilityOptions.Tags) != 0; 
 
 			var lastRect = GUILayoutUtility.GetLastRect();
             var containerWidth = position.width - GUI.skin.verticalScrollbar.fixedWidth;
@@ -1126,7 +1130,10 @@ namespace Ink.UnityIntegration {
             }
             contentWidth -= contentTypeWidth;
             contentWidth -= contentSpacing;
-            
+            if(showTags) {
+                contentWidth -= tagsWidth;
+                contentWidth -= contentSpacing;
+			}
             float minScrollRectHeight = 30;
             float maxScrollRectHeight = 480;
             float totalHeight = 0;
@@ -1136,6 +1143,10 @@ namespace Ink.UnityIntegration {
             for(int i = 0; i < validHistory.Count; i++) {
                 var content = validHistory[i];
                 heights[i] = EditorStyles.wordWrappedLabel.CalcHeight(new GUIContent(content.content), contentWidth);
+            	if(showTags) {
+					var tagsHeight = EditorStyles.wordWrappedLabel.CalcHeight(new GUIContent(GetTagsString(content.tags)), tagsWidth);
+					heights[i] = Mathf.Max(heights[i], tagsHeight);
+				}
                 heights[i] += storyContentMargin * 2;
                 if(content == selectedLine) {
                     selectedLineIndex = i;
@@ -1207,6 +1218,14 @@ namespace Ink.UnityIntegration {
                     
                     var contentRect = new Rect(x, lineRect.y, contentWidth, lineRect.height);
 					DisplayLine(contentRect, content);
+					x += contentWidth;
+					x += contentSpacing;
+					if(showTags) {
+						var tagsRect = new Rect(x, lineRect.y, tagsWidth, lineRect.height);
+                        DisplayTags(tagsRect, content);
+                        x += tagsWidth;
+                        x += contentSpacing;
+					}
 
                     if(Event.current.type == EventType.MouseDown && lineContainerRect.Contains(Event.current.mousePosition)) {
 						if(Event.current.button == 1) {
@@ -1234,11 +1253,18 @@ namespace Ink.UnityIntegration {
                 GUI.Box(new Rect(lineX, 0, 1, containerRect.height), "", dividerLineStyle.guiStyle);
                 lineX += contentSpacing * 0.5f;
             }
+
             lineX += contentTypeWidth;
             lineX += contentSpacing * 0.5f;
             GUI.Box(new Rect(lineX, 0, 1, containerRect.height), "", dividerLineStyle.guiStyle);
             lineX += contentSpacing * 0.5f;
-
+			
+			if(showTags) {
+				lineX += contentWidth;
+				lineX += contentSpacing * 0.5f;
+                GUI.Box(new Rect(lineX, 0, 1, containerRect.height), "", dividerLineStyle.guiStyle);
+                lineX += contentSpacing * 0.5f;
+			}
 
             GUI.EndScrollView();
             GUILayout.Space(viewportRect.height);
@@ -1356,6 +1382,23 @@ namespace Ink.UnityIntegration {
             EditorGUI.SelectableLabel(rect, content.content, EditorStyles.wordWrappedLabel);
             GUI.color = oldGUIColor;
         }
+
+		void DisplayTags (Rect rect, InkHistoryContentItem content) {
+            float timeSinceLastWrite = (float)(dateTimeNow - content.time).TotalSeconds;
+            var revealTime = 0.8f;
+            var l = Mathf.InverseLerp(revealTime, 0, timeSinceLastWrite);
+            var newColor = new Color(GUI.color.r, GUI.color.g, GUI.color.b, 0);
+            var color = Color.Lerp(GUI.color, newColor, l);
+            var oldGUIColor = GUI.color; 
+            GUI.color = color;
+			GUI.SetNextControlName(content.GetHashCode().ToString());
+            EditorGUI.SelectableLabel(rect, GetTagsString(content.tags), EditorStyles.wordWrappedLabel);
+            GUI.color = oldGUIColor;
+        }
+
+		string GetTagsString (List<string> tags) {
+			return string.Join("\n", tags);
+		}
 		#endregion
 
 
@@ -1572,7 +1615,7 @@ namespace Ink.UnityIntegration {
 
 				InkPlayerWindowState.Instance.functionPanelState.functionReturnValue = story.EvaluateFunction(InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName, out outputContent, allInput);
 				if(outputContent != null)
-					AddStoryContent(outputContent);
+					AddStoryContent(outputContent, null);
 				InkPlayerWindowState.Instance.functionPanelState.testedFunctionName = InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName;
 			}
 			EditorGUI.EndDisabledGroup();
