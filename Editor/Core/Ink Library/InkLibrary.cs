@@ -149,7 +149,8 @@ namespace Ink.UnityIntegration {
 
         public static void Add (InkFile inkFile) {
             Instance.inkLibrary.Add(inkFile);
-            Instance.inkLibraryDictionary.Add(inkFile.inkAsset, inkFile);
+			SortInkLibrary();
+			Instance.inkLibraryDictionary.Add(inkFile.inkAsset, inkFile);
             InkMetaLibrary.Instance.metaLibrary.Add(new InkMetaFile(inkFile));
         }
         public static void RemoveAt (int index) {
@@ -158,6 +159,9 @@ namespace Ink.UnityIntegration {
             Instance.inkLibraryDictionary.Remove(inkFile.inkAsset);
             InkMetaLibrary.Instance.metaLibrary.Remove(inkFile.metaInfo);
         }
+		static void SortInkLibrary () {
+            Instance.inkLibrary = Instance.inkLibrary.OrderBy(x => x.filePath).ToList();
+		}
 
 		/// <summary>
 		/// Updates the ink library. Executed whenever an ink file is changed by InkToJSONPostProcessor
@@ -191,8 +195,10 @@ namespace Ink.UnityIntegration {
 				}
 				newInkLibrary.Add(inkFile);
 			}
-			if(inkLibraryChanged)
+			if(inkLibraryChanged) {
 				Instance.inkLibrary = newInkLibrary;
+				SortInkLibrary();
+			}
             CreateDictionary();
 
             // Validate the meta files
