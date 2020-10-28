@@ -25,7 +25,7 @@ namespace Ink.UnityIntegration {
 		public static event OnCompileInkEvent OnCompileInk;
 
 		// Track if we've currently locked compilation of Unity C# Scripts
-		private static bool hasLockedUnityCompilation = false;
+		public static bool hasLockedUnityCompilation = false;
         
         private static List<Action> onCompleteActions = new List<Action>();
 
@@ -72,6 +72,9 @@ namespace Ink.UnityIntegration {
 			EditorApplication.update += Update;
             // I really don't know if this can fire, since it assumes that it compiled so can't have been locked. But safety first!
             EditorApplication.UnlockReloadAssemblies();
+			// This one, on the other hand, seems to actually occur sometimes - presumably because c# compiles at the same time as the ink.
+			if(InkLibrary.Instance.disallowedAutoRefresh)
+				AssetDatabase.AllowAutoRefresh();
 		}
 
 		private static void Update () {
@@ -186,7 +189,10 @@ namespace Ink.UnityIntegration {
         }
 		public static void CompileInk (InkFile[] inkFiles, bool immediate, Action onComplete) {
 			#if UNITY_2019_4_OR_NEWER
-			AssetDatabase.DisallowAutoRefresh();
+			if(!InkLibrary.Instance.disallowedAutoRefresh) {
+				InkLibrary.Instance.disallowedAutoRefresh = true;
+				AssetDatabase.DisallowAutoRefresh();
+			}
 			#endif
             
 			InkLibrary.Validate();
@@ -415,7 +421,10 @@ namespace Ink.UnityIntegration {
 			#endif
 			
 			#if UNITY_2019_4_OR_NEWER
-			AssetDatabase.AllowAutoRefresh();
+			if(InkLibrary.Instance.disallowedAutoRefresh) {
+				AssetDatabase.AllowAutoRefresh();
+				InkLibrary.Instance.disallowedAutoRefresh = false;
+			}
 			#endif
 
             // This is now allowed, if compiled manually. I've left this code commented out because at some point we might want to track what caused a file to compile. 
@@ -484,19 +493,17 @@ namespace Ink.UnityIntegration {
 		public static List<InkFile> GetUniqueMasterInkFilesToCompile (List<string> importedInkAssets) {
 			List<InkFile> masterInkFiles = new List<InkFile>();
 			foreach (var importedAssetPath in importedInkAssets) {
-                var masterInkFile = GetMasterFileFromInkAssetPath(importedAssetPath);
-				// This was being used instead of masterInkFile for the following lines, which seems obviously stupid. Changed and added this assert.
-				// If this ever fires then I guess I should put it back!
-				Debug.Assert(masterInkFile == masterInkFile.metaInfo.masterInkFileIncludingSelf);
-                if (!masterInkFiles.Contains(masterInkFile.metaInfo.masterInkFileIncludingSelf) && (InkSettings.Instance.compileAutomatically || masterInkFile.compileAutomatically)) {
-                    masterInkFiles.Add(masterInkFile);
-                }
+                foreach(var masterInkFile in GetMasterFilesIncludingInkAssetPath(importedAssetPath)) {
+					if (!masterInkFiles.Contains(masterInkFile) && (InkSettings.Instance.compileAutomatically || masterInkFile.compileAutomatically)) {
+						masterInkFiles.Add(masterInkFile);
+					}
+				}
             }
 			return masterInkFiles;
 		}
 
 		// An ink file might actually have several owners! This should be reflected here.
-        public static InkFile GetMasterFileFromInkAssetPath (string importedAssetPath) {
+        public static IEnumerable<InkFile> GetMasterFilesIncludingInkAssetPath (string importedAssetPath) {
             InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
             // Trying to catch a rare (and not especially important) bug that seems to happen occasionally when opening a project
             // It's probably this - I've noticed it before in another context.
@@ -504,8 +511,7 @@ namespace Ink.UnityIntegration {
             // I've caught it here before
             Debug.Assert(inkFile != null, "No internal InkFile reference at path "+importedAssetPath+". This is a bug. For now you can fix this via Assets > Rebuild Ink Library");
             Debug.Assert(inkFile.metaInfo != null);
-            Debug.Assert(inkFile.metaInfo.masterInkFileIncludingSelf != null);
-            return inkFile.metaInfo.masterInkFileIncludingSelf;
+            return inkFile.metaInfo.masterInkFilesIncludingSelf;
         }
 	}
 }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
+using System.Linq;
 using Debug = UnityEngine.Debug;
 
 /// <summary>
@@ -80,17 +81,22 @@ namespace Ink.UnityIntegration {
 						Debug.LogWarning("Ink file for asset "+AssetDatabase.GetAssetPath(metaFile.inkAsset)+" was not found. Path was "+metaFile.inkAssetPath);
 					}
 				}
+
                 // If the library is invalid then metaFile.masterInkAsset can return some random file instead, which causes errors in metaFile.masterInkFile's getter.
                 // Since I can't rely on masterInkAsset being correct between opening/closing Unity I think this function should always set it from masterInkAssetPath.
                 // For optimisation reasons we can probably check if it's already loaded/accurate first.
                 // Do the same with the above too!
-				if(metaFile.masterInkAssetPath != string.Empty && (metaFile.masterInkAsset == null || AssetDatabase.GetAssetPath(metaFile.masterInkAsset) != metaFile.masterInkAssetPath)) {
-                	metaFile.masterInkAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(metaFile.masterInkAssetPath);
-					if(metaFile.masterInkAsset == null) {
-						foundDiscrepancy = true;
-						Debug.LogWarning("Ink file for master asset "+AssetDatabase.GetAssetPath(metaFile.masterInkAsset)+" was not found. Path was "+metaFile.masterInkAssetPath);
-					}
-				}
+
+				// NOTE This was refactored to deal with allowing multiple master files, but then removed because it might not be needed (?) 
+				// foreach(var masterInkFile in metaFile.masterInkFiles) {
+				// 	if(masterInkFile.metaInfo.inkAssetPath != string.Empty && (metaFile.masterInkAsset == null || AssetDatabase.GetAssetPath(metaFile.masterInkAsset) != masterInkFile.metaInfo.inkAssetPath)) {
+				// 		metaFile.masterInkAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(masterInkFile.metaInfo.inkAssetPath);
+				// 		if(metaFile.masterInkAsset == null) {
+				// 			foundDiscrepancy = true;
+				// 			Debug.LogWarning("Ink file for master asset "+AssetDatabase.GetAssetPath(metaFile.masterInkAsset)+" was not found. Path was "+masterInkFile.metaInfo.inkAssetPath);
+				// 		}
+				// 	}
+				// }
 			}
 			return !foundDiscrepancy;
 		}
@@ -99,7 +105,6 @@ namespace Ink.UnityIntegration {
 			Instance.metaLibrary.Clear();
 			foreach(var inkFile in InkLibrary.Instance.inkLibrary) {
 				inkFile.metaInfo.inkAssetPath = AssetDatabase.GetAssetPath(inkFile.metaInfo.inkAsset);
-				inkFile.metaInfo.masterInkAssetPath = AssetDatabase.GetAssetPath(inkFile.metaInfo.masterInkAsset);
 				Instance.metaLibrary.Add(inkFile.metaInfo);
 			}
 		}
@@ -128,8 +133,8 @@ namespace Ink.UnityIntegration {
 		/// </summary>
 		public static void RebuildInkFileConnections () {
 			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
-				inkFile.metaInfo.parent = null;
-				inkFile.metaInfo.masterInkAsset = null;
+				inkFile.metaInfo.parents = new List<DefaultAsset>();
+				inkFile.metaInfo.masterInkAssets = new List<DefaultAsset>();
 				inkFile.metaInfo.ParseContent();
 				inkFile.metaInfo.FindIncludedFiles();
 			}
@@ -142,28 +147,52 @@ namespace Ink.UnityIntegration {
 					if(inkFile == otherInkFile) 
 						continue;
 					if(inkFile.metaInfo.includes.Contains(otherInkFile.inkAsset)) {
-						otherInkFile.metaInfo.parent = inkFile.inkAsset;
+						if(!otherInkFile.metaInfo.parents.Contains(inkFile.inkAsset)) {
+							otherInkFile.metaInfo.parents.Add(inkFile.inkAsset);
+						}
 					}
 				}
 			}
 			// Next, we create a list of all the files owned by the actual master file, which we obtain by travelling up the parent tree from each file.
 			Dictionary<InkFile, List<InkFile>> masterChildRelationships = new Dictionary<InkFile, List<InkFile>>();
 			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
-				if(inkFile.metaInfo.parent == null) 
-					continue;
-				InkFile parent = inkFile.metaInfo.parentInkFile;
-				while (parent.metaInfo.parent != null) {
-					parent = parent.metaInfo.parentInkFile;
+				foreach(var parentInkFile in inkFile.metaInfo.parentInkFiles) {
+					InkFile lastMasterInkFile = parentInkFile;
+					InkFile masterInkFile = parentInkFile;
+					while (masterInkFile.metaInfo.parents.Count != 0) {
+						// This shouldn't just pick first, but iterate the whole lot! 
+						// I didn't feel like writing a recursive algorithm until it's actually needed though - a file included by several parents is already a rare enough case!
+						masterInkFile = masterInkFile.metaInfo.parentInkFiles.First();
+						lastMasterInkFile = masterInkFile;
+					}
+					if(lastMasterInkFile.metaInfo.parents.Count > 1) {
+						Debug.LogError("The ink ownership tree has another master file that is not discovered! This is an oversight of the current implementation. If you requres this feature, please take a look at the comment in the code above - if you solve it let us know and we'll merge it in!");
+					}
+					if(!masterChildRelationships.ContainsKey(masterInkFile)) {
+						masterChildRelationships.Add(masterInkFile, new List<InkFile>());
+					}
+					masterChildRelationships[masterInkFile].Add(inkFile);
 				}
-				if(!masterChildRelationships.ContainsKey(parent)) {
-					masterChildRelationships.Add(parent, new List<InkFile>());
-				}
-				masterChildRelationships[parent].Add(inkFile);
+
+				// if(inkFile.metaInfo.parent == null) 
+				// 	continue;
+				// InkFile parent = inkFile.metaInfo.parentInkFile;
+				// while (parent.metaInfo.parent != null) {
+				// 	parent = parent.metaInfo.parentInkFile;
+				// }
+				// if(!masterChildRelationships.ContainsKey(parent)) {
+				// 	masterChildRelationships.Add(parent, new List<InkFile>());
+				// }
+				// masterChildRelationships[parent].Add(inkFile);
 			}
 			// Finally, we set the master file of the children
 			foreach (var inkFileRelationship in masterChildRelationships) {
 				foreach(InkFile childInkFile in inkFileRelationship.Value) {
-					childInkFile.metaInfo.masterInkAsset = inkFileRelationship.Key.inkAsset;
+					if(!childInkFile.metaInfo.masterInkAssets.Contains(inkFileRelationship.Key.inkAsset)) {
+						childInkFile.metaInfo.masterInkAssets.Add(inkFileRelationship.Key.inkAsset);
+					} else {
+						Debug.LogWarning("Child file already contained master file reference! This is weird!");
+					}
 					if(InkSettings.Instance.handleJSONFilesAutomatically && childInkFile.jsonAsset != null) {
 						AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(childInkFile.jsonAsset));
 						childInkFile.jsonAsset = null;

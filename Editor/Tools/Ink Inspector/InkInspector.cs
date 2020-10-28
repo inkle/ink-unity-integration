@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.IO;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEditorInternal;
 using Object = UnityEngine.Object;
@@ -11,6 +12,7 @@ namespace Ink.UnityIntegration {
 
 		private InkFile inkFile;
 		private ReorderableList includesFileList;
+		private ReorderableList mastersFileList;
 		private ReorderableList errorList;
 		private ReorderableList warningList;
 		private ReorderableList todosList;
@@ -79,10 +81,11 @@ namespace Ink.UnityIntegration {
 			if(inkFile == null) 
 				return;
 
-			if (inkFile.jsonAsset != null && inkFile.metaInfo.includes.Count > 0)
-				CreateIncludeList ();
-			else
-				includesFileList = null;
+			if (inkFile.metaInfo.includes.Count > 0) CreateIncludeList ();
+			else includesFileList = null;
+
+			if (inkFile.metaInfo.masterInkAssets.Count > 0) CreateMastersList ();
+			else mastersFileList = null;
 
 			CreateErrorList();
 			CreateWarningList();
@@ -129,6 +132,62 @@ namespace Ink.UnityIntegration {
 				if(GUI.Button(selectRect, "Select")) {
 					Selection.activeObject = childAssetFile;
 				}
+			};
+		}
+
+		void CreateMastersList () {
+			List<DefaultAsset> mastersTextAssets = inkFile.metaInfo.masterInkAssets;
+			mastersFileList = new ReorderableList(mastersTextAssets, typeof(DefaultAsset), false, false, false, false);
+			mastersFileList.drawHeaderCallback = (Rect rect) => {  
+				EditorGUI.LabelField(rect, "Master Files");
+			};
+			mastersFileList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
+				DefaultAsset masterAssetFile = ((List<DefaultAsset>)mastersFileList.list)[index];
+				if(masterAssetFile == null) {
+					Debug.LogError("Ink file in masters list is null. This should never occur. Use Assets > Recompile Ink to fix this issue.");
+					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File in masters list is null. Use Assets > Recompile Ink to fix this issue."));
+					return;
+				}
+				InkFile masterInkFile = InkLibrary.GetInkFileWithFile(masterAssetFile);
+				if(masterInkFile == null) {
+					Debug.LogError("Ink File for master file "+masterAssetFile+" not found. This should never occur. Use Assets > Recompile Ink to fix this issue.");
+					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File for master file "+masterAssetFile+" not found. Use Assets > Recompile Ink to fix this issue."));
+					return;
+				}
+				Rect iconRect = new Rect(rect.x, rect.y, 0, 16);
+				if(masterInkFile.metaInfo.hasErrors || masterInkFile.metaInfo.hasWarnings) {
+					iconRect.width = 20;
+				}
+				Rect objectFieldRect = new Rect(iconRect.xMax, rect.y, rect.width - iconRect.width - 80, 16);
+				Rect selectRect = new Rect(objectFieldRect.xMax, rect.y, 80, 16);
+				if(masterInkFile.metaInfo.hasErrors) {
+					EditorGUI.LabelField(iconRect, new GUIContent(InkBrowserIcons.errorIcon));
+				} else if(masterInkFile.metaInfo.hasWarnings) {
+					EditorGUI.LabelField(iconRect, new GUIContent(InkBrowserIcons.warningIcon));
+				}
+				EditorGUI.BeginDisabledGroup(true);
+				EditorGUI.ObjectField(objectFieldRect, masterAssetFile, typeof(Object), false);
+				EditorGUI.EndDisabledGroup();
+				if(GUI.Button(selectRect, "Select")) {
+					Selection.activeObject = masterAssetFile;
+				}
+
+				
+			// foreach(var masterInkFile in inkFile.metaInfo.masterInkFiles) {
+			// 	EditorGUILayout.BeginHorizontal();
+			// 	if(masterInkFile.metaInfo.hasErrors) {
+			// 		GUILayout.Label(new GUIContent(InkBrowserIcons.errorIcon), GUILayout.Width(20));
+			// 	} else if(masterInkFile.metaInfo.hasWarnings) {
+			// 		GUILayout.Label(new GUIContent(InkBrowserIcons.warningIcon), GUILayout.Width(20));
+			// 	}
+			// 	EditorGUI.BeginDisabledGroup(true);
+			// 	EditorGUILayout.ObjectField("Master Ink File", masterInkFile.inkAsset, typeof(Object), false);
+			// 	EditorGUI.EndDisabledGroup();
+			// 	if(GUILayout.Button("Select", GUILayout.Width(80))) {
+			// 		Selection.activeObject = masterInkFile.inkAsset;
+			// 	}
+			// 	EditorGUILayout.EndHorizontal();
+			// }
 			};
 		}
 
@@ -218,34 +277,33 @@ namespace Ink.UnityIntegration {
 				return;
 			}
 			
-			InkFile masterInkFile = inkFile.metaInfo.masterInkFileIncludingSelf;
 			if(inkFile.metaInfo.isMaster) {
 				DrawMasterFileHeader();
+				DrawEditAndCompileDates(inkFile);
+				if(inkFile.metaInfo.hasUnhandledCompileErrors) {
+					EditorGUILayout.HelpBox("Last compiled failed", MessageType.Error);
+				} if(inkFile.metaInfo.hasErrors) {
+					EditorGUILayout.HelpBox("Last compiled had errors", MessageType.Error);
+				} else if(inkFile.metaInfo.hasWarnings) {
+					EditorGUILayout.HelpBox("Last compile had warnings", MessageType.Warning);
+				} else if(inkFile.jsonAsset == null) {
+					EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
+				}
+				if(inkFile.metaInfo.requiresCompile && GUILayout.Button("Compile")) {
+					InkCompiler.CompileInk(inkFile);
+				}
+				DrawIncludedFiles();
+
+				DrawCompileErrors();
+				DrawErrors();
+				DrawWarnings();
+				DrawTODOList();
 			} else {
-				DrawSubFileHeader(masterInkFile);
+				DrawSubFileHeader();
 			}
 
-			DrawEditAndCompileDates(masterInkFile);
-			if(masterInkFile.metaInfo.hasUnhandledCompileErrors) {
-				EditorGUILayout.HelpBox("Last compiled failed", MessageType.Error);
-			} if(masterInkFile.metaInfo.hasErrors) {
-				EditorGUILayout.HelpBox("Last compiled had errors", MessageType.Error);
-			} else if(masterInkFile.metaInfo.hasWarnings) {
-				EditorGUILayout.HelpBox("Last compile had warnings", MessageType.Warning);
-			} else if(masterInkFile.jsonAsset == null) {
-				EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
-			}
-			if(inkFile.metaInfo.requiresCompile && GUILayout.Button("Compile")) {
-				InkCompiler.CompileInk(masterInkFile);
-			}
-			
-			DrawIncludedFiles();
-
-			DrawCompileErrors();
-			DrawErrors();
-			DrawWarnings();
-			DrawTODOList();
 			DrawFileContents ();
+			
 
 			serializedObject.ApplyModifiedProperties();
 		}
@@ -277,21 +335,11 @@ namespace Ink.UnityIntegration {
 //				}
 		}
 
-		void DrawSubFileHeader(InkFile masterInkFile) {
-			EditorGUILayout.LabelField("Sub File", EditorStyles.boldLabel);
-			EditorGUILayout.BeginHorizontal();
-			if(masterInkFile.metaInfo.hasErrors) {
-				GUILayout.Label(new GUIContent(InkBrowserIcons.errorIcon), GUILayout.Width(20));
-			} else if(masterInkFile.metaInfo.hasWarnings) {
-				GUILayout.Label(new GUIContent(InkBrowserIcons.warningIcon), GUILayout.Width(20));
+		void DrawSubFileHeader() {
+			EditorGUILayout.LabelField("Include File", EditorStyles.boldLabel);
+			if(mastersFileList != null && mastersFileList.count > 0) {
+				mastersFileList.DoLayoutList();
 			}
-			EditorGUI.BeginDisabledGroup(true);
-			EditorGUILayout.ObjectField("Master Ink File", masterInkFile.inkAsset, typeof(Object), false);
-			EditorGUI.EndDisabledGroup();
-			if(GUILayout.Button("Select", GUILayout.Width(80))) {
-				Selection.activeObject = masterInkFile.inkAsset;
-			}
-			EditorGUILayout.EndHorizontal();
 		}
 
 		void DrawEditAndCompileDates (InkFile masterInkFile) {
