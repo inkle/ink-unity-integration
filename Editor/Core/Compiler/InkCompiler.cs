@@ -72,9 +72,11 @@ namespace Ink.UnityIntegration {
 			EditorApplication.update += Update;
             // I really don't know if this can fire, since it assumes that it compiled so can't have been locked. But safety first!
             EditorApplication.UnlockReloadAssemblies();
+			#if UNITY_2019_4_OR_NEWER
 			// This one, on the other hand, seems to actually occur sometimes - presumably because c# compiles at the same time as the ink.
 			if(InkLibrary.Instance.disallowedAutoRefresh)
 				AssetDatabase.AllowAutoRefresh();
+			#endif
 		}
 
 		private static void Update () {
