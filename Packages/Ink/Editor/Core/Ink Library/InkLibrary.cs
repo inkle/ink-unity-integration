@@ -286,7 +286,11 @@ namespace Ink.UnityIntegration {
 					return inkFile;
 				}
 			}
-			Debug.LogWarning (file + " missing from ink library. Please rebuild.");
+			System.Text.StringBuilder listOfFiles = new System.Text.StringBuilder();
+			foreach(InkFile inkFile in Instance.inkLibrary) {
+				listOfFiles.AppendLine(inkFile.ToString());
+			}
+			Debug.LogWarning (file + " missing from ink library. Please rebuild.\n"+listOfFiles);
 			return null;
 		}
 
