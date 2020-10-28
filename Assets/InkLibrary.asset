@@ -43,3 +43,4 @@ MonoBehaviour:
     jsonAsset: {fileID: 4900000, guid: 6cf48bb6d89824cc69e35b43f9a1aca6, type: 3}
   pendingCompilationStack: []
   compilationStack: []
+  disallowedAutoRefresh: 0
