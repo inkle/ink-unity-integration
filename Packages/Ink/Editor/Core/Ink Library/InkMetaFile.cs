@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using Debug = UnityEngine.Debug;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Ink.UnityIntegration {
@@ -15,7 +16,6 @@ namespace Ink.UnityIntegration {
 		public DefaultAsset inkAsset;
 		// Used for when the data gets lost.
 		public string inkAssetPath;
-		public string masterInkAssetPath;
 
 		[System.NonSerialized]
 		private InkFile _inkFile = null;
@@ -59,25 +59,8 @@ namespace Ink.UnityIntegration {
 
 		public bool requiresCompile {
 			get {
-				// If no compiled file is found
-				if(masterInkFileIncludingSelf.jsonAsset == null || masterInkFileIncludingSelf.metaInfo == null) 
-					return true;
-
-				if(masterInkFileIncludingSelf.metaInfo.lastEditDate > lastCompileDate) {
-					return true;
-				}
-				
-				var inkFilesInIncludeHierarchy = masterInkFileIncludingSelf.metaInfo.inkFilesInIncludeHierarchy;
-				// This should never happen, but would indicate that the meta file isn't properly loaded by the system.
-				if (inkFilesInIncludeHierarchy == null)
-					return true;
-				
-				foreach(InkFile inkFile in inkFilesInIncludeHierarchy) {
-					if(inkFile.metaInfo.hasUnhandledCompileErrors) {
-						return true;
-					}
-				}
-				return false;
+				if(!isMaster) return false;
+				return inkFile.jsonAsset == null || lastEditDate > lastCompileDate || hasUnhandledCompileErrors;
 			}
 		}
 
@@ -87,8 +70,12 @@ namespace Ink.UnityIntegration {
 		/// <value>The last compile date of the story.</value>
 		public DateTime lastCompileDate {
 			get {
-				string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(masterInkFileIncludingSelf.jsonAsset));
-				return File.GetLastWriteTime(fullJSONFilePath);
+				if(isMaster) {
+					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(inkFile.jsonAsset));
+					return File.GetLastWriteTime(fullJSONFilePath);
+				} else {
+					return default(DateTime);
+				}
 			}
 		}
 
@@ -111,13 +98,14 @@ namespace Ink.UnityIntegration {
 		}
 
 		// File that contains this file as an include, if one exists.
-		public DefaultAsset parent;
-		public InkFile parentInkFile {
+		public List<DefaultAsset> parents;
+		public IEnumerable<InkFile> parentInkFiles {
 			get {
-				if(parent == null)
-					return null;
-				else
-					return InkLibrary.GetInkFileWithFile(parent);
+				if(parents != null && parents.Count != 0) {
+					foreach(var parentInkAsset in parents) {
+						yield return InkLibrary.GetInkFileWithFile(parentInkAsset);
+					}
+				}
 			}
 		}
 		// Is this ink file a parent file?
@@ -127,25 +115,32 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
+		public List<DefaultAsset> masterInkAssets;
+		public IEnumerable<InkFile> masterInkFiles {
+			get {
+				if(masterInkAssets != null && masterInkAssets.Count != 0) {
+					foreach(var masterInkAsset in masterInkAssets) {
+						yield return InkLibrary.GetInkFileWithFile(masterInkAsset);
+					}
+				}
+			}
+		}
+		public IEnumerable<InkFile> masterInkFilesIncludingSelf {
+			get {
+				if(isMaster) yield return inkFile;
+				else {
+					foreach(var masterInkFile in masterInkFiles) {
+						yield return masterInkFile;
+					}
+				}
+			}
+		}
 		public DefaultAsset masterInkAsset;
-		public InkFile masterInkFile {
-			get {
-				if(masterInkAsset == null)
-					return null;
-				else
-					return InkLibrary.GetInkFileWithFile(masterInkAsset);
-			}
-		}
-		public InkFile masterInkFileIncludingSelf {
-			get {
-				return isMaster ? inkFile : masterInkFile;
-			}
-		}
 
 		// Is this ink file a master file?
 		public bool isMaster {
 			get {
-				return masterInkAsset == null;
+				return masterInkAssets == null || masterInkAssets.Count == 0;
 			}
 		}
 		

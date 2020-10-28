@@ -48,7 +48,8 @@ namespace Ink.UnityIntegration {
 		public List<string> pendingCompilationStack = new List<string>();
 		// The state of files currently being compiled. You can ignore this!
 		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
-
+		public bool disallowedAutoRefresh;
+		
         public int Count {
             get {
                 return inkLibrary.Count;

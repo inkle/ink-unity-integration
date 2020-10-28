@@ -44,8 +44,11 @@ namespace Ink.UnityIntegration {
 			List<InkFile> masterFilesAffected = new List<InkFile>();
 			for (int i = InkLibrary.Instance.inkLibrary.Count - 1; i >= 0; i--) {
 				if(InkLibrary.Instance.inkLibrary [i].inkAsset == null) {
-					if(!InkLibrary.Instance.inkLibrary[i].metaInfo.isMaster && InkLibrary.Instance.inkLibrary[i].metaInfo.masterInkAsset != null && !masterFilesAffected.Contains(InkLibrary.Instance.inkLibrary[i].metaInfo.masterInkFile)) {
-						masterFilesAffected.Add(InkLibrary.Instance.inkLibrary[i].metaInfo.masterInkFile);
+					if(!InkLibrary.Instance.inkLibrary[i].metaInfo.isMaster) {
+						foreach(var masterInkFile in InkLibrary.Instance.inkLibrary[i].metaInfo.masterInkFiles) {
+							if(!masterFilesAffected.Contains(masterInkFile))
+								masterFilesAffected.Add(masterInkFile);
+						}
 					}
 					if(InkSettings.Instance.handleJSONFilesAutomatically) {
                         var assetPath = AssetDatabase.GetAssetPath(InkLibrary.Instance.inkLibrary[i].jsonAsset);
@@ -104,13 +107,10 @@ namespace Ink.UnityIntegration {
 				foreach(var inkFilePath in queuedMovedAssets) {
 					InkFile inkFile = InkLibrary.GetInkFileWithPath(inkFilePath);
 					if(inkFile == null) continue;
-
-					InkFile masterInkFile = inkFile;
-					if(!inkFile.metaInfo.isMaster)
-						masterInkFile = inkFile.metaInfo.masterInkFile;
-					
-					if(!filesToCompile.Contains(masterInkFile))
-						filesToCompile.Add(masterInkFile);
+					foreach(var masterInkFile in inkFile.metaInfo.masterInkFilesIncludingSelf) {
+						if(!filesToCompile.Contains(inkFile))
+							filesToCompile.Add(inkFile);
+					}
 				}
 
 				InkMetaLibrary.RebuildInkFileConnections();
@@ -120,13 +120,10 @@ namespace Ink.UnityIntegration {
 					InkFile inkFile = InkLibrary.GetInkFileWithPath(inkFilePath);
 					if(inkFile == null) continue;
 
-					InkFile masterInkFile = inkFile;
-					if(!inkFile.metaInfo.isMaster)
-						masterInkFile = inkFile.metaInfo.masterInkFile;
-					
-					if(!filesToCompile.Contains(masterInkFile))
-						filesToCompile.Add(masterInkFile);
-					
+					foreach(var masterInkFile in inkFile.metaInfo.masterInkFilesIncludingSelf) {
+						if(!filesToCompile.Contains(inkFile))
+							filesToCompile.Add(inkFile);
+					}
 				}
 
 				queuedMovedAssets.Clear();
@@ -180,8 +177,7 @@ namespace Ink.UnityIntegration {
 				}
 			} else {
 				InkLibrary.CreateOrReadUpdatedInkFiles (importedInkAssets);
-				foreach (var inkAssetToCompile in InkCompiler.GetUniqueMasterInkFilesToCompile (importedInkAssets))
-					InkCompiler.CompileInk(inkAssetToCompile);
+				InkCompiler.CompileInk(InkCompiler.GetUniqueMasterInkFilesToCompile (importedInkAssets).ToArray());
 			}
 		}
 	}
