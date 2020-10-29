@@ -1421,7 +1421,7 @@ namespace Ink.UnityIntegration {
         }
 
 		string GetTagsString (List<string> tags) {
-			return string.Join("\n", tags);
+			return (tags == null || tags.Count == 0) ? string.Empty : string.Join("\n", tags);
 		}
 		#endregion
 
