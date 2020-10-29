@@ -211,7 +211,7 @@ namespace Ink.UnityIntegration {
 			InkMetaLibrary.RebuildInkFileConnections();
 
 			foreach (InkFile inkFile in Instance.inkLibrary) inkFile.FindCompiledJSONAsset();
-			Save();
+			SetDirtyAndRepaint();
 			AssetDatabase.SaveAssets();
 			
 			Debug.Log("Ink Library was rebuilt.");
@@ -241,7 +241,7 @@ namespace Ink.UnityIntegration {
 			return inkFilePaths;
 		}
 
-		public static void SetDirty () {
+		public static void SetDirtyAndRepaint () {
 			EditorUtility.SetDirty(Instance);
 			EditorApplication.RepaintProjectWindow();
 		}

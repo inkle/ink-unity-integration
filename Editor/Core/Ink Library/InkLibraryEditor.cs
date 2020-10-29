@@ -55,6 +55,16 @@ namespace Ink.UnityIntegration {
 			serializedObject.Update();
 
 
+			EditorGUILayout.Toggle("HasLockedUnityCompilation", InkCompiler.hasLockedUnityCompilation);
+			if(GUILayout.Button("Unlock")) {
+				EditorApplication.UnlockReloadAssemblies();
+			}
+			#if UNITY_2019_4_OR_NEWER
+			if(GUILayout.Button("AllowAutoRefresh")) {
+				AssetDatabase.AllowAutoRefresh();
+			}
+			#endif
+
 			if(InkCompiler.compiling) {
 				Rect r = EditorGUILayout.BeginVertical();
 				EditorGUI.ProgressBar(r, InkCompiler.GetEstimatedCompilationProgress(), "Compiling...");
@@ -95,6 +105,7 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("inkLibrary"), true);
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("pendingCompilationStack"), true);
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("compilationStack"), true);
+			EditorGUILayout.PropertyField(serializedObject.FindProperty("disallowedAutoRefresh"), true);
 			EditorGUI.EndDisabledGroup();
 			
 			if(GUI.changed && target != null)         
