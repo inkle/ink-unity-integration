@@ -202,6 +202,7 @@ namespace Ink.UnityIntegration {
 		    public StoryPanelState storyPanelState = new StoryPanelState() {showing=true};
     		public BaseStoryPanelState choicePanelState = new BaseStoryPanelState() {showing=true};
             public DivertPanelState divertPanelState = new DivertPanelState();
+            public NamedContentPanelState namedContentPanelState = new NamedContentPanelState();
 			public FunctionPanelState functionPanelState = new FunctionPanelState();
             // public FunctionPanelState.FunctionParams functionParams = new FunctionPanelState.FunctionParams();
     		public VariablesPanelState variablesPanelState = new VariablesPanelState();
@@ -326,6 +327,11 @@ namespace Ink.UnityIntegration {
             public string searchString = string.Empty;
 		}
 
+
+        [System.Serializable]
+		public class NamedContentPanelState : BaseStoryPanelState {
+            public string searchString = string.Empty;
+		}
 
         [System.Serializable]
 		public class DivertPanelState : BaseStoryPanelState {
@@ -897,6 +903,7 @@ namespace Ink.UnityIntegration {
 				DrawChoices();
 				DrawProfilerData();
 				DrawSaveLoad();
+				DrawNamedContent();
 				DrawDiverts();
 				DrawFunctions();
 				DrawVariables();
@@ -1537,6 +1544,57 @@ namespace Ink.UnityIntegration {
 
 
 		
+
+		#region Diverts
+		void DrawNamedContent () {
+			DrawNamedContentHeader();
+			if(InkPlayerWindowState.Instance.namedContentPanelState.showing)
+				DrawNamedContentPanel ();
+		}
+
+        void DrawNamedContentHeader () {
+            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+			InkPlayerWindowState.Instance.namedContentPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.namedContentPanelState.showing, "Named Content", true);
+			
+			EditorGUI.BeginDisabledGroup(!InkPlayerWindowState.Instance.namedContentPanelState.showing);
+            bool changed = DrawSearchBar(ref InkPlayerWindowState.Instance.namedContentPanelState.searchString);
+            if(changed) InkPlayerWindowState.Instance.namedContentPanelState.scrollPosition = Vector2.zero;
+            EditorGUI.EndDisabledGroup();
+
+			EditorGUILayout.EndHorizontal();
+        }
+
+		void DrawNamedContentPanel () {
+			GUILayout.BeginVertical();
+			DrawNamedContentContainer(string.Empty, story.mainContentContainer);
+			GUILayout.EndVertical();
+		}
+
+		void DrawNamedContentContainer (string currentPath, Container container) {
+			if(container == null || container.namedOnlyContent == null) return;
+			EditorGUI.indentLevel++;
+			foreach(var contentKVP in container.namedOnlyContent) {
+				var newPath = currentPath.Length == 0 ? contentKVP.Key : currentPath+"."+contentKVP.Key;
+				DrawNamedContent(newPath, contentKVP);
+			}
+			EditorGUI.indentLevel--;
+		}
+		void DrawNamedContent (string currentPath, KeyValuePair<string, Runtime.Object> contentKVP) {
+			GUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(new GUIContent(currentPath, "Path"), GUILayout.Width(200));
+			EditorGUILayout.LabelField(new GUIContent(story.state.VisitCountAtPathString(currentPath).ToString(), "Read count"), GUILayout.Width(40));
+			if (GUILayout.Button("Divert", GUILayout.Width(80))) {
+				AddToHistory(InkHistoryContentItem.CreateForDebugNote("Diverted to '"+currentPath+"'"));
+				story.ChoosePathString(currentPath);
+				PingAutomator();
+			}
+			GUILayout.EndHorizontal();
+			
+			var namedContainer = contentKVP.Value as Container;
+			DrawNamedContentContainer(currentPath, namedContainer);		
+		}
+		#endregion
+
 
 		#region Diverts
 		void DrawDiverts () {
