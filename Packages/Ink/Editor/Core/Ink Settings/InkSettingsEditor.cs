@@ -39,7 +39,7 @@ namespace Ink.UnityIntegration {
 				},
 
 				// Populate the search keywords to enable smart search filtering and label highlighting:
-				keywords = new HashSet<string>(new[] { "Number", "Some String" })
+				// keywords = new HashSet<string>(new[] { "Number", "Some String" })
 			};
 
 			return provider;
@@ -47,6 +47,10 @@ namespace Ink.UnityIntegration {
 		#endif
 
 		static void DrawSettings (SerializedObject settings) {
+			var cachedLabelWidth = EditorGUIUtility.labelWidth;
+			EditorGUIUtility.labelWidth = 260;
+			EditorGUI.BeginChangeCheck();
+
 			EditorGUILayout.HelpBox("Ink Unity Integration version "+InkLibrary.versionCurrent+"\nInk Story Version "+Ink.Runtime.Story.inkVersionCurrent, MessageType.Info);
 
 			if(settings.FindProperty("templateFile").objectReferenceValue == null) {
@@ -65,6 +69,11 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.PropertyField(settings.FindProperty("customInklecateOptions"), new GUIContent("Custom Inklecate (Advanced)", "For games using a custom version of ink"), true);
 
 			EditorGUILayout.PropertyField(settings.FindProperty("compileTimeout"), new GUIContent("Compile Timeout", "The max time the compiler will attempt to compile for in case of unhanded errors. You may need to increase this for very large ink projects."), true);
+			
+			if(EditorGUI.EndChangeCheck()) {
+				settings.ApplyModifiedProperties();
+			}
+			EditorGUIUtility.labelWidth = cachedLabelWidth;
 		}
 	}
 }

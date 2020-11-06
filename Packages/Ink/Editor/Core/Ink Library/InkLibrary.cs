@@ -13,33 +13,46 @@ using Debug = UnityEngine.Debug;
 /// </summary>
 namespace Ink.UnityIntegration {
 	public class InkLibrary : ScriptableObject, IEnumerable<InkFile> {
-		public static System.Version versionCurrent = new System.Version(0,9,54);
+		public static System.Version versionCurrent = new System.Version(0,9,60);
 		public static bool created {
 			get {
 				// If it's null, there's no InkLibrary asset in the project
 				return _Instance != null;
 			}
 		}
+
+		static string absoluteSavePath {
+			get {
+				return System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,"..","Library","InkLibrary.asset"));
+
+			}
+		}
+		public static void SaveToFile () {
+			UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget(new[] { Instance }, absoluteSavePath, true);
+		}
 		private static InkLibrary _Instance;
 		public static InkLibrary Instance {
 			get {
 				if(_Instance == null) {
-                    InkLibrary newInstance = null;
-					if(InkEditorUtils.FindOrCreateSingletonScriptableObjectOfType<InkLibrary>(defaultPath, out newInstance)) {
-                        Instance = newInstance;
-                        Rebuild();
+					Object[] objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
+					if (objects != null && objects.Length > 0) {
+						Instance = objects[0] as InkLibrary;
+						Debug.Log("Found library!");
 					} else {
-                        Instance = newInstance;
-                    }
+						Instance = ScriptableObject.CreateInstance<InkLibrary>();
+						Rebuild();
+						SaveToFile();
+						Debug.Log("Created library!");
+					}
 				}
 				return _Instance;
 			} private set {
-                _Instance = value;
+                if(_Instance == value) return;
+				_Instance = value;
                 CreateDictionary();
                 Validate();
             }
 		}
-		public const string defaultPath = "Assets/InkLibrary.asset";
 
 		public List<InkFile> inkLibrary = new List<InkFile>();
 		Dictionary<DefaultAsset, InkFile> inkLibraryDictionary;
@@ -70,12 +83,11 @@ namespace Ink.UnityIntegration {
             return inkLibrary.GetEnumerator();
         }
 
-		private void OnEnable() {
-			Instance = this;
-		}
-
-		private void OnDisable() {
-			Instance = null;
+		[InitializeOnLoadMethod]
+		private static void Initialize() {
+			Object[] objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
+			if (objects != null && objects.Length > 0)
+				Instance = objects[0] as InkLibrary;
 		}
 
         static void CreateDictionary () {
@@ -211,8 +223,7 @@ namespace Ink.UnityIntegration {
 			InkMetaLibrary.RebuildInkFileConnections();
 
 			foreach (InkFile inkFile in Instance.inkLibrary) inkFile.FindCompiledJSONAsset();
-			SetDirtyAndRepaint();
-			AssetDatabase.SaveAssets();
+			SaveToFile();
 			
 			Debug.Log("Ink Library was rebuilt.");
 		}
@@ -239,11 +250,6 @@ namespace Ink.UnityIntegration {
 				inkFilePaths [i] = InkEditorUtils.SanitizePathString(inkFilePaths [i]);
 			}
 			return inkFilePaths;
-		}
-
-		public static void SetDirtyAndRepaint () {
-			EditorUtility.SetDirty(Instance);
-			EditorApplication.RepaintProjectWindow();
 		}
 
 		// All the master files

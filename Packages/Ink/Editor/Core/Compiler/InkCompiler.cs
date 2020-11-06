@@ -117,7 +117,7 @@ namespace Ink.UnityIntegration {
 
         static void RemoveCompilingFile (int index) {
             InkLibrary.Instance.compilationStack.RemoveAt(index);
-            InkLibrary.SetDirtyAndRepaint();
+            InkLibrary.SaveToFile();
             // Progress bar prevents delayCall callback from firing in Linux Editor, locking the
             // compilation until it times out. Let's just not show progress bars in Linux Editor    
             #if !UNITY_EDITOR_LINUX
@@ -251,7 +251,7 @@ namespace Ink.UnityIntegration {
 			};
 
 			InkLibrary.Instance.compilationStack.Add(pendingFile);
-			InkLibrary.SetDirtyAndRepaint();
+			InkLibrary.SaveToFile();
 
 			TryCompileNextFileInStack();
 		}
@@ -415,7 +415,7 @@ namespace Ink.UnityIntegration {
 			}
 
 			InkLibrary.Instance.compilationStack.Clear();
-			InkLibrary.SetDirtyAndRepaint();
+			InkLibrary.SaveToFile();
 			InkMetaLibrary.Save();
 
 			#if !UNITY_EDITOR_LINUX

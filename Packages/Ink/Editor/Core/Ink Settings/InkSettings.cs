@@ -7,6 +7,13 @@ using Debug = UnityEngine.Debug;
 /// Provides helper functions to easily obtain these files.
 /// </summary>
 namespace Ink.UnityIntegration {
+	public class InkSettingsAssetSaver : UnityEditor.AssetModificationProcessor {
+        static string[] OnWillSaveAssets(string[] paths) {
+            InkSettings.SaveToFile();
+            return paths;
+        }
+    }
+
 	public class InkSettings : ScriptableObject {
 		public static bool created {
 			get {
@@ -14,16 +21,37 @@ namespace Ink.UnityIntegration {
                 return _Instance != null;
             }
 		}
+
+		static string absoluteSavePath {
+			get {
+				return System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,"..","ProjectSettings","InkSettings.asset"));
+
+			}
+		}
+		public static void SaveToFile () {
+			UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget(new[] { Instance }, absoluteSavePath, true);
+		}
 		private static InkSettings _Instance;
 		public static InkSettings Instance {
 			get {
-				if(_Instance == null) 
-					InkEditorUtils.FindOrCreateSingletonScriptableObjectOfType<InkSettings>(defaultPath, out _Instance);
-				Debug.Assert(_Instance != null, "InkSettings could not be created! This is a bug.");
+				if(_Instance == null) {
+					Object[] objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
+					if (objects != null && objects.Length > 0) {
+						Instance = objects[0] as InkSettings;
+					} else {
+						Instance = ScriptableObject.CreateInstance<InkSettings>();
+						SaveToFile();
+
+					}
+				}
 				return _Instance;
+			} private set {
+                if(_Instance == value) return;
+				_Instance = value;
 			}
 		}
-		public const string defaultPath = "Assets/InkSettings.asset";
+
+		
 		
 		public TextAsset templateFile;
 		public string templateFilePath {
@@ -32,6 +60,7 @@ namespace Ink.UnityIntegration {
 				else return AssetDatabase.GetAssetPath(templateFile);
 			}
 		}
+
 
         public DefaultAsset defaultJsonAssetPath;
 
@@ -68,11 +97,6 @@ namespace Ink.UnityIntegration {
 			return new SerializedObject(Instance);
 		}
 		#endif
-
-
-	    private void OnEnable() {
-	        _Instance = this;
-	    }
 
         private static void Save () {
 			EditorUtility.SetDirty(Instance);
