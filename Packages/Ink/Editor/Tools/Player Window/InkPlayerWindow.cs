@@ -908,6 +908,17 @@ namespace Ink.UnityIntegration {
 				DrawFunctions();
 				DrawVariables();
                 InkPlayerWindowState.Save();
+			} else {
+				// EditorGUILayout.BeginVertical(GUILayout.Width(position.width * 0.6f));
+				GUILayout.Space(40);
+				EditorGUILayout.LabelField("Use this window to play and debug ink stories", EditorStyles.boldLabel);
+				GUILayout.Space(10);
+				EditorGUILayout.LabelField("You can tether your story as it runs in Play Mode to this window, allowing you to view and edit variables and divert in real time!", EditorStyles.wordWrappedLabel);
+				GUILayout.Space(20);
+				if(GUILayout.Button("View Documentation")) {
+					Application.OpenURL("https://github.com/inkle/ink-unity-integration/blob/master/Documentation/InkPlayerWindow.md");
+				}
+				// EditorGUILayout.EndVertical();
 			}
 
 			EditorGUILayout.EndScrollView();
