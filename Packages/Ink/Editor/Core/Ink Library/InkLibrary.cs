@@ -37,12 +37,10 @@ namespace Ink.UnityIntegration {
 					Object[] objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
 					if (objects != null && objects.Length > 0) {
 						Instance = objects[0] as InkLibrary;
-						Debug.Log("Found library!");
 					} else {
 						Instance = ScriptableObject.CreateInstance<InkLibrary>();
 						Rebuild();
 						SaveToFile();
-						Debug.Log("Created library!");
 					}
 				}
 				return _Instance;
