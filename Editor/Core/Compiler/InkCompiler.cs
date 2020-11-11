@@ -74,8 +74,15 @@ namespace Ink.UnityIntegration {
             EditorApplication.UnlockReloadAssemblies();
 			#if UNITY_2019_4_OR_NEWER
 			// This one, on the other hand, seems to actually occur sometimes - presumably because c# compiles at the same time as the ink.
-			if(InkLibrary.Instance.disallowedAutoRefresh)
-				AssetDatabase.AllowAutoRefresh();
+			if(InkLibrary.Instance.disallowedAutoRefresh) {
+				InkLibrary.Instance.disallowedAutoRefresh = false;
+				InkLibrary.SaveToFile();
+				try {
+					AssetDatabase.AllowAutoRefresh();
+				} catch (Exception e) {
+					Debug.LogWarning("Failed AllowAutoRefresh "+e);
+				}
+			}
 			#endif
 		}
 
@@ -193,7 +200,12 @@ namespace Ink.UnityIntegration {
 			#if UNITY_2019_4_OR_NEWER
 			if(!InkLibrary.Instance.disallowedAutoRefresh) {
 				InkLibrary.Instance.disallowedAutoRefresh = true;
-				AssetDatabase.DisallowAutoRefresh();
+				InkLibrary.SaveToFile();
+				try {
+					AssetDatabase.DisallowAutoRefresh();
+				} catch (Exception e) {
+					Debug.LogWarning("Failed DisallowAutoRefresh "+e);
+				}
 			}
 			#endif
             
@@ -424,8 +436,13 @@ namespace Ink.UnityIntegration {
 			
 			#if UNITY_2019_4_OR_NEWER
 			if(InkLibrary.Instance.disallowedAutoRefresh) {
-				AssetDatabase.AllowAutoRefresh();
 				InkLibrary.Instance.disallowedAutoRefresh = false;
+				InkLibrary.SaveToFile();
+				try {
+					AssetDatabase.AllowAutoRefresh();
+				} catch (Exception e) {
+					Debug.LogWarning("Failed AllowAutoRefresh "+e);
+				}
 			}
 			#endif
 
