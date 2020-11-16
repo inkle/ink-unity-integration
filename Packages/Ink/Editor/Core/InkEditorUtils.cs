@@ -56,7 +56,8 @@ namespace Ink.UnityIntegration {
 		}
 
 		static void OnOpenUnityEditor () {
-			InkLibrary.Rebuild();
+			if(InkLibrary.created) InkLibrary.Rebuild();
+			else InkLibrary.LoadOrCreateInstance();
 		}
 
 		[MenuItem("Assets/Rebuild Ink Library", false, 60)]

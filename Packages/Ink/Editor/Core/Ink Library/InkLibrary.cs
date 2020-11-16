@@ -34,14 +34,7 @@ namespace Ink.UnityIntegration {
 		public static InkLibrary Instance {
 			get {
 				if(_Instance == null) {
-					Object[] objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
-					if (objects != null && objects.Length > 0) {
-						Instance = objects[0] as InkLibrary;
-					} else {
-						Instance = ScriptableObject.CreateInstance<InkLibrary>();
-						Rebuild();
-						SaveToFile();
-					}
+					LoadOrCreateInstance();
 				}
 				return _Instance;
 			} private set {
@@ -50,6 +43,17 @@ namespace Ink.UnityIntegration {
                 CreateDictionary();
                 Validate();
             }
+		}
+
+		public static void LoadOrCreateInstance () {
+			Object[] objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
+			if (objects != null && objects.Length > 0) {
+				Instance = objects[0] as InkLibrary;
+			} else {
+				Instance = ScriptableObject.CreateInstance<InkLibrary>();
+				Rebuild();
+				SaveToFile();
+			}
 		}
 
 		public List<InkFile> inkLibrary = new List<InkFile>();
@@ -83,9 +87,7 @@ namespace Ink.UnityIntegration {
 
 		[InitializeOnLoadMethod]
 		private static void Initialize() {
-			Object[] objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
-			if (objects != null && objects.Length > 0)
-				Instance = objects[0] as InkLibrary;
+			LoadOrCreateInstance();
 		}
 
         static void CreateDictionary () {
