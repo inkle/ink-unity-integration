@@ -114,6 +114,9 @@ namespace Ink.UnityIntegration {
 					}
                 }
             }
+	    
+	    if(compiling && InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Compiling) == 0)
+	        TryCompileNextFileInStack();
 
 
 			// If we're not showing a progress bar in Linux this whole step is superfluous
