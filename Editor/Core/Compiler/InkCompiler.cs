@@ -88,8 +88,7 @@ namespace Ink.UnityIntegration {
 
 		private static void Update () {
 			// If we're not compiling but have locked C# compilation then now is the time to reset
-			if ((!InkLibrary.created || !compiling) && hasLockedUnityCompilation)
-			{
+			if ((!InkLibrary.created || !compiling) && hasLockedUnityCompilation) {
 				hasLockedUnityCompilation = false;
 				EditorApplication.UnlockReloadAssemblies();
 			}
@@ -97,23 +96,30 @@ namespace Ink.UnityIntegration {
 			if(!InkLibrary.created) 
 				return;
 
-			// When all files have compiled, run the complete function.
-			if(compiling && InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Queued) == 0 && InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Compiling) == 0) {
-				DelayedComplete();
-			}
-			
-            
-            for (int i = InkLibrary.Instance.compilationStack.Count - 1; i >= 0; i--) {
-                var compilingFile = InkLibrary.Instance.compilationStack [i];
-                if (compilingFile.state == CompilationStackItem.State.Compiling) {
-                    if (compilingFile.timeTaken > InkSettings.Instance.compileTimeout) {
-                        // TODO - Cancel the thread if it's still going. Not critical, since its kinda fine if it compiles a bit later, but it's not clear.
-                        RemoveCompilingFile(i);
-                        Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+".\nCompilation should never take more than a few seconds, but for large projects or slow computers you may want to increase the timeout time in the InkSettings file.\nIf this persists there may be another issue; or else check an ink file exists at this path and try Assets/Recompile Ink, else please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+string.Join("\n",compilingFile.unhandledErrorOutput.ToArray()));
+			if(compiling) {
+				// Check for timeouts, in case of an unhandled bug with this system/the ink compiler!
+				for (int i = InkLibrary.Instance.compilationStack.Count - 1; i >= 0; i--) {
+					var compilingFile = InkLibrary.Instance.compilationStack [i];
+					if (compilingFile.state == CompilationStackItem.State.Compiling) {
+						if (compilingFile.timeTaken > InkSettings.Instance.compileTimeout) {
+							// TODO - Cancel the thread if it's still going. Not critical, since its kinda fine if it compiles a bit later, but it's not clear.
+							RemoveCompilingFile(i);
+							Debug.LogError("Ink Compiler timed out for "+compilingFile.inkAbsoluteFilePath+".\nCompilation should never take more than a few seconds, but for large projects or slow computers you may want to increase the timeout time in the InkSettings file.\nIf this persists there may be another issue; or else check an ink file exists at this path and try Assets/Recompile Ink, else please report as a bug with the following error log at this address: https://github.com/inkle/ink/issues\nError log:\n"+string.Join("\n",compilingFile.unhandledErrorOutput.ToArray()));
+							TryCompileNextFileInStack();
+						}
+					}
+				}
+
+				// When all files have compiled, run the complete function.
+				if(InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Compiling) == 0) {
+					if(InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Queued) == 0) {
+						DelayedComplete();
+					} else {
+						Debug.LogWarning("Ignorable InkCompiler warning!\nThe ink compiler has hit a fallback state where TryCompileNextFileInStack had to be called in Update. We'd like to fix this properly but don't have enough information on the bug.");
 						TryCompileNextFileInStack();
 					}
-                }
-            }
+				}
+			}
 
 
 			// If we're not showing a progress bar in Linux this whole step is superfluous
