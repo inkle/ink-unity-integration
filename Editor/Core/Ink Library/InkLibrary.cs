@@ -31,7 +31,7 @@ namespace Ink.UnityIntegration {
 		public static InkLibrary Instance {
 			get {
 				if(!created)
-                	FindOrCreateInstance();
+                	LoadOrCreateInstance();
 				return _Instance;
 			} private set {
 				if(_Instance == value) return;
@@ -81,10 +81,10 @@ namespace Ink.UnityIntegration {
 		[InitializeOnLoadMethod]
 		private static void Initialize() {
 			// Not sure we actually need this? It should create itself perfectly well.
-			if(!created) FindOrCreateInstance();
+			if(!created) LoadOrCreateInstance();
 		}
 
-		static void FindOrCreateInstance () {
+		public static void LoadOrCreateInstance () {
 			Object[] objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
 			if (objects != null && objects.Length > 0) {
 				Instance = objects[0] as InkLibrary;
@@ -100,7 +100,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		static void EnsureCreated () {
-			if(!created) FindOrCreateInstance();
+			if(!created) LoadOrCreateInstance();
 		}
 
         static void CreateDictionary () {
