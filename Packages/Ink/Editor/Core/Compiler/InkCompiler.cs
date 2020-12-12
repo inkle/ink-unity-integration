@@ -74,8 +74,15 @@ namespace Ink.UnityIntegration {
             EditorApplication.UnlockReloadAssemblies();
 			#if UNITY_2019_4_OR_NEWER
 			// This one, on the other hand, seems to actually occur sometimes - presumably because c# compiles at the same time as the ink.
-			if(InkLibrary.Instance.disallowedAutoRefresh)
-				AssetDatabase.AllowAutoRefresh();
+			if(InkLibrary.Instance.disallowedAutoRefresh) {
+				InkLibrary.Instance.disallowedAutoRefresh = false;
+				InkLibrary.SaveToFile();
+				try {
+					AssetDatabase.AllowAutoRefresh();
+				} catch (Exception e) {
+					Debug.LogWarning("Failed AllowAutoRefresh "+e);
+				}
+			}
 			#endif
 		}
 
@@ -149,6 +156,7 @@ namespace Ink.UnityIntegration {
 
 		#if UNITY_2017_1_OR_NEWER
 		static void OnPlayModeChange (PlayModeStateChange mode) {
+			Debug.Log(InkLibrary.Instance.pendingCompilationStack.Count);
 			if(mode == PlayModeStateChange.EnteredEditMode && InkLibrary.Instance.pendingCompilationStack.Count > 0)
 				CompilePendingFiles();
 			if(mode == PlayModeStateChange.ExitingEditMode && compiling)
@@ -193,7 +201,12 @@ namespace Ink.UnityIntegration {
 			#if UNITY_2019_4_OR_NEWER
 			if(!InkLibrary.Instance.disallowedAutoRefresh) {
 				InkLibrary.Instance.disallowedAutoRefresh = true;
-				AssetDatabase.DisallowAutoRefresh();
+				InkLibrary.SaveToFile();
+				try {
+					AssetDatabase.DisallowAutoRefresh();
+				} catch (Exception e) {
+					Debug.LogWarning("Failed DisallowAutoRefresh "+e);
+				}
 			}
 			#endif
             
@@ -222,7 +235,7 @@ namespace Ink.UnityIntegration {
 				Debug.LogError("Tried to compile ink file but input was null.");
 				return;
 			}
-			if(!inkFile.metaInfo.isMaster)
+			if(!inkFile.isMaster)
 				Debug.LogWarning("Compiling InkFile which is an include. Any file created is likely to be invalid. Did you mean to call CompileInk on inkFile.master?");
 
 			// If we've not yet locked C# compilation do so now
@@ -232,7 +245,7 @@ namespace Ink.UnityIntegration {
 				EditorApplication.LockReloadAssemblies();
 			}
 			
-            RemoveFromPendingCompilationStack(inkFile);
+            InkLibrary.RemoveFromPendingCompilationStack(inkFile);
 			if(InkLibrary.GetCompilationStackItem(inkFile) != null) {
 				UnityEngine.Debug.LogWarning("Tried compiling ink file, but file is already compiling. "+inkFile.filePath);
 				return;
@@ -370,17 +383,17 @@ namespace Ink.UnityIntegration {
 					foreach (var error in compilingFile.unhandledErrorOutput)
 						errorLog.AppendLine (error);
 					Debug.LogError(errorLog);
-					compilingFile.inkFile.metaInfo.unhandledCompileErrors = compilingFile.unhandledErrorOutput;
+					compilingFile.inkFile.unhandledCompileErrors = compilingFile.unhandledErrorOutput;
 					errorsFound = true;
 				} else {
 					SetOutputLog(compilingFile);
 					bool errorsInEntireStory = false;
 					bool warningsInEntireStory = false;
-					foreach(var inkFile in compilingFile.inkFile.metaInfo.inkFilesInIncludeHierarchy) {
-						if(inkFile.metaInfo.hasErrors) {
+					foreach(var inkFile in compilingFile.inkFile.inkFilesInIncludeHierarchy) {
+						if(inkFile.hasErrors) {
 							errorsInEntireStory = true;
 						}
-						if(inkFile.metaInfo.hasWarnings) {
+						if(inkFile.hasWarnings) {
 							warningsInEntireStory = true;
 						}
 					}
@@ -416,16 +429,20 @@ namespace Ink.UnityIntegration {
 
 			InkLibrary.Instance.compilationStack.Clear();
 			InkLibrary.SaveToFile();
-			InkMetaLibrary.Save();
-
+			
 			#if !UNITY_EDITOR_LINUX
 			EditorUtility.ClearProgressBar();
 			#endif
 			
 			#if UNITY_2019_4_OR_NEWER
 			if(InkLibrary.Instance.disallowedAutoRefresh) {
-				AssetDatabase.AllowAutoRefresh();
 				InkLibrary.Instance.disallowedAutoRefresh = false;
+				InkLibrary.SaveToFile();
+				try {
+					AssetDatabase.AllowAutoRefresh();
+				} catch (Exception e) {
+					Debug.LogWarning("Failed AllowAutoRefresh "+e);
+				}
 			}
 			#endif
 
@@ -457,38 +474,30 @@ namespace Ink.UnityIntegration {
 		
 		
 		private static void SetOutputLog (CompilationStackItem pendingFile) {
-			pendingFile.inkFile.metaInfo.errors.Clear();
-			pendingFile.inkFile.metaInfo.warnings.Clear();
-			pendingFile.inkFile.metaInfo.todos.Clear();
+			pendingFile.inkFile.errors.Clear();
+			pendingFile.inkFile.warnings.Clear();
+			pendingFile.inkFile.todos.Clear();
 
-			foreach(var childInkFile in pendingFile.inkFile.metaInfo.inkFilesInIncludeHierarchy) {
-				childInkFile.metaInfo.unhandledCompileErrors.Clear();
-				childInkFile.metaInfo.errors.Clear();
-				childInkFile.metaInfo.warnings.Clear();
-				childInkFile.metaInfo.todos.Clear();
+			foreach(var childInkFile in pendingFile.inkFile.inkFilesInIncludeHierarchy) {
+				childInkFile.unhandledCompileErrors.Clear();
+				childInkFile.errors.Clear();
+				childInkFile.warnings.Clear();
+				childInkFile.todos.Clear();
 			}
 
 			foreach(var output in pendingFile.logOutput) {
 				if(output.type == ErrorType.Error) {
-					pendingFile.inkFile.metaInfo.errors.Add(output);
+					pendingFile.inkFile.errors.Add(output);
 					Debug.LogError("Ink "+output.type+": "+output.content + " (at "+output.fileName+":"+output.lineNumber+")", pendingFile.inkFile.inkAsset);
 				} else if (output.type == ErrorType.Warning) {
-					pendingFile.inkFile.metaInfo.warnings.Add(output);
+					pendingFile.inkFile.warnings.Add(output);
 					Debug.LogWarning("Ink "+output.type+": "+output.content + " (at "+output.fileName+" "+output.lineNumber+")", pendingFile.inkFile.inkAsset);
 				} else if (output.type == ErrorType.Author) {
-					pendingFile.inkFile.metaInfo.todos.Add(output);
+					pendingFile.inkFile.todos.Add(output);
 					Debug.Log("Ink Log: "+output.content + " (at "+output.fileName+" "+output.lineNumber+")", pendingFile.inkFile.inkAsset);
 				}
 			}
 		}
-
-
-        static void RemoveFromPendingCompilationStack (InkFile inkFile) {
-            InkLibrary.Instance.pendingCompilationStack.Remove(inkFile.filePath);
-            foreach(var includeFile in inkFile.metaInfo.inkFilesInIncludeHierarchy) {
-                InkLibrary.Instance.pendingCompilationStack.Remove(includeFile.filePath);
-            }
-        }
 
 
 
@@ -512,8 +521,8 @@ namespace Ink.UnityIntegration {
             Debug.Assert(InkSettings.Instance != null, "No ink settings file. This is a bug. For now you should be able to fix this via Assets > Rebuild Ink Library");
             // I've caught it here before
             Debug.Assert(inkFile != null, "No internal InkFile reference at path "+importedAssetPath+". This is a bug. For now you can fix this via Assets > Rebuild Ink Library");
-            Debug.Assert(inkFile.metaInfo != null);
-            return inkFile.metaInfo.masterInkFilesIncludingSelf;
+            Debug.Assert(inkFile != null);
+            return inkFile.masterInkFilesIncludingSelf;
         }
 	}
 }
