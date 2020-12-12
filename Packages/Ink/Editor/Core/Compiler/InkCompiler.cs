@@ -162,7 +162,6 @@ namespace Ink.UnityIntegration {
 
 		#if UNITY_2017_1_OR_NEWER
 		static void OnPlayModeChange (PlayModeStateChange mode) {
-			Debug.Log(InkLibrary.Instance.pendingCompilationStack.Count);
 			if(mode == PlayModeStateChange.EnteredEditMode && InkLibrary.Instance.pendingCompilationStack.Count > 0)
 				CompilePendingFiles();
 			if(mode == PlayModeStateChange.ExitingEditMode && compiling)
