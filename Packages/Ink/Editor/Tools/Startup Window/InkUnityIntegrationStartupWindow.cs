@@ -61,7 +61,7 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.Space();
 			
 			{
-				EditorGUILayout.BeginScrollView(scrollPosition);
+				scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 				{
 					EditorGUILayout.BeginVertical(GUI.skin.box);
 					EditorGUILayout.LabelField("Version 0.9.60:", EditorStyles.boldLabel);
