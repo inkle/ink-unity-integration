@@ -210,7 +210,7 @@ namespace Ink.UnityIntegration {
 				List<InkFile> _includesInkFiles = new List<InkFile>();
 				foreach(var child in includes) {
 					if(child == null) {
-						Debug.LogError("Error compiling ink: Ink file include in "+filePath+" is null.");
+						Debug.LogError("Error compiling ink: Ink file include in "+filePath+" is null.", inkAsset);
 						continue;
 					}
 					_includesInkFiles.Add(InkLibrary.GetInkFileWithFile(child));
@@ -280,13 +280,13 @@ namespace Ink.UnityIntegration {
 				localIncludePath = InkEditorUtils.AbsoluteToUnityRelativePath(fullIncludePath);
 				DefaultAsset includedInkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
 				if(includedInkFileAsset == null) {
-					Debug.LogError(filePath+ " expected child .ink asset at '"+localIncludePath+"' but file was not found.");
+					Debug.LogError(filePath+ " expected child .ink asset at '"+localIncludePath+"' but file was not found.", inkAsset);
 				} else {
 					InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileAsset);
 					if(includedInkFile == null) {
-						Debug.LogError(filePath+ " expected child InkFile from .ink asset at '"+localIncludePath+"' but file was not found.");
+						Debug.LogError(filePath+ " expected child InkFile from .ink asset at '"+localIncludePath+"' but file was not found.", inkAsset);
 					} else if (includedInkFile.includes.Contains(inkAsset)) {
-						Debug.LogError("Circular INCLUDE reference between '"+filePath+"' and '"+includedInkFile.filePath+"'.");
+						Debug.LogError("Circular INCLUDE reference between '"+filePath+"' and '"+includedInkFile.filePath+"'.", inkAsset);
 					} else
 						includes.Add(includedInkFileAsset);
 				}
