@@ -496,7 +496,8 @@ namespace Ink.UnityIntegration {
 					Debug.LogWarning("Ink "+output.type+": "+output.content + " (at "+output.fileName+" "+output.lineNumber+")", pendingFile.inkFile.inkAsset);
 				} else if (output.type == ErrorType.Author) {
 					pendingFile.inkFile.todos.Add(output);
-					Debug.Log("Ink Log: "+output.content + " (at "+output.fileName+" "+output.lineNumber+")", pendingFile.inkFile.inkAsset);
+					if(InkSettings.Instance.printInkLogsInConsoleOnCompile)
+						Debug.Log("Ink Log: "+output.content + " (at "+output.fileName+" "+output.lineNumber+")", pendingFile.inkFile.inkAsset);
 				}
 			}
 		}
