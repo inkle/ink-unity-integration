@@ -60,12 +60,12 @@ namespace Ink.UnityIntegration {
 			else InkLibrary.LoadOrCreateInstance();
 		}
 
-		[MenuItem("Assets/Rebuild Ink Library", false, 60)]
+		[MenuItem("Assets/Rebuild Ink Library", false, 200)]
 		public static void RebuildLibrary() {
 			InkLibrary.Rebuild();
 		}
 
-		[MenuItem("Assets/Recompile Ink", false, 61)]
+		[MenuItem("Assets/Recompile Ink", false, 201)]
 		public static void RecompileAll() {
 			var filesToRecompile = InkLibrary.FilesCompiledByRecompileAll().ToArray();
 			string logString = filesToRecompile.Any() ? 
