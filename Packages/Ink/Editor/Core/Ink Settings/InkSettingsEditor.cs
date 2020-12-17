@@ -64,6 +64,8 @@ namespace Ink.UnityIntegration {
 			
 			EditorGUILayout.PropertyField(settings.FindProperty("delayInPlayMode"), new GUIContent("Delay compilation if in Play Mode", "When enabled, ink compilation is delayed if in play mode. Files will be compiled on re-entering edit mode."));
 			
+			EditorGUILayout.PropertyField(settings.FindProperty("printInkLogsInConsoleOnCompile"), new GUIContent("Print ink TODOs in console on compile", "When enabled, ink lines starting with TODO are printed in the console."));
+			
 			EditorGUILayout.PropertyField(settings.FindProperty("handleJSONFilesAutomatically"), new GUIContent("Handle JSON Automatically", "Whether JSON files are moved, renamed and deleted along with their ink files."));
 
 			EditorGUILayout.PropertyField(settings.FindProperty("customInklecateOptions"), new GUIContent("Custom Inklecate (Advanced)", "For games using a custom version of ink"), true);
