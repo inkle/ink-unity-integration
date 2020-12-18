@@ -108,9 +108,7 @@ namespace Ink.UnityIntegration {
 		}
 		
 		public static void SaveToFile () {
-			if(!created) return;
-			Debug.Log("SaveToFile");
-			
+			if(!created) return;			
 			InternalEditorUtility.SaveToSerializedFileAndForget((Object[]) new InkLibrary[1] {_Instance}, absoluteSavePath, true);
 		}
 

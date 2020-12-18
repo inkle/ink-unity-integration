@@ -294,7 +294,7 @@ namespace Ink.UnityIntegration {
 					ThreadPool.QueueUserWorkItem(CompileInkThreaded, fileToCompile);
 				}
 			} else {
-				Debug.Log("TryCompileNextFileInStack COMPILING ALREADY "+fileToCompile);
+				// Debug.Log("TryCompileNextFileInStack COMPILING ALREADY "+fileToCompile);
 			}
 		}
 
