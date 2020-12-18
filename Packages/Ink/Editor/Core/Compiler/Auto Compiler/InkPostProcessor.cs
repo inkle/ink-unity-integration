@@ -148,14 +148,6 @@ namespace Ink.UnityIntegration {
 					importedInkAssets.Add(importedAssetPath);
 				else if (Path.GetFileName(importedAssetPath) == "inklecate" && Path.GetExtension(importedAssetPath) == "")
 					inklecateFileLocation = importedAssetPath;
-				else if (Path.GetExtension(importedAssetPath) == ".asset") {
-					var obj = AssetDatabase.LoadAssetAtPath<ScriptableObject>(importedAssetPath);
-					if(obj is InkSettings) {
-						InkEditorUtils.DeleteAllButOldestScriptableObjects(AssetDatabase.FindAssets("t:"+typeof(InkSettings).Name), typeof(InkSettings).Name);
-					} else if(obj is InkLibrary) {
-						InkEditorUtils.DeleteAllButOldestScriptableObjects(AssetDatabase.FindAssets("t:"+typeof(InkLibrary).Name), typeof(InkLibrary).Name);
-					}
-				}
 			}
 			if(importedInkAssets.Count > 0)
 				PostprocessInkFiles(importedInkAssets);
