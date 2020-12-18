@@ -110,7 +110,7 @@ namespace Ink.UnityIntegration {
 
 	    static void OnDrawProjectWindowItem(string guid, Rect rect) {
 	        string path = AssetDatabase.GUIDToAssetPath(guid);
-			if (Path.GetExtension(path) == InkEditorUtils.inkFileExtension && InkLibrary.created) {
+			if (Path.GetExtension(path) == InkEditorUtils.inkFileExtension) {
 				DefaultAsset asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(path);
 				DrawInkFile(InkLibrary.GetInkFileWithFile(asset), rect);
 			}
