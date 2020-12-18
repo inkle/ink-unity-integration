@@ -24,7 +24,7 @@ using Debug = UnityEngine.Debug;
 /// </summary>
 namespace Ink.UnityIntegration {
 	public class InkLibrary : ScriptableObject, IEnumerable<InkFile> {
-		public static System.Version versionCurrent = new System.Version(0,9,70);
+		public static System.Version versionCurrent = new System.Version(0,9,71);
 		public static bool created {
 			get {
 				// If it's null, there's no InkLibrary asset in the project
