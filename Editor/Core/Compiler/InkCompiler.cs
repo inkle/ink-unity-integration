@@ -115,8 +115,8 @@ namespace Ink.UnityIntegration {
 					if(InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Queued) == 0) {
 						DelayedComplete();
 					} else {
-						Debug.LogWarning("Ignorable InkCompiler warning!\nThe ink compiler has hit a fallback state where TryCompileNextFileInStack had to be called in Update. We'd like to fix this properly but don't have enough information on the bug.");
-						TryCompileNextFileInStack();
+						// Debug.LogWarning("Ignorable InkCompiler warning!\nThe ink compiler has hit a fallback state where TryCompileNextFileInStack had to be called in Update. We'd like to fix this properly but don't have enough information on the bug.");
+						// TryCompileNextFileInStack();
 					}
 				}
 			}
@@ -287,13 +287,14 @@ namespace Ink.UnityIntegration {
 				}
 			}
 			if(fileToCompile != null) {
-				BeginCompilingFile(fileToCompile);
 				if(fileToCompile.immediate) {
 					CompileInkThreaded(fileToCompile);
 				} else {
 					if(EditorApplication.isCompiling) Debug.LogWarning("Was compiling scripts when ink compilation started! This seems to cause the thread to cancel and complete, but the work isn't done. It may cause a timeout.");
 					ThreadPool.QueueUserWorkItem(CompileInkThreaded, fileToCompile);
 				}
+			} else {
+				Debug.Log("TryCompileNextFileInStack COMPILING ALREADY "+fileToCompile);
 			}
 		}
 
@@ -312,7 +313,10 @@ namespace Ink.UnityIntegration {
 
 		private static void CompileInkThreaded(object itemObj) {
 			CompilationStackItem item = (CompilationStackItem) itemObj;
-			// This should be called before this point, but just in case.
+			if(item.state == CompilationStackItem.State.Compiling) {
+				Debug.LogWarning("CompileInkThreaded was called on a file that is already compiling! This is most likely a threading bug. Please report this!");
+				return;
+			}
 			BeginCompilingFile(item);
 
 			var inputString = File.ReadAllText(item.inkAbsoluteFilePath);
@@ -344,7 +348,6 @@ namespace Ink.UnityIntegration {
 					e.StackTrace));
 			}
 
-			
 			CompleteCompilingFile(item);
 			TryCompileNextFileInStack();
 		}
