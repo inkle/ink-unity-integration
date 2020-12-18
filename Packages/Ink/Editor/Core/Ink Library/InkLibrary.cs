@@ -55,7 +55,7 @@ namespace Ink.UnityIntegration {
 		// If InkSettings' delayInPlayMode option is true, dirty files are added here when they're changed in play mode
 		// This ensures they're remembered when you exit play mode and can be compiled
 		public List<string> pendingCompilationStack = new List<string>();
-		// The state of files currently being compiled. You can ignore this!
+		// The state of files currently being compiled.
 		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
 		
         public int Count {
@@ -121,7 +121,6 @@ namespace Ink.UnityIntegration {
 			foreach(var inkFile in Instance.inkLibrary) {
                 Instance.inkLibraryDictionary.Add(inkFile.inkAsset, inkFile);
             }
-			Debug.Log("Dictionary Created with "+Instance.inkLibrary.Count+" values");
         }
         
 		/// <summary>
@@ -434,12 +433,28 @@ namespace Ink.UnityIntegration {
 		
 
 
+        public static void AddToCompilationStack (InkCompiler.CompilationStackItem compilationStackItem) {
+			if(!InkLibrary.Instance.compilationStack.Contains(compilationStackItem)) {
+				InkLibrary.Instance.compilationStack.Add(compilationStackItem);
+				SaveToFile();
+			}
+		}
+
+        public static void ClearCompilationStack () {
+			if(InkLibrary.Instance.compilationStack.Count != 0) {
+				InkLibrary.Instance.compilationStack.Clear();
+				SaveToFile();
+			}
+        }
+
+
         public static void AddToPendingCompilationStack (string filePath) {
 			if(!InkLibrary.Instance.pendingCompilationStack.Contains(filePath)) {
 				InkLibrary.Instance.pendingCompilationStack.Add(filePath);
 				SaveToFile();
 			}
 		}
+
         public static void RemoveFromPendingCompilationStack (InkFile inkFile) {
             bool anyChange = false;
 			anyChange = InkLibrary.Instance.pendingCompilationStack.Remove(inkFile.filePath) || anyChange;

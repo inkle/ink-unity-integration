@@ -115,8 +115,9 @@ namespace Ink.UnityIntegration {
 					if(InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Queued) == 0) {
 						DelayedComplete();
 					} else {
-						// Debug.LogWarning("Ignorable InkCompiler warning!\nThe ink compiler has hit a fallback state where TryCompileNextFileInStack had to be called in Update. We'd like to fix this properly but don't have enough information on the bug.");
-						// TryCompileNextFileInStack();
+						// We used to avoid calling this here in favour of calling it CompileInkThreaded but it seems that it doesn't run when called there, for some reason.
+						// If someone can make this work please let me know!
+						TryCompileNextFileInStack();
 					}
 				}
 			}
@@ -267,8 +268,7 @@ namespace Ink.UnityIntegration {
 				immediate = immediate
 			};
 
-			InkLibrary.Instance.compilationStack.Add(pendingFile);
-			InkLibrary.SaveToFile();
+			InkLibrary.AddToCompilationStack(pendingFile);
 
 			TryCompileNextFileInStack();
 		}
@@ -294,7 +294,6 @@ namespace Ink.UnityIntegration {
 					ThreadPool.QueueUserWorkItem(CompileInkThreaded, fileToCompile);
 				}
 			} else {
-				// Debug.Log("TryCompileNextFileInStack COMPILING ALREADY "+fileToCompile);
 			}
 		}
 
@@ -349,7 +348,11 @@ namespace Ink.UnityIntegration {
 			}
 
 			CompleteCompilingFile(item);
-			TryCompileNextFileInStack();
+
+			// This doesn't seem to execute when called in a thread, and I apparently don't have a bloody clue how threads work.
+			// If someone can make this work, I'd rather that TryCompileNextFileInStack ran directly after CompileInkThreaded finishes.
+			// I couldn't make it work, so I've put TryCompileNextFileInStack in Update instead. Bleh!
+			// TryCompileNextFileInStack();
 		}
 
 		// When all files in stack have been compiled. This is called via update because Process events run in another thread.
@@ -434,8 +437,7 @@ namespace Ink.UnityIntegration {
 				Debug.Log(outputLog);
 			}
 
-			InkLibrary.Instance.compilationStack.Clear();
-			InkLibrary.SaveToFile();
+			InkLibrary.ClearCompilationStack();
 			
 			#if !UNITY_EDITOR_LINUX
 			EditorUtility.ClearProgressBar();
