@@ -80,19 +80,19 @@ namespace Ink.UnityIntegration {
 		
 		// This occurs on recompile, creation and load (note that data has not been loaded at this point!)
 		protected InkLibrary () {
-			Debug.Log("CONSTRUCT "+GetInstanceID());
 			if (created)
 				Debug.LogError((object) "ScriptableSingleton already exists. Did you query the singleton in a constructor?");
 			else {
 				Instance = this;
-				// Note that if this constructor is called as load occurs this will not be able to populate the dictionary.
-				BuildLookupDictionary();
 			}
 		}
 
-		public static void LoadOrCreateInstance () {
-			var inkLibraryJSON = EditorPrefs.GetString("InkLibrary");
+		// After recompile, the data associated with the object is fetched (or whatever happens to it) by this point. 
+		void OnEnable () {
+			BuildLookupDictionary();
+		}
 
+		public static void LoadOrCreateInstance () {
 			InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
 			if(created) {
 				BuildLookupDictionary();
@@ -103,7 +103,6 @@ namespace Ink.UnityIntegration {
 				Instance.hideFlags = HideFlags.HideAndDontSave;
 				Rebuild();
 				SaveToFile();
-
 			}
 		}
 		
