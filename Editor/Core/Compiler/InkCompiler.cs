@@ -10,7 +10,6 @@ using System.Threading;
 using Debug = UnityEngine.Debug;
 
 namespace Ink.UnityIntegration {
-	[InitializeOnLoad]
 	public static class InkCompiler {
 		
 		public static bool compiling {
@@ -63,7 +62,9 @@ namespace Ink.UnityIntegration {
 			public CompilationStackItem () {}
 		}
 
-		static InkCompiler () {
+		// This always runs after the InkEditorUtils constructor
+		[InitializeOnLoadMethod]
+		static void OnProjectLoadedInEditor() {
 			#if UNITY_2017_1_OR_NEWER
 			EditorApplication.playModeStateChanged += OnPlayModeChange;
 			#else
@@ -84,7 +85,7 @@ namespace Ink.UnityIntegration {
 			}
 			#endif
 		}
-
+		
 		private static void Update () {
 			// If we're not compiling but have locked C# compilation then now is the time to reset
 			if ((!InkLibrary.created || !compiling) && hasLockedUnityCompilation) {
