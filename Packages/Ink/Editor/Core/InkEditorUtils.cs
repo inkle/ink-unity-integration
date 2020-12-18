@@ -60,9 +60,22 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
+		// This should run before any of the other ink integration scripts.
 		static InkEditorUtils () {
+			EnsureFirstLaunchHandled();
+			EditorApplication.wantsToQuit += WantsToQuit;
+		}
+
+		// Save the current EditorApplication.timeSinceStartup so OnOpenUnityEditor is sure to run next time the editor opens. 
+		static bool WantsToQuit () {
+			LoadAndSaveLastCompileTime();
+			return true;
+		}
+
+		static void EnsureFirstLaunchHandled () {
 			float lastCompileTime = LoadAndSaveLastCompileTime();
-			if(EditorApplication.timeSinceStartup < lastCompileTime)
+			var isFirstCompile = EditorApplication.timeSinceStartup < lastCompileTime;
+			if(isFirstCompile)
 				OnOpenUnityEditor();
 		}
 
@@ -76,8 +89,6 @@ namespace Ink.UnityIntegration {
 
 		static void OnOpenUnityEditor () {
 			disallowedAutoRefresh = false;
-			if(InkLibrary.created) InkLibrary.Rebuild();
-			else InkLibrary.LoadOrCreateInstance();
 		}
 
 		[MenuItem("Assets/Rebuild Ink Library", false, 200)]
