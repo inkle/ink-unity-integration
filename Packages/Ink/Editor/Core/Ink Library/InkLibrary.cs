@@ -91,10 +91,13 @@ namespace Ink.UnityIntegration {
 		void OnEnable () {
 			// Deletes the persistent version of this asset that we used to use prior to 0.9.71
 			if(!Application.isPlaying && EditorUtility.IsPersistent(this)) {
-				if(_Instance == this) _Instance = null;
-				AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(this));
-				AssetDatabase.Refresh();
-				return;
+				var path = AssetDatabase.GetAssetPath(this);
+				if(path != null) {
+					if(_Instance == this) _Instance = null;
+					AssetDatabase.DeleteAsset(path);
+					AssetDatabase.Refresh();
+					return;
+				}
 			}
 			
 			BuildLookupDictionary();
