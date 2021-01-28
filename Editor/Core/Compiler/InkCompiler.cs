@@ -4,17 +4,33 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using UnityEditorInternal;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Debug = UnityEngine.Debug;
 
 namespace Ink.UnityIntegration {
-	public static class InkCompiler {
-		
+	public class InkCompiler : ScriptableObject {
+		public static bool created {
+			get {
+				return (_Instance != (UnityEngine.Object) null);
+			}
+		}
+		private static InkCompiler _Instance;
+		public static InkCompiler Instance {
+			get {
+				if(!created)
+                	LoadOrCreateInstance();
+				return _Instance;
+			} private set {
+				if(_Instance == value) return;
+				_Instance = value;
+            }
+		}
 		public static bool compiling {
 			get {
-				return InkLibrary.Instance.compilationStack.Count > 0;
+				return Instance.compilationStack.Count > 0;
 			}
 		}
 		public static bool buildBlocked = false;
@@ -27,6 +43,14 @@ namespace Ink.UnityIntegration {
 		public static bool hasLockedUnityCompilation = false;
         
         private static List<Action> onCompleteActions = new List<Action>();
+
+		
+		// If InkSettings' delayInPlayMode option is true, dirty files are added here when they're changed in play mode
+		// This ensures they're remembered when you exit play mode and can be compiled
+		public List<string> pendingCompilationStack = new List<string>();
+		// The state of files currently being compiled.
+		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
+
 
 		[Serializable]
 		public class CompilationStackItem {
@@ -62,9 +86,44 @@ namespace Ink.UnityIntegration {
 			public CompilationStackItem () {}
 		}
 
+
+		protected InkCompiler () {
+			Debug.Log("InkCompiler constructor "+created);
+			if (created)
+				Debug.LogError((object) "ScriptableSingleton already exists. Did you query the singleton in a constructor?");
+			else {
+				Instance = this;
+			}
+		}
+
+		static string absoluteSavePath {
+			get {
+				return System.IO.Path.GetFullPath(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(),"Library","InkCompiler.asset"));
+			}
+		}
+		public static void LoadOrCreateInstance () {
+			InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
+			Debug.Log("LoadOrCreateInstance "+created+" "+InkEditorUtils.isFirstCompile);
+			if(created) {
+				if(InkEditorUtils.isFirstCompile) {
+					ClearCompilationStacks();
+				}
+			} else {
+				Instance = ScriptableObject.CreateInstance<InkCompiler>();
+				Instance.hideFlags = HideFlags.HideAndDontSave;
+			}
+		}
+		
+		public static void SaveToFile () {
+			if(!created) return;			
+			InternalEditorUtility.SaveToSerializedFileAndForget((UnityEngine.Object[]) new InkCompiler[1] {_Instance}, absoluteSavePath, true);
+			Debug.Log("InkCompiler.SaveToFile");
+		}
+
 		// This always runs after the InkEditorUtils constructor
 		[InitializeOnLoadMethod]
 		static void OnProjectLoadedInEditor() {
+			Debug.Log("OnProjectLoadedInEditor");
 			#if UNITY_2017_1_OR_NEWER
 			EditorApplication.playModeStateChanged += OnPlayModeChange;
 			#else
@@ -98,8 +157,8 @@ namespace Ink.UnityIntegration {
 
 			if(compiling) {
 				// Check for timeouts, in case of an unhandled bug with this system/the ink compiler!
-				for (int i = InkLibrary.Instance.compilationStack.Count - 1; i >= 0; i--) {
-					var compilingFile = InkLibrary.Instance.compilationStack [i];
+				for (int i = Instance.compilationStack.Count - 1; i >= 0; i--) {
+					var compilingFile = Instance.compilationStack [i];
 					if (compilingFile.state == CompilationStackItem.State.Compiling) {
 						if (compilingFile.timeTaken > InkSettings.Instance.compileTimeout) {
 							// TODO - Cancel the thread if it's still going. Not critical, since its kinda fine if it compiles a bit later, but it's not clear.
@@ -111,8 +170,8 @@ namespace Ink.UnityIntegration {
 				}
 
 				// When all files have compiled, run the complete function.
-				if(InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Compiling) == 0) {
-					if(InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Queued) == 0) {
+				if(NumFilesInCompilingStackInState(CompilationStackItem.State.Compiling) == 0) {
+					if(NumFilesInCompilingStackInState(CompilationStackItem.State.Queued) == 0) {
 						DelayedComplete();
 					} else {
 						// We used to avoid calling this here in favour of calling it CompileInkThreaded but it seems that it doesn't run when called there, for some reason.
@@ -130,19 +189,19 @@ namespace Ink.UnityIntegration {
 		}
 
         static void RemoveCompilingFile (int index) {
-            InkLibrary.Instance.compilationStack.RemoveAt(index);
-            InkLibrary.SaveToFile();
+            Instance.compilationStack.RemoveAt(index);
+            SaveToFile();
             // Progress bar prevents delayCall callback from firing in Linux Editor, locking the
             // compilation until it times out. Let's just not show progress bars in Linux Editor    
             #if !UNITY_EDITOR_LINUX
-            if (InkLibrary.Instance.compilationStack.Count == 0) EditorUtility.ClearProgressBar();
+            if (Instance.compilationStack.Count == 0) EditorUtility.ClearProgressBar();
             #endif
         }
 
 		static void UpdateProgressBar () {
-			if(InkLibrary.Instance.compilationStack.Count == 0) return;
-			int numCompiling = InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Compiling);
-			string message = "Compiling .Ink File "+(InkLibrary.Instance.compilationStack.Count-numCompiling)+" of "+InkLibrary.Instance.compilationStack.Count+".";
+			if(Instance.compilationStack.Count == 0) return;
+			int numCompiling = NumFilesInCompilingStackInState(CompilationStackItem.State.Compiling);
+			string message = "Compiling .Ink File "+(Instance.compilationStack.Count-numCompiling)+" of "+Instance.compilationStack.Count+".";
 			if(playModeBlocked) message += " Will enter play mode when complete.";
 			if(buildBlocked || playModeBlocked || EditorApplication.isPlaying) EditorUtility.DisplayProgressBar("Compiling Ink...", message, GetEstimatedCompilationProgress());
 			else EditorUtility.ClearProgressBar();
@@ -151,19 +210,22 @@ namespace Ink.UnityIntegration {
 		public static float GetEstimatedCompilationProgress () {
 			if(!compiling) return 1;
 			float progress = 0;
-			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
+			foreach (var compilingFile in Instance.compilationStack) {
 				if (compilingFile.state == CompilationStackItem.State.Compiling)
 					progress += compilingFile.timeTaken / InkSettings.Instance.compileTimeout;
 				if (compilingFile.state == CompilationStackItem.State.Complete)
 					progress += 1;
 			}
-			progress /= InkLibrary.Instance.compilationStack.Count;
+			progress /= Instance.compilationStack.Count;
 			return progress;
 		}
 
 		#if UNITY_2017_1_OR_NEWER
 		static void OnPlayModeChange (PlayModeStateChange mode) {
-			if(mode == PlayModeStateChange.EnteredEditMode && InkLibrary.Instance.pendingCompilationStack.Count > 0)
+			if(mode == PlayModeStateChange.EnteredEditMode) {
+				Debug.Log(mode +" "+Instance.pendingCompilationStack.Count);
+			}
+			if(mode == PlayModeStateChange.EnteredEditMode && Instance.pendingCompilationStack.Count > 0)
 				CompilePendingFiles();
 			if(mode == PlayModeStateChange.ExitingEditMode && compiling)
 				BlockPlayMode();
@@ -174,7 +236,7 @@ namespace Ink.UnityIntegration {
 		#else
 		
 		static void LegacyOnPlayModeChange () {
-			if(!EditorApplication.isPlayingOrWillChangePlaymode && EditorApplication.isPlaying && InkLibrary.Instance.pendingCompilationStack.Count > 0) 
+			if(!EditorApplication.isPlayingOrWillChangePlaymode && EditorApplication.isPlaying && Instance.pendingCompilationStack.Count > 0) 
 				CompilePendingFiles();
 			if(EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying && compiling)
 				BlockPlayMode();
@@ -184,8 +246,9 @@ namespace Ink.UnityIntegration {
 		#endif
 
 		static void CompilePendingFiles () {
-			InkLibrary.CreateOrReadUpdatedInkFiles (InkLibrary.Instance.pendingCompilationStack);
-			foreach (var pendingMasterFile in GetUniqueMasterInkFilesToCompile(InkLibrary.Instance.pendingCompilationStack))
+			Debug.Log("CompilePendingFiles");
+			InkLibrary.CreateOrReadUpdatedInkFiles (Instance.pendingCompilationStack);
+			foreach (var pendingMasterFile in GetUniqueMasterInkFilesToCompile(Instance.pendingCompilationStack))
 				InkCompiler.CompileInk(pendingMasterFile);
 		}
 
@@ -250,8 +313,8 @@ namespace Ink.UnityIntegration {
 				EditorApplication.LockReloadAssemblies();
 			}
 			
-            InkLibrary.RemoveFromPendingCompilationStack(inkFile);
-			if(InkLibrary.GetCompilationStackItem(inkFile) != null) {
+            RemoveFromPendingCompilationStack(inkFile);
+			if(GetCompilationStackItem(inkFile) != null) {
 				UnityEngine.Debug.LogWarning("Tried compiling ink file, but file is already compiling. "+inkFile.filePath);
 				return;
 			}
@@ -268,7 +331,7 @@ namespace Ink.UnityIntegration {
 				immediate = immediate
 			};
 
-			InkLibrary.AddToCompilationStack(pendingFile);
+			AddToCompilationStack(pendingFile);
 
 			TryCompileNextFileInStack();
 		}
@@ -279,7 +342,7 @@ namespace Ink.UnityIntegration {
 		private static void TryCompileNextFileInStack () {
 			if(!compiling) return;
 			InkCompiler.CompilationStackItem fileToCompile = null;
-			foreach(var x in InkLibrary.Instance.compilationStack) {
+			foreach(var x in Instance.compilationStack) {
 				if(x.state == CompilationStackItem.State.Compiling) return;
 				if(x.state == CompilationStackItem.State.Queued) {
 					fileToCompile = x;
@@ -357,7 +420,7 @@ namespace Ink.UnityIntegration {
 
 		// When all files in stack have been compiled. This is called via update because Process events run in another thread.
 		private static void DelayedComplete () {
-			if(InkLibrary.NumFilesInCompilingStackInState(CompilationStackItem.State.Compiling) > 0) {
+			if(NumFilesInCompilingStackInState(CompilationStackItem.State.Compiling) > 0) {
 				Debug.LogWarning("Delayed, but a file is now compiling! You can ignore this warning.");
 				return;
 			}
@@ -366,7 +429,7 @@ namespace Ink.UnityIntegration {
 
 			// Create and import compiled files
 			AssetDatabase.StartAssetEditing();
-			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
+			foreach (var compilingFile in Instance.compilationStack) {
 				// Complete status is also set when an error occured, in these cases 'compiledJson' will be null so there's no import to process
 				if (compilingFile.compiledJson == null) continue;
 				
@@ -376,7 +439,7 @@ namespace Ink.UnityIntegration {
 			}
 			AssetDatabase.StopAssetEditing();
 
-			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
+			foreach (var compilingFile in Instance.compilationStack) {
 				// Load and store a reference to the compiled file
 				compilingFile.inkFile.FindCompiledJSONAsset();
 				
@@ -418,7 +481,7 @@ namespace Ink.UnityIntegration {
 			}
 			
 
-			foreach (var compilingFile in InkLibrary.Instance.compilationStack) {
+			foreach (var compilingFile in Instance.compilationStack) {
 				if (OnCompileInk != null) {
 					OnCompileInk (compilingFile.inkFile);
 				}
@@ -437,7 +500,7 @@ namespace Ink.UnityIntegration {
 				Debug.Log(outputLog);
 			}
 
-			InkLibrary.ClearCompilationStack();
+			ClearCompilationStack();
 			
 			#if !UNITY_EDITOR_LINUX
 			EditorUtility.ClearProgressBar();
@@ -533,5 +596,75 @@ namespace Ink.UnityIntegration {
             Debug.Assert(inkFile != null);
             return inkFile.masterInkFilesIncludingSelf;
         }
+
+
+
+
+
+
+		public static void AddToCompilationStack (InkCompiler.CompilationStackItem compilationStackItem) {
+			if(!Instance.compilationStack.Contains(compilationStackItem)) {
+				Instance.compilationStack.Add(compilationStackItem);
+				SaveToFile();
+			}
+		}
+
+        public static void ClearCompilationStack () {
+			if(Instance.compilationStack.Count != 0) {
+				Instance.compilationStack.Clear();
+				SaveToFile();
+			}
+        }
+
+
+        public static void AddToPendingCompilationStack (string filePath) {
+			Debug.Log("AddToPendingCompilationStack "+filePath);
+			if(!Instance.pendingCompilationStack.Contains(filePath)) {
+				Instance.pendingCompilationStack.Add(filePath);
+				SaveToFile();
+			}
+		}
+
+        public static void RemoveFromPendingCompilationStack (InkFile inkFile) {
+			Debug.Log("RemoveFromPendingCompilationStack "+inkFile);
+            bool anyChange = false;
+			anyChange = Instance.pendingCompilationStack.Remove(inkFile.filePath) || anyChange;
+            foreach(var includeFile in inkFile.inkFilesInIncludeHierarchy) {
+                anyChange = Instance.pendingCompilationStack.Remove(includeFile.filePath) || anyChange;
+            }
+			if(anyChange)
+				SaveToFile();
+        }
+        public static void ClearCompilationStacks () {
+			Debug.Log("ClearCompilationStacks ");
+            Instance.compilationStack.Clear();
+            Instance.pendingCompilationStack.Clear();
+			SaveToFile();
+        }
+
+		public static int NumFilesInCompilingStackInState (InkCompiler.CompilationStackItem.State state) {
+			int count = 0;
+			foreach(var x in Instance.compilationStack) {
+				if(x.state == state) 
+					count++;
+			}
+			return count;
+		}
+		public static List<InkCompiler.CompilationStackItem> FilesInCompilingStackInState (InkCompiler.CompilationStackItem.State state) {
+			List<InkCompiler.CompilationStackItem> items = new List<InkCompiler.CompilationStackItem>();
+			foreach(var x in Instance.compilationStack) {
+				if(x.state == state) 
+					items.Add(x);
+			}
+			return items;
+		}
+
+		public static InkCompiler.CompilationStackItem GetCompilationStackItem (InkFile inkFile) {
+			foreach(var x in Instance.compilationStack) {
+				if(x.inkFile == inkFile) 
+					return x;
+			}
+			return null;
+		}
 	}
 }

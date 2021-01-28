@@ -25,12 +25,6 @@ using Debug = UnityEngine.Debug;
 namespace Ink.UnityIntegration {
 	public class InkLibrary : ScriptableObject, IEnumerable<InkFile> {
 		public static System.Version versionCurrent = new System.Version(0,9,71);
-		public static bool created {
-			get {
-				// If it's null, there's no InkLibrary asset in the project
-				return (_Instance != (Object) null);
-			}
-		}
 
 		static string absoluteSavePath {
 			get {
@@ -39,6 +33,13 @@ namespace Ink.UnityIntegration {
 			}
 		}
 		
+		
+		public static bool created {
+			get {
+				// If it's null, there's no InkLibrary loaded
+				return (_Instance != (Object) null);
+			}
+		}
 		private static InkLibrary _Instance;
 		public static InkLibrary Instance {
 			get {
@@ -52,11 +53,6 @@ namespace Ink.UnityIntegration {
 		}
 		public List<InkFile> inkLibrary = new List<InkFile>();
 		Dictionary<DefaultAsset, InkFile> inkLibraryDictionary;
-		// If InkSettings' delayInPlayMode option is true, dirty files are added here when they're changed in play mode
-		// This ensures they're remembered when you exit play mode and can be compiled
-		public List<string> pendingCompilationStack = new List<string>();
-		// The state of files currently being compiled.
-		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
 		
         public int Count {
             get {
@@ -78,8 +74,9 @@ namespace Ink.UnityIntegration {
             return inkLibrary.GetEnumerator();
         }
 		
-		// This occurs on recompile, creation and load (note that data has not been loaded at this point!)
+		// This occurs on recompile, creation and load (note that data has not necessarily been loaded at this point!)
 		protected InkLibrary () {
+			Debug.Log("InkLibrary constructor "+created);
 			if (created)
 				Debug.LogError((object) "ScriptableSingleton already exists. Did you query the singleton in a constructor?");
 			else {
@@ -100,16 +97,20 @@ namespace Ink.UnityIntegration {
 				}
 			}
 			
+			Debug.Log("OnEnable "+ created);
+			Debug.Log((Instance == this));
 			BuildLookupDictionary();
 		}
 
 		public static void LoadOrCreateInstance () {
 			InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
+			Debug.Log("LoadOrCreateInstance "+created+" "+InkEditorUtils.isFirstCompile);
 			if(created) {
-				BuildLookupDictionary();
-                Validate();
-				InkLibrary.ClearCompilationStacks();
+				if(InkEditorUtils.isFirstCompile) {
+					Validate();
+				}
 			} else {
+				Debug.Log("CREATE INSTANCE");
 				Instance = ScriptableObject.CreateInstance<InkLibrary>();
 				Instance.hideFlags = HideFlags.HideAndDontSave;
 				Rebuild();
@@ -117,9 +118,10 @@ namespace Ink.UnityIntegration {
 			}
 		}
 		
-		public static void SaveToFile () {
+		static void SaveToFile () {
 			if(!created) return;			
 			InternalEditorUtility.SaveToSerializedFileAndForget((Object[]) new InkLibrary[1] {_Instance}, absoluteSavePath, true);
+			Debug.Log("SaveToFile");
 		}
 
 		static void EnsureCreated () {
@@ -132,6 +134,7 @@ namespace Ink.UnityIntegration {
 			foreach(var inkFile in Instance.inkLibrary) {
                 Instance.inkLibraryDictionary.Add(inkFile.inkAsset, inkFile);
             }
+			Debug.Log("BuildLookupDictionary "+Instance.GetInstanceID()+ " "+Instance.inkLibraryDictionary.Count);
         }
         
 		/// <summary>
@@ -185,7 +188,7 @@ namespace Ink.UnityIntegration {
 		/// </summary>
 		public static bool Clean () {
             bool wasDirty = false;
-			for (int i = InkLibrary.Instance.Count - 1; i >= 0; i--) {
+			for (int i = Instance.Count - 1; i >= 0; i--) {
 				InkFile inkFile = InkLibrary.Instance[i];
 				if (inkFile.inkAsset == null) {
 					InkLibrary.RemoveAt(i);
@@ -318,7 +321,7 @@ namespace Ink.UnityIntegration {
 		/// <returns>The ink file with path.</returns>
 		/// <param name="path">Path.</param>
 		public static InkFile GetInkFileWithFile (DefaultAsset file) {
-			if(InkLibrary.Instance.inkLibrary == null) return null;
+			if(Instance.inkLibrary == null) return null;
             if(Instance.inkLibraryDictionary == null) {
 				Debug.LogWarning("GetInkFileWithFile: inkLibraryDictionary was null! This should never occur, but is handled following a user reported bug. If this has never been seen long after 12/08/2020, it can be safely removed");
 				BuildLookupDictionary();
@@ -357,7 +360,7 @@ namespace Ink.UnityIntegration {
 		/// <returns>The ink file with path.</returns>
 		/// <param name="path">Path.</param>
 		public static InkFile GetInkFileWithAbsolutePath (string absolutePath) {
-			if(InkLibrary.Instance.inkLibrary == null) return null;
+			if(Instance.inkLibrary == null) return null;
 			foreach(InkFile inkFile in Instance.inkLibrary) {
 				if(inkFile.absoluteFilePath == absolutePath) {
 					return inkFile;
@@ -371,7 +374,7 @@ namespace Ink.UnityIntegration {
 		/// Rebuilds which files are master files and the connections between the files.
 		/// </summary>
 		public static void RebuildInkFileConnections () {
-			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
+			foreach (InkFile inkFile in Instance.inkLibrary) {
 				inkFile.parents = new List<DefaultAsset>();
 				inkFile.masterInkAssets = new List<DefaultAsset>();
 				inkFile.ParseContent();
@@ -379,10 +382,10 @@ namespace Ink.UnityIntegration {
 			}
 			// We now set the master file for ink files. As a file can be in an include hierarchy, we need to do this in two passes.
 			// First, we set the master file to the file that includes an ink file.
-			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
+			foreach (InkFile inkFile in Instance.inkLibrary) {
 				if(inkFile.includes.Count == 0) 
 					continue;
-				foreach (InkFile otherInkFile in InkLibrary.Instance.inkLibrary) {
+				foreach (InkFile otherInkFile in Instance.inkLibrary) {
 					if(inkFile == otherInkFile) 
 						continue;
 					if(inkFile.includes.Contains(otherInkFile.inkAsset)) {
@@ -394,7 +397,7 @@ namespace Ink.UnityIntegration {
 			}
 			// Next, we create a list of all the files owned by the actual master file, which we obtain by travelling up the parent tree from each file.
 			Dictionary<InkFile, List<InkFile>> masterChildRelationships = new Dictionary<InkFile, List<InkFile>>();
-			foreach (InkFile inkFile in InkLibrary.Instance.inkLibrary) {
+			foreach (InkFile inkFile in Instance.inkLibrary) {
 				foreach(var parentInkFile in inkFile.parentInkFiles) {
 					InkFile lastMasterInkFile = parentInkFile;
 					InkFile masterInkFile = parentInkFile;
@@ -438,72 +441,6 @@ namespace Ink.UnityIntegration {
 					}
 				}
 			}
-		}
-
-
-		
-
-
-        public static void AddToCompilationStack (InkCompiler.CompilationStackItem compilationStackItem) {
-			if(!InkLibrary.Instance.compilationStack.Contains(compilationStackItem)) {
-				InkLibrary.Instance.compilationStack.Add(compilationStackItem);
-				SaveToFile();
-			}
-		}
-
-        public static void ClearCompilationStack () {
-			if(InkLibrary.Instance.compilationStack.Count != 0) {
-				InkLibrary.Instance.compilationStack.Clear();
-				SaveToFile();
-			}
-        }
-
-
-        public static void AddToPendingCompilationStack (string filePath) {
-			if(!InkLibrary.Instance.pendingCompilationStack.Contains(filePath)) {
-				InkLibrary.Instance.pendingCompilationStack.Add(filePath);
-				SaveToFile();
-			}
-		}
-
-        public static void RemoveFromPendingCompilationStack (InkFile inkFile) {
-            bool anyChange = false;
-			anyChange = InkLibrary.Instance.pendingCompilationStack.Remove(inkFile.filePath) || anyChange;
-            foreach(var includeFile in inkFile.inkFilesInIncludeHierarchy) {
-                anyChange = InkLibrary.Instance.pendingCompilationStack.Remove(includeFile.filePath) || anyChange;
-            }
-			if(anyChange)
-				InkLibrary.SaveToFile();
-        }
-        public static void ClearCompilationStacks () {
-            InkLibrary.Instance.compilationStack.Clear();
-            InkLibrary.Instance.pendingCompilationStack.Clear();
-			InkLibrary.SaveToFile();
-        }
-
-		public static int NumFilesInCompilingStackInState (InkCompiler.CompilationStackItem.State state) {
-			int count = 0;
-			foreach(var x in Instance.compilationStack) {
-				if(x.state == state) 
-					count++;
-			}
-			return count;
-		}
-		public static List<InkCompiler.CompilationStackItem> FilesInCompilingStackInState (InkCompiler.CompilationStackItem.State state) {
-			List<InkCompiler.CompilationStackItem> items = new List<InkCompiler.CompilationStackItem>();
-			foreach(var x in Instance.compilationStack) {
-				if(x.state == state) 
-					items.Add(x);
-			}
-			return items;
-		}
-
-		public static InkCompiler.CompilationStackItem GetCompilationStackItem (InkFile inkFile) {
-			foreach(var x in Instance.compilationStack) {
-				if(x.inkFile == inkFile) 
-					return x;
-			}
-			return null;
 		}
 	}
 }

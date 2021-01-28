@@ -272,7 +272,7 @@ namespace Ink.UnityIntegration {
 				return;
 			}
 
-			if(InkLibrary.GetCompilationStackItem(inkFile) != null) {
+			if(InkCompiler.GetCompilationStackItem(inkFile) != null) {
 				EditorGUILayout.HelpBox("File is compiling...", MessageType.Info);
 				return;
 			}
