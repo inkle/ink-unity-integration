@@ -105,5 +105,16 @@ namespace Ink.UnityIntegration {
 			AssetDatabase.SaveAssets();
 			EditorApplication.RepaintProjectWindow();
 		}
+
+		// Deletes the persistent version of this asset that we used to use prior to 0.9.71
+		void OnEnable () {
+			if(!Application.isPlaying && EditorUtility.IsPersistent(this)) {
+				if(_Instance == this) _Instance = null;
+				AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(this));
+				AssetDatabase.Refresh();
+				return;
+			}
+		}
+
 	}	
 }
