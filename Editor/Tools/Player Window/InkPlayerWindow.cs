@@ -319,12 +319,18 @@ namespace Ink.UnityIntegration {
 					// GUI.FocusControl(null);
 				}
 			}
+
 		}
 
 		[System.Serializable]
 		public class StoryPanelState : BaseStoryPanelState {
 			public DisplayOptions displayOptions = new DisplayOptions();
 			public string searchString = string.Empty;
+			
+			public float y;
+			public float height = 100;
+			public const float minScrollRectHeight = 30;
+			public const float maxScrollRectHeight = 480;
 		}
 
 
@@ -868,7 +874,8 @@ namespace Ink.UnityIntegration {
 			// }
 		}
 		
-		void OnGUI () {			            
+		void OnGUI () {
+			HandleDragAndDrop();
 			if(searchTextFieldStyle == null) searchTextFieldStyle = GUI.skin.FindStyle("ToolbarSeachTextField");
 			if(searchCancelButtonStyle == null) searchCancelButtonStyle = GUI.skin.FindStyle("ToolbarSeachCancelButton");
 
@@ -923,6 +930,7 @@ namespace Ink.UnityIntegration {
 
 			EditorGUILayout.EndScrollView();
 
+			
 		}
 		
 		void DisplayHeader () {
@@ -1056,6 +1064,7 @@ namespace Ink.UnityIntegration {
 
 		void DisplayStoryHeader () {
 			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+			
 			InkPlayerWindowState.Instance.storyPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.storyPanelState.showing, "Content", true);
 			
 			if(GUILayout.Button(new GUIContent("Clear", "Clears the output"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false))) {
@@ -1176,8 +1185,6 @@ namespace Ink.UnityIntegration {
 				contentWidth -= tagsWidth;
 				contentWidth -= contentSpacing;
 			}
-			float minScrollRectHeight = 30;
-			float maxScrollRectHeight = 480;
 			float totalHeight = 0;
 			float[] heights = new float[storyHistory.Count];
 			int selectedLineIndex = -1;
@@ -1197,9 +1204,10 @@ namespace Ink.UnityIntegration {
 				totalHeight += heights[i];
 			}
 
-			float scrollRectHeight = Mathf.Clamp(totalHeight, minScrollRectHeight, maxScrollRectHeight);
-			
-			var viewportRect = new Rect(0,lastRect.yMax,position.width, scrollRectHeight);
+			if(Event.current.type == EventType.Repaint) {
+				InkPlayerWindowState.Instance.storyPanelState.y = lastRect.yMax;
+			}
+			var viewportRect = new Rect(0,lastRect.yMax,position.width, InkPlayerWindowState.Instance.storyPanelState.height);
 			var containerRect = new Rect(0,0,containerWidth, totalHeight);
 			
 			var newScrollPos = GUI.BeginScrollView(viewportRect, InkPlayerWindowState.Instance.storyPanelState.scrollPosition, containerRect, false, true);
@@ -1210,7 +1218,7 @@ namespace Ink.UnityIntegration {
 
 			var y = 0f;
 			var panelTop = InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y;
-			var panelBottom = InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y + scrollRectHeight;
+			var panelBottom = InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y + viewportRect.height;
 			// int numShown = 0;
 			// var log = "";
 
@@ -2091,8 +2099,52 @@ namespace Ink.UnityIntegration {
 
 
 
-		
+		bool dragging;
+		float height = 50;
+		Rect GetResizeArea (float x, float width, float centerY) {
+			float height = 10;
+			return new Rect(x, centerY-Mathf.RoundToInt(height * 0.5f), width, height);
+		}
+		void HandleDragAndDrop () {
+			// Rect area1 = GUILayoutUtility.GetRect (0.0f, height, GUILayout.ExpandWidth (true));
+			// Rect area2 = GUILayoutUtility.GetRect (0.0f, 50.0f, GUILayout.ExpandWidth (true));
+        	// GUI.Box (area1, "Add Trigger");
+        	// GUI.Box (area2, "Add Trigger");
 
+			var resizeArea = GetResizeArea(0, position.width, InkPlayerWindowState.Instance.storyPanelState.y+InkPlayerWindowState.Instance.storyPanelState.height);
+			EditorGUIUtility.AddCursorRect(resizeArea, MouseCursor.ResizeVertical);
+			
+			if (Event.current.type == EventType.MouseDown) {
+				if(resizeArea.Contains(Event.current.mousePosition)) {
+					dragging = true;
+					Event.current.Use();
+				}
+			}
+			if (dragging) {
+				if (Event.current.type == EventType.MouseUp) {
+					dragging = false;
+					Event.current.Use();
+				}
+				if(Event.current.type == EventType.MouseDrag) {
+					var targetHeight = InkPlayerWindowState.Instance.storyPanelState.height + Event.current.delta.y;
+					InkPlayerWindowState.Instance.storyPanelState.height = Mathf.Clamp(targetHeight, StoryPanelState.minScrollRectHeight, StoryPanelState.maxScrollRectHeight);
+					Event.current.Use();
+				}
+			}
+			// if (Event.current.type == EventType.DragUpdated) {
+			// 	DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+			// 	Event.current.Use();
+			// } else if (Event.current.type == EventType.DragPerform) {
+			// 	// To consume drag data.
+				
+			// 	DragAndDrop.AcceptDrag();
+			// 	foreach (var obj in DragAndDrop.objectReferences) {
+			// 		if(obj is TextAsset && System.IO.Path.GetExtension(AssetDatabase.GetAssetPath(obj)) == ".json") {
+			// 			Play(obj as TextAsset);
+			// 		}
+			// 	}
+			// }
+		}
 
 		
 		#region Utils
