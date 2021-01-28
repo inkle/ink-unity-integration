@@ -108,7 +108,7 @@ namespace Ink.UnityIntegration {
 			EditorGUI.EndDisabledGroup();
 			
             if (GUILayout.Button(new GUIContent("Clear Compilation Stacks"))) {
-                InkLibrary.ClearCompilationStacks();
+                InkCompiler.ClearCompilationStacks();
             }
 			if(GUI.changed && target != null)         
 				EditorUtility.SetDirty(target);

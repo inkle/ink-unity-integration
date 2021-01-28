@@ -71,10 +71,10 @@ namespace Ink.UnityIntegration {
 			LoadAndSaveLastCompileTime();
 			return true;
 		}
-
+		public static bool isFirstCompile;
 		static void EnsureFirstLaunchHandled () {
 			float lastCompileTime = LoadAndSaveLastCompileTime();
-			var isFirstCompile = EditorApplication.timeSinceStartup < lastCompileTime;
+			isFirstCompile = EditorApplication.timeSinceStartup < lastCompileTime;
 			if(isFirstCompile)
 				OnOpenUnityEditor();
 		}
