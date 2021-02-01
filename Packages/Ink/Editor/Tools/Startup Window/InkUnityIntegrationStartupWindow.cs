@@ -64,6 +64,10 @@ namespace Ink.UnityIntegration {
 				scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 				{
 					EditorGUILayout.BeginVertical(GUI.skin.box);
+					EditorGUILayout.LabelField("Version 0.9.71:", EditorStyles.boldLabel);
+					EditorGUILayout.LabelField("• Resolves some compilation issues.", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.EndVertical();
+					EditorGUILayout.BeginVertical(GUI.skin.box);
 					EditorGUILayout.LabelField("Version 0.9.60:", EditorStyles.boldLabel);
 					EditorGUILayout.LabelField("• Moved InkLibrary and InkSettings from Assets into Library and ProjectSettings.", EditorStyles.wordWrappedLabel);
 					EditorGUILayout.LabelField("   ‣ InkLibrary should no longer be tracked in source control.", EditorStyles.wordWrappedLabel);
