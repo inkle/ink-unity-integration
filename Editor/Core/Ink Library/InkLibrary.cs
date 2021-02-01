@@ -89,6 +89,17 @@ namespace Ink.UnityIntegration {
 
 		// After recompile, the data associated with the object is fetched (or whatever happens to it) by this point. 
 		void OnEnable () {
+			// Deletes the persistent version of this asset that we used to use prior to 0.9.71
+			if(!Application.isPlaying && EditorUtility.IsPersistent(this)) {
+				var path = AssetDatabase.GetAssetPath(this);
+				if(path != null) {
+					if(_Instance == this) _Instance = null;
+					AssetDatabase.DeleteAsset(path);
+					AssetDatabase.Refresh();
+					return;
+				}
+			}
+			
 			BuildLookupDictionary();
 		}
 
