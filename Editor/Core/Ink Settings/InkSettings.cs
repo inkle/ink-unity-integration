@@ -110,7 +110,7 @@ namespace Ink.UnityIntegration {
 		void OnEnable () {
 			if(!Application.isPlaying && EditorUtility.IsPersistent(this)) {
 				var path = AssetDatabase.GetAssetPath(this);
-				if(path != null) {
+				if(!string.IsNullOrEmpty(path)) {
 					if(_Instance == this) _Instance = null;
 					AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(this));
 					AssetDatabase.Refresh();
