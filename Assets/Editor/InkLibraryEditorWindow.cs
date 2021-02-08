@@ -17,7 +17,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		public void OnEnable() {
-			inkLibraryEditor = Editor.CreateEditor(InkLibrary.Instance);
+			inkLibraryEditor = Editor.CreateEditor(InkLibrary.instance);
 		}
 
 		void OnInspectorUpdate() {

@@ -7,48 +7,63 @@ using Debug = UnityEngine.Debug;
 /// Provides helper functions to easily obtain these files.
 /// </summary>
 namespace Ink.UnityIntegration {
+    #if UNITY_2020_1_OR_NEWER
+    [FilePath("ProjectSettings/InkSettings.asset", FilePathAttribute.Location.ProjectFolder)]
+	public class InkSettings : ScriptableSingleton<InkSettings> {
+    #else
 	public class InkSettingsAssetSaver : UnityEditor.AssetModificationProcessor {
         static string[] OnWillSaveAssets(string[] paths) {
-            InkSettings.SaveToFile();
+            InkSettings.Save(true);
             return paths;
         }
     }
-
 	public class InkSettings : ScriptableObject {
+    #endif
+        #if !UNITY_2020_1_OR_NEWER
 		public static bool created {
 			get {
                 // If it's null, there's just no InkSettings asset in the project
-                return _Instance != null;
+                return _instance != null;
             }
 		}
-
 		static string absoluteSavePath {
 			get {
 				return System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,"..","ProjectSettings","InkSettings.asset"));
 
 			}
 		}
-		public static void SaveToFile () {
-			UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget(new[] { Instance }, absoluteSavePath, true);
+		public static void SaveStatic (bool saveAsText) {
+			UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget(new[] { instance }, absoluteSavePath, saveAsText);
 		}
-		private static InkSettings _Instance;
-		public static InkSettings Instance {
+        public void Save (bool saveAsText) {
+			InternalEditorUtility.SaveToSerializedFileAndForget((UnityEngine.Object[]) new InkSettings[1] {this}, absoluteSavePath, saveAsText);
+		}
+
+		private static InkSettings _instance;
+		public static InkSettings instance {
 			get {
-				if(_Instance == null) {
+				if(_instance == null) {
 					Object[] objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
 					if (objects != null && objects.Length > 0) {
-						Instance = objects[0] as InkSettings;
+						instance = objects[0] as InkSettings;
 					} else {
-						Instance = ScriptableObject.CreateInstance<InkSettings>();
-						SaveToFile();
-
+						instance = ScriptableObject.CreateInstance<InkSettings>();
+						instance.Save(true);
 					}
 				}
-				return _Instance;
+				return _instance;
 			} private set {
-                if(_Instance == value) return;
-				_Instance = value;
+                if(_instance == value) return;
+				_instance = value;
 			}
+		}
+        #endif
+
+		public static void SaveStatic (bool saveAsText) {
+			#if !UNITY_2020_1_OR_NEWER
+            if(!created) return;
+			#endif
+            instance.Save(saveAsText);
 		}
 
 		
@@ -92,27 +107,29 @@ namespace Ink.UnityIntegration {
 		#if UNITY_EDITOR && !UNITY_2018_1_OR_NEWER
 		[MenuItem("Edit/Project Settings/Ink", false, 500)]
 		public static void SelectFromProjectSettings() {
-			Selection.activeObject = Instance;
+			Selection.activeObject = instance;
 		}
 		#elif UNITY_EDITOR && UNITY_2018_1_OR_NEWER
 		public static SerializedObject GetSerializedSettings() {
-			return new SerializedObject(Instance);
+			return new SerializedObject(instance);
 		}
 		#endif
 
-        private static void Save () {
-			EditorUtility.SetDirty(Instance);
-			AssetDatabase.SaveAssets();
-			EditorApplication.RepaintProjectWindow();
-		}
+        // private static void Save () {
+		// 	EditorUtility.SetDirty(instance);
+		// 	AssetDatabase.SaveAssets();
+		// 	EditorApplication.RepaintProjectWindow();
+		// }
 
 		// Deletes the persistent version of this asset that we used to use prior to 0.9.71
 		void OnEnable () {
 			if(!Application.isPlaying && EditorUtility.IsPersistent(this)) {
 				var path = AssetDatabase.GetAssetPath(this);
 				if(!string.IsNullOrEmpty(path)) {
-					if(_instance == this) _instance = null;
-					AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(this));
+					#if !UNITY_2020_1_OR_NEWER
+                    if(_instance == this) _instance = null;
+					#endif
+                    AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(this));
 					AssetDatabase.Refresh();
 					return;
 				}

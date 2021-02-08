@@ -75,7 +75,7 @@ namespace Ink.UnityIntegration {
 				var filesRequiringRecompile = InkLibrary.GetFilesRequiringRecompile();
 				if(filesRequiringRecompile.Any()) {
 					var files = string.Join("\n", filesRequiringRecompile.Select(x => x.filePath).ToArray());
-					if(EditorApplication.isPlaying && InkSettings.Instance.delayInPlayMode) {
+					if(EditorApplication.isPlaying && InkSettings.instance.delayInPlayMode) {
                         EditorGUILayout.HelpBox("Some Ink files marked to compile on exiting play mode.\n"+files, MessageType.Info);
                     } else {
                         EditorGUILayout.HelpBox("Some Ink files marked to compile automatically are not compiled! Check they don't have compile errors, or else try compiling now.\n"+files, MessageType.Warning);
@@ -89,7 +89,7 @@ namespace Ink.UnityIntegration {
 				InkEditorUtils.RecompileAll();
 			}
 
-            if(EditorApplication.isPlaying && InkSettings.Instance.delayInPlayMode) {
+            if(EditorApplication.isPlaying && InkSettings.instance.delayInPlayMode) {
                 var filesRequiringRecompile = InkLibrary.GetFilesRequiringRecompile();
                 if(filesRequiringRecompile.Any()) {
                     var files = string.Join("\n", filesRequiringRecompile.Select(x => x.filePath).ToArray());

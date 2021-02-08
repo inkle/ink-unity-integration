@@ -56,10 +56,10 @@ namespace Ink.UnityIntegration {
                 DefaultAsset jsonFolder = jsonAssetDirectory;
                 if (jsonFolder == null) // no path specified for this specific file
                 {
-                    if(InkSettings.Instance.defaultJsonAssetPath != null) 
+                    if(InkSettings.instance.defaultJsonAssetPath != null) 
                     {
                         // use default path in InkSettings
-                        jsonFolder = InkSettings.Instance.defaultJsonAssetPath;
+                        jsonFolder = InkSettings.instance.defaultJsonAssetPath;
                     }
 
                     if (jsonFolder == null)

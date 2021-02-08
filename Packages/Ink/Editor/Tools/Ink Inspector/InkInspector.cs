@@ -310,7 +310,7 @@ namespace Ink.UnityIntegration {
 
 		void DrawMasterFileHeader () {
 			EditorGUILayout.LabelField("Master File", EditorStyles.boldLabel);
-			if(!InkSettings.Instance.compileAutomatically) {
+			if(!InkSettings.instance.compileAutomatically) {
 				inkFile.compileAutomatically = EditorGUILayout.Toggle("Compile Automatially", inkFile.compileAutomatically);
 				EditorApplication.RepaintProjectWindow();
 			}
@@ -350,7 +350,7 @@ namespace Ink.UnityIntegration {
 				DateTime lastCompileDate = masterInkFile.lastCompileDate;
 				editAndCompileDateString += "\nLast compile date "+lastCompileDate.ToString();
 				if(lastEditDate > lastCompileDate) {
-                    if(EditorApplication.isPlaying && InkSettings.Instance.delayInPlayMode) {
+                    if(EditorApplication.isPlaying && InkSettings.instance.delayInPlayMode) {
 					    editAndCompileDateString += "\nWill compile on exiting play mode";
                         EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.Info);
                     } else {
