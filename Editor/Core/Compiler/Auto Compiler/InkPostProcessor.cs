@@ -25,8 +25,10 @@ namespace Ink.UnityIntegration {
 			if(importedAssets.Length > 0) {
 				OnImportAssets(importedAssets);
 			}
+            #if !UNITY_2020_1_OR_NEWER
 			if(InkLibrary.created)
-				InkLibrary.Clean();
+            #endif
+            InkLibrary.Clean();
 		}
 
 		private static void OnDeleteAssets (string[] deletedAssets) {
@@ -43,16 +45,16 @@ namespace Ink.UnityIntegration {
 //			bool alsoDeleteJSON = false;
 //			alsoDeleteJSON = EditorUtility.DisplayDialog("Deleting .ink file", "Also delete the JSON file associated with the deleted .ink file?", "Yes", "No"));
 			List<InkFile> masterFilesAffected = new List<InkFile>();
-			for (int i = InkLibrary.Instance.inkLibrary.Count - 1; i >= 0; i--) {
-				if(InkLibrary.Instance.inkLibrary [i].inkAsset == null) {
-					if(!InkLibrary.Instance.inkLibrary[i].isMaster) {
-						foreach(var masterInkFile in InkLibrary.Instance.inkLibrary[i].masterInkFiles) {
+			for (int i = InkLibrary.instance.inkLibrary.Count - 1; i >= 0; i--) {
+				if(InkLibrary.instance.inkLibrary [i].inkAsset == null) {
+					if(!InkLibrary.instance.inkLibrary[i].isMaster) {
+						foreach(var masterInkFile in InkLibrary.instance.inkLibrary[i].masterInkFiles) {
 							if(!masterFilesAffected.Contains(masterInkFile))
 								masterFilesAffected.Add(masterInkFile);
 						}
 					}
-					if(InkSettings.Instance.handleJSONFilesAutomatically) {
-                        var assetPath = AssetDatabase.GetAssetPath(InkLibrary.Instance.inkLibrary[i].jsonAsset);
+					if(InkSettings.instance.handleJSONFilesAutomatically) {
+                        var assetPath = AssetDatabase.GetAssetPath(InkLibrary.instance.inkLibrary[i].jsonAsset);
 						if(assetPath != null && assetPath != string.Empty) {
                             AssetDatabase.DeleteAsset(assetPath);
                         }
@@ -61,18 +63,18 @@ namespace Ink.UnityIntegration {
 				}
 			}
 			// After deleting files, we might have broken some include references, so we rebuild them. There's probably a faster way to do this, or we could probably just remove any null references, but this is a bit more robust.
-			foreach(InkFile inkFile in InkLibrary.Instance.inkLibrary) {
+			foreach(InkFile inkFile in InkLibrary.instance.inkLibrary) {
 				inkFile.FindIncludedFiles();
 			}
 			foreach(InkFile masterFile in masterFilesAffected) {
-				if(InkSettings.Instance.compileAutomatically || masterFile.compileAutomatically) {
+				if(InkSettings.instance.compileAutomatically || masterFile.compileAutomatically) {
 					InkCompiler.CompileInk(masterFile);
 				}
 			}
 		}
 
 		private static void OnMoveAssets (string[] movedAssets) {
-			if (!InkSettings.Instance.handleJSONFilesAutomatically) 
+			if (!InkSettings.instance.handleJSONFilesAutomatically) 
 				return;
 			
 			List<string> validMovedAssets = new List<string>();
@@ -132,7 +134,7 @@ namespace Ink.UnityIntegration {
 				// Compile any ink files that are deemed master files a rebuild
 				foreach(var inkFile in filesToCompile) {
 					if(inkFile.isMaster) {
-						if(InkSettings.Instance.compileAutomatically || inkFile.compileAutomatically) {
+						if(InkSettings.instance.compileAutomatically || inkFile.compileAutomatically) {
 							InkCompiler.CompileInk(inkFile);
 						}
 					}
@@ -163,8 +165,8 @@ namespace Ink.UnityIntegration {
 		}
 
 		private static void PostprocessInkFiles (List<string> importedInkAssets) {
-			Debug.Log(EditorApplication.isPlaying && InkSettings.Instance.delayInPlayMode);
-			if(EditorApplication.isPlaying && InkSettings.Instance.delayInPlayMode) {
+			Debug.Log(EditorApplication.isPlaying && InkSettings.instance.delayInPlayMode);
+			if(EditorApplication.isPlaying && InkSettings.instance.delayInPlayMode) {
 				foreach(var fileToImport in importedInkAssets) {
 					InkCompiler.AddToPendingCompilationStack(fileToImport);
 				}

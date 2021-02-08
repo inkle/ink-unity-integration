@@ -111,7 +111,7 @@ namespace Ink.UnityIntegration {
 		public static void CreateNewInkFile () {
 			string fileName = "New Ink.ink";
 			string filePath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(GetSelectedPathOrFallback(), fileName));
-			CreateNewInkFile(filePath, InkSettings.Instance.templateFilePath);
+			CreateNewInkFile(filePath, InkSettings.instance.templateFilePath);
 		}
 
 		public static void CreateNewInkFile (string filePath, string templateFileLocation) {
@@ -224,8 +224,8 @@ namespace Ink.UnityIntegration {
 		}
 
 		public static string GetInklecateFilePath () {
-			if(InkSettings.Instance.customInklecateOptions.inklecate != null) {
-				return Path.GetFullPath(AssetDatabase.GetAssetPath(InkSettings.Instance.customInklecateOptions.inklecate));
+			if(InkSettings.instance.customInklecateOptions.inklecate != null) {
+				return Path.GetFullPath(AssetDatabase.GetAssetPath(InkSettings.instance.customInklecateOptions.inklecate));
 			} else {
 				#if UNITY_EDITOR
 				#if UNITY_EDITOR_WIN
