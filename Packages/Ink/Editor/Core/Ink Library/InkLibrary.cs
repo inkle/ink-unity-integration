@@ -49,7 +49,6 @@ namespace Ink.UnityIntegration {
 		
 		// This occurs on recompile, creation and load (note that data has not necessarily been loaded at this point!)
 		protected InkLibrary () {
-			Debug.Log("InkLibrary constructor "+created);
 			if (created)
 				Debug.LogError((object) "ScriptableSingleton already exists. Did you query the singleton in a constructor?");
 			else {
@@ -59,13 +58,11 @@ namespace Ink.UnityIntegration {
 
 		public static void LoadOrCreateInstance () {
 			InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
-			Debug.Log("LoadOrCreateInstance "+created+" "+InkEditorUtils.isFirstCompile);
 			if(created) {
 				if(InkEditorUtils.isFirstCompile) {
 					Validate();
 				}
 			} else {
-				Debug.Log("CREATE INSTANCE");
 				instance = ScriptableObject.CreateInstance<InkLibrary>();
 				instance.hideFlags = HideFlags.HideAndDontSave;
 				Rebuild();
@@ -76,7 +73,6 @@ namespace Ink.UnityIntegration {
 		static void Save () {
 			if(!created) return;			
 			InternalEditorUtility.SaveToSerializedFileAndForget((Object[]) new InkLibrary[1] {this}, absoluteSavePath, true);
-			Debug.Log("Save");
 		}
 
 		static void EnsureCreated () {
