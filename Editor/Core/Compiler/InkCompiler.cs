@@ -238,9 +238,6 @@ namespace Ink.UnityIntegration {
 
 		#if UNITY_2017_1_OR_NEWER
 		static void OnPlayModeChange (PlayModeStateChange mode) {
-			if(mode == PlayModeStateChange.EnteredEditMode) {
-				Debug.Log(mode +" "+instance.pendingCompilationStack.Count);
-			}
 			if(mode == PlayModeStateChange.EnteredEditMode && instance.pendingCompilationStack.Count > 0)
 				CompilePendingFiles();
 			if(mode == PlayModeStateChange.ExitingEditMode && compiling)
@@ -260,7 +257,6 @@ namespace Ink.UnityIntegration {
 		#endif
 
 		static void CompilePendingFiles () {
-			Debug.Log("CompilePendingFiles");
 			InkLibrary.CreateOrReadUpdatedInkFiles (instance.pendingCompilationStack);
 			foreach (var pendingMasterFile in GetUniqueMasterInkFilesToCompile(instance.pendingCompilationStack))
 				InkCompiler.CompileInk(pendingMasterFile);
