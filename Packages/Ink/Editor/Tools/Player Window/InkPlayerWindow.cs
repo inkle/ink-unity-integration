@@ -2100,7 +2100,7 @@ namespace Ink.UnityIntegration {
 
 
 		bool dragging;
-		float height = 50;
+		// float height = 50;
 		Rect GetResizeArea (float x, float width, float centerY) {
 			float height = 10;
 			return new Rect(x, centerY-Mathf.RoundToInt(height * 0.5f), width, height);

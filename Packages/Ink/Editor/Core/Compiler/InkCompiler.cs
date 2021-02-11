@@ -65,6 +65,14 @@ namespace Ink.UnityIntegration {
 		}
         #endif
 		
+        
+        public class AssetSaver : UnityEditor.AssetModificationProcessor {
+            static string[] OnWillSaveAssets(string[] paths) {
+                InkCompiler.instance.Save(true);
+                Debug.Log("SAVE");
+                return paths;
+            }
+        }
 		public static void SaveStatic (bool saveAsText) {
 			#if !UNITY_2020_1_OR_NEWER
             if(!created) return;
