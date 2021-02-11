@@ -14,11 +14,12 @@ using Debug = UnityEngine.Debug;
 /// </summary>
 namespace Ink.UnityIntegration {
     #if UNITY_2020_1_OR_NEWER
+    [FilePath("Library/InkLibrary.asset", FilePathAttribute.Location.ProjectFolder)]
 	public class InkLibrary : ScriptableSingleton<InkLibrary>, IEnumerable<InkFile> {
     #else
 	public class InkLibrary : ScriptableObject, IEnumerable<InkFile> {
     #endif
-		public static System.Version versionCurrent = new System.Version(0,9,71);
+		public static System.Version versionCurrent = new System.Version(0,9,80);
 
 		static string absoluteSavePath {
 			get {
@@ -79,6 +80,14 @@ namespace Ink.UnityIntegration {
 			if(!created) LoadOrCreateInstance();
 		}
         #endif
+        
+        public class AssetSaver : UnityEditor.AssetModificationProcessor {
+            static string[] OnWillSaveAssets(string[] paths) {
+                InkLibrary.instance.Save(true);
+                Debug.Log("SAVE");
+                return paths;
+            }
+        }
 
 		public List<InkFile> inkLibrary = new List<InkFile>();
 		Dictionary<DefaultAsset, InkFile> inkLibraryDictionary;
@@ -103,6 +112,10 @@ namespace Ink.UnityIntegration {
             return inkLibrary.GetEnumerator();
         }
 
+		void OnValidate () {
+            BuildLookupDictionary();
+            Validate();
+        }
 		// After recompile, the data associated with the object is fetched (or whatever happens to it) by this point. 
 		void OnEnable () {
 			// Deletes the persistent version of this asset that we used to use prior to 0.9.71
@@ -117,7 +130,6 @@ namespace Ink.UnityIntegration {
 					return;
 				}
 			}
-			BuildLookupDictionary();
 		}
 
         static void BuildLookupDictionary () {

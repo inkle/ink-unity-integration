@@ -11,7 +11,6 @@ using UnityEditor.Callbacks;
 using Path = System.IO.Path;
 
 namespace Ink.UnityIntegration {
-
 	class CreateInkAssetAction : EndNameEditAction {
 		public override void Action(int instanceId, string pathName, string resourceFile) {
 			var text = "";

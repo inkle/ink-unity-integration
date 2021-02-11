@@ -11,12 +11,6 @@ namespace Ink.UnityIntegration {
     [FilePath("ProjectSettings/InkSettings.asset", FilePathAttribute.Location.ProjectFolder)]
 	public class InkSettings : ScriptableSingleton<InkSettings> {
     #else
-	public class InkSettingsAssetSaver : UnityEditor.AssetModificationProcessor {
-        static string[] OnWillSaveAssets(string[] paths) {
-            InkSettings.Save(true);
-            return paths;
-        }
-    }
 	public class InkSettings : ScriptableObject {
     #endif
         #if !UNITY_2020_1_OR_NEWER
@@ -59,6 +53,13 @@ namespace Ink.UnityIntegration {
 		}
         #endif
 
+        public class AssetSaver : UnityEditor.AssetModificationProcessor {
+            static string[] OnWillSaveAssets(string[] paths) {
+                InkSettings.instance.Save(true);
+                Debug.Log("SAVE");
+                return paths;
+            }
+        }
 		public static void SaveStatic (bool saveAsText) {
 			#if !UNITY_2020_1_OR_NEWER
             if(!created) return;
@@ -120,7 +121,7 @@ namespace Ink.UnityIntegration {
 		// 	AssetDatabase.SaveAssets();
 		// 	EditorApplication.RepaintProjectWindow();
 		// }
-
+        
 		// Deletes the persistent version of this asset that we used to use prior to 0.9.71
 		void OnEnable () {
 			if(!Application.isPlaying && EditorUtility.IsPersistent(this)) {
