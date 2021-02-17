@@ -54,6 +54,11 @@ namespace Ink.UnityIntegration {
 		public override void OnInspectorGUI() {
 			serializedObject.Update();
 
+			EditorGUI.BeginDisabledGroup(InkCompiler.compiling);
+			if (GUILayout.Button(new GUIContent("Rebuild Library", "Rebuilds the ink library. Do this if you're getting unusual errors"), EditorStyles.miniButton)) {
+				InkLibrary.Rebuild();
+			}
+			EditorGUI.EndDisabledGroup();
 
 			EditorGUILayout.Toggle("HasLockedUnityCompilation", InkCompiler.hasLockedUnityCompilation);
 			if(GUILayout.Button("Unlock")) {
