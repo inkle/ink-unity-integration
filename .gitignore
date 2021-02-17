@@ -43,3 +43,4 @@ Bin/
 # Other files #
 # =========== #
 *~
+.idea/

@@ -106,6 +106,15 @@ namespace Ink.UnityIntegration {
 			InkCompiler.CompileInk(filesToRecompile);
 		}
 
+        public static void RecompileAllImmediately() {
+            var filesToRecompile = InkLibrary.FilesCompiledByRecompileAll().ToArray();
+            string logString = filesToRecompile.Any() ? 
+                                   "Recompile All will compile "+string.Join(", ", filesToRecompile.Select(x => Path.GetFileName(x.filePath)).ToArray()) :
+                                   "No valid ink found. Note that only files with 'Compile Automatic' checked are compiled if not set to compile all files automatically in InkSettings file.";
+            Debug.Log(logString);
+            InkCompiler.CompileInk(filesToRecompile, true, null);
+        }
+
 
 		[MenuItem("Assets/Create/Ink", false, 120)]
 		public static void CreateNewInkFile () {
@@ -299,6 +308,23 @@ namespace Ink.UnityIntegration {
 		public static void DrawStoryPropertyField (Rect position, Story story, GUIContent label) {
 			Debug.LogWarning("DrawStoryPropertyField has been moved from InkEditorUtils to InkPlayerWindow");
 		}
+		
+		/// <summary>
+		/// Checks to see if the given path is an ink file or not, regardless of extension.
+		/// </summary>
+		/// <param name="path">The path to check.</param>
+		/// <returns>True if it's an ink file, otherwise false.</returns>
+		public static bool IsInkFile(string path) {
+			string extension = Path.GetExtension(path);
+			if (extension == InkEditorUtils.inkFileExtension) {
+				return true;
+			}
 
+			if (!InkLibrary.created) {
+				return false;
+			}
+
+			return String.IsNullOrEmpty(extension) && InkLibrary.Instance.inkLibrary.Exists(f => f.filePath == path);
+		}
 	}
 }
