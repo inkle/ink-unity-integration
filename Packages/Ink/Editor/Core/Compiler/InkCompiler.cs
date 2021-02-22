@@ -69,7 +69,6 @@ namespace Ink.UnityIntegration {
         public class AssetSaver : UnityEditor.AssetModificationProcessor {
             static string[] OnWillSaveAssets(string[] paths) {
                 InkCompiler.instance.Save(true);
-                Debug.Log("SAVE");
                 return paths;
             }
         }

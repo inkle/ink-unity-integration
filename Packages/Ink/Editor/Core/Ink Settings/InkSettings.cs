@@ -56,7 +56,6 @@ namespace Ink.UnityIntegration {
         public class AssetSaver : UnityEditor.AssetModificationProcessor {
             static string[] OnWillSaveAssets(string[] paths) {
                 InkSettings.instance.Save(true);
-                Debug.Log("SAVE");
                 return paths;
             }
         }
@@ -88,23 +87,6 @@ namespace Ink.UnityIntegration {
 		
 		public bool printInkLogsInConsoleOnCompile;
 
-		public CustomInklecateOptions customInklecateOptions = new CustomInklecateOptions();
-		[System.Serializable]
-		public class CustomInklecateOptions {
-			#if UNITY_EDITOR_LINUX
-			public bool runInklecateWithMono = true;
-			#else
-			public bool runInklecateWithMono;
-			#endif
-			public string[] monoPaths = {
-				"/usr/bin/mono", 
-				"/usr/local/bin/mono", 
-				"/Library/Frameworks/Mono.framework/Versions/Current/Commands/mono"
-			};
-			public string additionalCompilerOptions;
-			public DefaultAsset inklecate;
-		}
-
 		#if UNITY_EDITOR && !UNITY_2018_1_OR_NEWER
 		[MenuItem("Edit/Project Settings/Ink", false, 500)]
 		public static void SelectFromProjectSettings() {
@@ -115,12 +97,6 @@ namespace Ink.UnityIntegration {
 			return new SerializedObject(instance);
 		}
 		#endif
-
-        // private static void Save () {
-		// 	EditorUtility.SetDirty(instance);
-		// 	AssetDatabase.SaveAssets();
-		// 	EditorApplication.RepaintProjectWindow();
-		// }
         
 		// Deletes the persistent version of this asset that we used to use prior to 0.9.71
 		void OnEnable () {

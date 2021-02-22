@@ -108,7 +108,7 @@ namespace Ink.UnityIntegration {
         public static void RecompileAllImmediately() {
             var filesToRecompile = InkLibrary.FilesCompiledByRecompileAll().ToArray();
             string logString = filesToRecompile.Any() ? 
-                                   "Recompile All will compile "+string.Join(", ", filesToRecompile.Select(x => Path.GetFileName(x.filePath)).ToArray()) :
+                                   "Recompile All Immediately will compile "+string.Join(", ", filesToRecompile.Select(x => Path.GetFileName(x.filePath)).ToArray()) :
                                    "No valid ink found. Note that only files with 'Compile Automatic' checked are compiled if not set to compile all files automatically in InkSettings file.";
             Debug.Log(logString);
             InkCompiler.CompileInk(filesToRecompile, true, null);
@@ -230,40 +230,9 @@ namespace Ink.UnityIntegration {
 			}
 			return true;
 		}
-
-		public static string GetInklecateFilePath () {
-			if(InkSettings.instance.customInklecateOptions.inklecate != null) {
-				return Path.GetFullPath(AssetDatabase.GetAssetPath(InkSettings.instance.customInklecateOptions.inklecate));
-			} else {
-				#if UNITY_EDITOR
-				#if UNITY_EDITOR_WIN
-				string inklecateName = "inklecate_win.exe";
-				#endif
-				// Unfortunately inklecate's implementation uses newer features of C# that aren't
-				// available in the version of mono that ships with Unity, so we can't make use of
-				// it. This means that we need to compile the mono runtime directly into it, inflating
-				// the size of the executable quite dramatically :-( Hopefully we can improve that
-				// when Unity ships with a newer version.
-				#if UNITY_EDITOR_OSX
-				string inklecateName = "inklecate_mac";
-				#endif
-				// Experimental linux build
-				#if UNITY_EDITOR_LINUX
-				string inklecateName = "inklecate_win.exe";
-				#endif
-				#endif
-				
-				string[] inklecateDirectories = Directory.GetFiles(Application.dataPath, inklecateName, SearchOption.AllDirectories);
-				if(inklecateDirectories.Length == 0)
-					return null;
-
-				return Path.GetFullPath(inklecateDirectories[0]);
-			}
-		}
 		
 		// Returns a sanitized version of the supplied string by:
 		//    - swapping MS Windows-style file separators with Unix/Mac style file separators.
-		//
 		// If null is provided, null is returned.
 		public static string SanitizePathString(string path) {
 			if (path == null) {
