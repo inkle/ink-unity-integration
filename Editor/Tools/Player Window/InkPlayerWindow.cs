@@ -769,7 +769,7 @@ namespace Ink.UnityIntegration {
 			InkPlayerWindowState.Instance.lastStoryWasPlaying = true;
 			InkPlayerWindowState.Save();
 			
-			PingAutomator();
+			EditorApplication.delayCall += PingAutomator;
 		}
 
 		static void PingAutomator () {
