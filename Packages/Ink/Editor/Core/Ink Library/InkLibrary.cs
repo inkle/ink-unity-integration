@@ -19,7 +19,7 @@ namespace Ink.UnityIntegration {
     #else
 	public class InkLibrary : ScriptableObject, IEnumerable<InkFile> {
     #endif
-		public static System.Version versionCurrent = new System.Version(0,9,80);
+		public static System.Version versionCurrent = new System.Version(1,0,0);
 
 		static string absoluteSavePath {
 			get {
