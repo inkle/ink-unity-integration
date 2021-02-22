@@ -165,7 +165,6 @@ namespace Ink.UnityIntegration {
 		}
 
 		private static void PostprocessInkFiles (List<string> importedInkAssets) {
-			Debug.Log(EditorApplication.isPlaying && InkSettings.instance.delayInPlayMode);
 			if(EditorApplication.isPlaying && InkSettings.instance.delayInPlayMode) {
 				foreach(var fileToImport in importedInkAssets) {
 					InkCompiler.AddToPendingCompilationStack(fileToImport);

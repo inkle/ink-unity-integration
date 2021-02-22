@@ -16,8 +16,11 @@ namespace Ink.UnityIntegration {
 	/// Stories may be attached at runtime. InkPlayerWindow.DrawStoryPropertyField may be used for this.
 	/// </summary>
 	public class InkPlayerWindow : EditorWindow {
-
-		/// <summary>
+        
+        
+        #region User Facing
+		
+        /// <summary>
 		/// Draws a property field for a story using GUILayout, allowing you to attach stories to the player window for debugging.
 		/// </summary>
 		/// <param name="story">Story.</param>
@@ -112,6 +115,10 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
+        
+
+
+
 		// Allows you to change what the ink player does/is allowed to do when a story is loaded.
 		// Especially handy for attached stories, where performance is critical or play controls might interfere with the game
 		// TODO: Show these params somewhere slightly out of the way (debug mode for the window?) so you can fiddle with them mid-game if you <i>really</i> need to
@@ -139,9 +146,35 @@ namespace Ink.UnityIntegration {
 				}
 			} 
 		}
-
+		public static InkPlayerParams playerParams;
 
 		
+        // Allows telling the story to play automatically.
+		[System.Serializable]
+		public class PlayerOptions {
+			public bool continueAutomatically = true;
+			public bool chooseAutomatically = false;
+			public float continueAutomaticallyTimeInterval = 0.1f;
+			public float chooseAutomaticallyTimeInterval = 0.1f;
+		}
+		public static PlayerOptions playerOptions = new PlayerOptions();
+
+
+        // Allows injecting right click context options into the story content view.
+        public delegate void ContextMenuDelegate(GenericMenu contextMenu, InkHistoryContentItem content);
+        public static List<ContextMenuDelegate> contextMenuDelegates = new List<ContextMenuDelegate>();
+
+        #endregion
+
+
+
+
+
+
+
+
+
+
 		[System.Serializable]
 		public class InkPlayerWindowState {
 			static string settingsEditorPrefsKey = typeof(InkPlayerWindowState).Name +" Settings";
@@ -212,23 +245,9 @@ namespace Ink.UnityIntegration {
 		}
 
 		
-		public static PlayerOptions playerOptions = new PlayerOptions();
-		[System.Serializable]
-		public class PlayerOptions {
-			public bool continueAutomatically = true;
-			public bool chooseAutomatically = false;
-			public float continueAutomaticallyTimeInterval = 0.1f;
-			public float chooseAutomaticallyTimeInterval = 0.1f;
-		}
-
-		
 		private const string windowTitle = "Ink Player";
 
 		public static bool isOpen {get; private set;}
-
-//		public StoryState storyState = new StoryState();
-//		public class StoryState {
-//		}
 		public static bool attached {get; private set;}
 		static bool attachedWhileInPlayMode {get; set;}
 
@@ -291,7 +310,7 @@ namespace Ink.UnityIntegration {
 //		private WindowState windowState = new WindowState();
 //		public class WindowState {
 		static Vector2 _scrollPosition;
-		public static Vector2 scrollPosition {
+		static Vector2 scrollPosition {
 			get {
 				return _scrollPosition;
 			} set {
@@ -319,7 +338,9 @@ namespace Ink.UnityIntegration {
 					// GUI.FocusControl(null);
 				}
 			}
-
+            
+			public float y;
+			public float height = 200;
 		}
 
 		[System.Serializable]
@@ -327,8 +348,6 @@ namespace Ink.UnityIntegration {
 			public DisplayOptions displayOptions = new DisplayOptions();
 			public string searchString = string.Empty;
 			
-			public float y;
-			public float height = 100;
 			public const float minScrollRectHeight = 30;
 			public const float maxScrollRectHeight = 480;
 		}
@@ -419,8 +438,6 @@ namespace Ink.UnityIntegration {
 			public bool displayErrorsInConsole = true;
 		}
 
-		public static InkPlayerParams playerParams;
-
 		static GUIStyle searchTextFieldStyle;
 		static GUIStyle searchCancelButtonStyle;
 		
@@ -439,6 +456,8 @@ namespace Ink.UnityIntegration {
 		
 		static AutoScrollMode markedForScrollToSelectedLine;
 		static InkHistoryContentItem selectedLine;
+
+        static bool mainScrollViewActive;
 		
 		static bool doingAutoscroll;
 		static float autoscrollTarget;
@@ -447,8 +466,6 @@ namespace Ink.UnityIntegration {
 
 		static float timeUntilNextAutomaticChoice = 0;
 		static float timeUntilNextAutomaticContinue = 0;
-
-
 
 
 		[MenuItem("Window/Ink Player %#i", false, 2300)]
@@ -462,6 +479,11 @@ namespace Ink.UnityIntegration {
 			return GetWindow<InkPlayerWindow>(windowTitle, focus, windowType);
 		}
 		
+        // TODO - find a way to restore tethered stories after recompile. This is tricky because we don't have a reference to the json, and stories aren't serialized.
+        // We should probably save the story to this path - but watch out for giant stories.
+        // var jsonStr = story.ToJson ();
+        // https://docs.microsoft.com/en-us/dotnet/api/system.io.path.gettemppath
+        // Directory.temporaryFolder
 		void OnEnable () {
 			if(isOpen) return;
 			isOpen = true;
@@ -511,7 +533,7 @@ namespace Ink.UnityIntegration {
 				deltaTime = time - lastUpdateTime;
 			lastUpdateTime = time;
 			
-			if(story != null) {
+            if(story != null) {
 				timeUntilNextAutomaticChoice -= deltaTime;
 				if(story.currentChoices.Count > 0 && playerOptions.chooseAutomatically) {
 					if(timeUntilNextAutomaticChoice <= 0) {
@@ -539,7 +561,7 @@ namespace Ink.UnityIntegration {
 		
 
 		static void OnDidContinue () {
-			AddStoryContent(story.currentText.Trim(), story.currentTags);
+            AddStoryContent(story.currentText.Trim(), story.currentTags);
 			if(story.currentChoices != null) {
 				foreach(var choice in story.currentChoices) {
 					AddToHistory(InkHistoryContentItem.CreateForPresentChoice(choice));
@@ -548,11 +570,11 @@ namespace Ink.UnityIntegration {
 			AddWarningsAndErrorsToHistory();
 		}
 		static void OnMakeChoice (Choice choice) {
-			AddToHistory(InkHistoryContentItem.CreateForMakeChoice(choice));		
+            AddToHistory(InkHistoryContentItem.CreateForMakeChoice(choice));		
 			AddWarningsAndErrorsToHistory();
 		}
 		static void OnEvaluateFunction (string functionName, object[] arguments) {
-			StringBuilder sb = new StringBuilder(functionName);
+            StringBuilder sb = new StringBuilder(functionName);
 			if(arguments != null && arguments.Length > 0) {
 				sb.Append(" with args: ");
 				for (int i = 0; i < arguments.Length; i++) {
@@ -592,7 +614,7 @@ namespace Ink.UnityIntegration {
 			AddWarningsAndErrorsToHistory();
 		}
 		static void OnChoosePathString (string pathString, object[] arguments) {
-			StringBuilder sb = new StringBuilder("ChoosePathString: ");
+            StringBuilder sb = new StringBuilder("ChoosePathString: ");
 			sb.Append(pathString);
 			if(arguments != null) {
 				sb.Append(" with args: ");
@@ -610,6 +632,9 @@ namespace Ink.UnityIntegration {
 			AddToHistory(InkHistoryContentItem.CreateForChoosePathString(sb.ToString().Trim()));
 			AddWarningsAndErrorsToHistory();
 		}
+        static void OnLoadState () {
+            OnDidContinue();
+        }
 
 		static void AddWarningsAndErrorsToHistory () {
 			if(story.hasWarning) {
@@ -643,9 +668,15 @@ namespace Ink.UnityIntegration {
 			playerOptions.continueAutomatically = false;
 			playerOptions.chooseAutomatically = false;
 			playerParams = inkPlayerParams;
-			InkPlayerWindow.story = story;
 			attached = true;
 			attachedWhileInPlayMode = EditorApplication.isPlaying;
+			InkPlayerWindow.story = story;
+            
+            // This allows reconstructing the story so it can be used after recompile. However, it can be expensive to run so there's a good argument for not running it on play!
+            // var lastTime = Time.realtimeSinceStartup;
+            // storyJSON = InkPlayerWindow.story.ToJson();
+            // File.WriteAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "AttachedStory.json"), storyJSON);
+            // Debug.Log("Wrote to "+System.IO.Path.Combine(System.IO.Path.GetTempPath(), "AttachedStory.json")+" in "+(Time.realtimeSinceStartup-lastTime));
 		}
 		
 		public static void Detach () {
@@ -730,6 +761,7 @@ namespace Ink.UnityIntegration {
 			_story.onEvaluateFunction -= OnEvaluateFunction;
 			_story.onCompleteEvaluateFunction -= OnCompleteEvaluateFunction;
 			_story.onChoosePathString -= OnChoosePathString;
+			_story.state.onDidLoadState -= OnLoadState;
 			foreach(var observedVariableName in InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames) {
 				UnobserveVariable(observedVariableName, false);
 			}
@@ -745,6 +777,7 @@ namespace Ink.UnityIntegration {
 			_story.onEvaluateFunction += OnEvaluateFunction;
 			_story.onCompleteEvaluateFunction += OnCompleteEvaluateFunction;
 			_story.onChoosePathString += OnChoosePathString;
+			_story.state.onDidLoadState += OnLoadState;
 			
 			// Recalculate function ink variables
 			foreach(var input in InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs) {
@@ -769,12 +802,12 @@ namespace Ink.UnityIntegration {
 			InkPlayerWindowState.Instance.lastStoryWasPlaying = true;
 			InkPlayerWindowState.Save();
 			
-			EditorApplication.delayCall += PingAutomator;
+			PingAutomator();
 		}
 
 		static void PingAutomator () {
 			if(playerParams.disablePlayControls) return;
-			if(story.canContinue && playerOptions.continueAutomatically) {
+            if(story.canContinue && playerOptions.continueAutomatically) {
 				TryContinue();
 			} else if(story.currentChoices.Count > 0 && playerOptions.chooseAutomatically) { 
 				MakeRandomChoice();
@@ -789,6 +822,7 @@ namespace Ink.UnityIntegration {
 		static void Clear () {
 			if(storyStateHistory != null) storyStateHistory.Clear();
 			if(storyHistory != null) storyHistory.Clear();
+            RefreshVisibleHistory();
 			story = null;
 		}
 		
@@ -811,6 +845,7 @@ namespace Ink.UnityIntegration {
 		
 		static void AddToHistory (InkHistoryContentItem content) {
 			storyHistory.Add(content);
+            RefreshVisibleHistory();
 			ScrollToBottom();
 		}
 
@@ -823,14 +858,16 @@ namespace Ink.UnityIntegration {
 			InkPlayerHistoryItem item = storyStateHistory.Undo();
 			story.state.LoadJson(item.inkStateJSON);
 			storyHistory = new List<InkHistoryContentItem>(item.storyHistory);
-			ScrollToBottom();
+            RefreshVisibleHistory();
+            ScrollToBottom();
 		}
 		
 		static void Redo () {
 			InkPlayerHistoryItem item = storyStateHistory.Redo();
 			story.state.LoadJson(item.inkStateJSON);
 			storyHistory = new List<InkHistoryContentItem>(item.storyHistory);
-			ScrollToBottom();
+			RefreshVisibleHistory();
+            ScrollToBottom();
 		}
 
 		static void SaveStoryState (string storyStateJSON) {
@@ -911,7 +948,7 @@ namespace Ink.UnityIntegration {
 				DrawProfilerData();
 				DrawSaveLoad();
 				DrawNamedContent();
-				DrawDiverts();
+				// DrawDiverts();
 				DrawFunctions();
 				DrawVariables();
 				InkPlayerWindowState.Save();
@@ -928,9 +965,12 @@ namespace Ink.UnityIntegration {
 				// EditorGUILayout.EndVertical();
 			}
 
-			EditorGUILayout.EndScrollView();
-
-			
+            var lastRectMaxY = GUILayoutUtility.GetLastRect().yMax;
+            EditorGUILayout.EndScrollView();
+            if (Event.current.type == EventType.Repaint) {
+                var scrollRectMaxY = GUILayoutUtility.GetLastRect().yMax;
+                mainScrollViewActive = lastRectMaxY >= (scrollRectMaxY-3);
+            }
 		}
 		
 		void DisplayHeader () {
@@ -952,6 +992,7 @@ namespace Ink.UnityIntegration {
 				if(EditorGUI.EndChangeCheck()) {
 					if(storyJSONTextAsset == null) {
 						story = null;
+        
 						playStoryException = null;
 					} else {
 						Stop();
@@ -1077,16 +1118,41 @@ namespace Ink.UnityIntegration {
 			}
 			
 			EditorGUI.BeginChangeCheck();
-			// TODO: tooltips for options. I'd REALLY like for it not to show "Mixed ..." in the box mais c'est la vie
-			// TODO: Add a "default" option in the dropdown
-			Enum newVisibilityOptions = EditorGUILayout.EnumFlagsField(GUIContent.none, InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions, EditorStyles.toolbarDropDown, GUILayout.Width(80));
-			InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions = (DisplayOptions.VisibilityOptions)(int)Convert.ChangeType(newVisibilityOptions, typeof(DisplayOptions.VisibilityOptions));
+            DrawVisibilityOptions();
+
+            void DrawVisibilityOptions () {
+                Enum newVisibilityOptions = EditorGUILayout.EnumFlagsField(GUIContent.none, InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions, EditorStyles.toolbarDropDown, GUILayout.Width(80));
+                InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions = (DisplayOptions.VisibilityOptions)(int)Convert.ChangeType(newVisibilityOptions, typeof(DisplayOptions.VisibilityOptions));
+
+                // TODO: tooltips for options. I'd REALLY like for it not to show "Mixed ..." in the box mais c'est la vie
+                // TODO: Add a "default" option in the dropdown
+                // See:
+                // https://github.com/Unity-Technologies/UnityCsReference/blob/master/Editor/Mono/EditorGUI.cs#L3561
+                // But a lot of the code is internal.
+
+                // var enumValue = InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions;
+                // var style = EditorStyles.toolbarDropDown;
+                // var position = EditorGUILayout.GetControlRect(true, 18, style, GUILayout.Width(80));
+                
+                // var enumType = typeof(DisplayOptions.VisibilityOptions);
+                // var includeObsolete = false;
+                // var label = GUIContent.none;
+                // var displayNames = Enum.GetNames(typeof(DisplayOptions.VisibilityOptions));
+                // // var flagValues = new int[];
+
+                // var id = GUIUtility.GetControlID(0, FocusType.Keyboard, position);
+                // position = EditorGUI.PrefixLabel(position, id, label);
+
+                // InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions = (DisplayOptions.VisibilityOptions)EditorGUI.MaskField(position, (int)enumValue, displayNames, style);
+            }
 			if(EditorGUI.EndChangeCheck()) {
+                RefreshVisibleHistory();
 				ScrollToBottom();
 			}
 
 			bool changed = DrawSearchBar(ref InkPlayerWindowState.Instance.storyPanelState.searchString);
 			if(changed) {
+			    RefreshVisibleHistory();
 				if(selectedLine != null) ScrollToSelectedLine(true);
 				else ScrollToBottom();
 			}
@@ -1109,12 +1175,12 @@ namespace Ink.UnityIntegration {
 			GUIUtility.systemCopyBuffer = sb.ToString();
 		}
 
-		bool ShouldShowContentWithSearchString (string contentString, string searchString) {
+		static bool ShouldShowContentWithSearchString (string contentString, string searchString) {
 			if(StringContains(contentString, InkPlayerWindowState.Instance.storyPanelState.searchString, StringComparison.OrdinalIgnoreCase)) return true;
 			return false;
 		}
 
-		bool ShouldShowContent (InkHistoryContentItem content, DisplayOptions.VisibilityOptions visibilityOpts) {
+		static bool ShouldShowContent (InkHistoryContentItem content, DisplayOptions.VisibilityOptions visibilityOpts) {
 			switch(content.contentType) {
 				case InkHistoryContentItem.ContentType.PresentedContent: {
 					if((visibilityOpts & DisplayOptions.VisibilityOptions.Content) != 0) {
@@ -1141,9 +1207,8 @@ namespace Ink.UnityIntegration {
 			return false;
 		}
 		
-		// TODO - Only update this when the story or the search string/visibility options change.
 		static List<InkHistoryContentItem> validHistory = new List<InkHistoryContentItem>();
-		void GetValidHistory () {
+		static void RefreshVisibleHistory () {
 			validHistory.Clear();
 			bool doingSearch = !string.IsNullOrWhiteSpace(InkPlayerWindowState.Instance.storyPanelState.searchString);
 			var visibilityOpts = InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions;
@@ -1155,10 +1220,8 @@ namespace Ink.UnityIntegration {
 				validHistory.Add(content);
 			}
 		}
-		void DisplayStoryBody () {
-			GetValidHistory();
-	
-			float storyContentMargin = 4;
+		void DisplayStoryBody () {	
+			float contentMarginXY = 4;
 			float contentSpacing = 8;
 			
 			var timestampWidth = 58;
@@ -1171,8 +1234,9 @@ namespace Ink.UnityIntegration {
 
 			var lastRect = GUILayoutUtility.GetLastRect();
 			var containerWidth = position.width - GUI.skin.verticalScrollbar.fixedWidth;
+            if(mainScrollViewActive) containerWidth -= GUI.skin.verticalScrollbar.fixedWidth;
 			
-			var lineWidth = containerWidth - storyContentMargin * 2;
+			var lineWidth = containerWidth - contentMarginXY * 2;
 			
 			var contentWidth = lineWidth;
 			if(showTimestamp) {
@@ -1189,6 +1253,7 @@ namespace Ink.UnityIntegration {
 			float[] heights = new float[storyHistory.Count];
 			int selectedLineIndex = -1;
 			float selectedLineY = -1;
+
 			for(int i = 0; i < validHistory.Count; i++) {
 				var content = validHistory[i];
 				heights[i] = EditorStyles.wordWrappedLabel.CalcHeight(new GUIContent(content.content), contentWidth);
@@ -1196,7 +1261,7 @@ namespace Ink.UnityIntegration {
 					var tagsHeight = EditorStyles.wordWrappedLabel.CalcHeight(new GUIContent(GetTagsString(content.tags)), tagsWidth);
 					heights[i] = Mathf.Max(heights[i], tagsHeight);
 				}
-				heights[i] += storyContentMargin * 2;
+				heights[i] += contentMarginXY * 2;
 				if(content == selectedLine) {
 					selectedLineIndex = i;
 					selectedLineY = totalHeight;
@@ -1204,10 +1269,23 @@ namespace Ink.UnityIntegration {
 				totalHeight += heights[i];
 			}
 
+            void OnRefreshSelectedLine () {
+                float _totalHeight = 0;
+                for(int i = 0; i < validHistory.Count; i++) {
+                    var content = validHistory[i];
+                    if(content == selectedLine) {
+                        selectedLineIndex = i;
+                        selectedLineY = _totalHeight;
+                    }
+                    _totalHeight += heights[i];
+                }
+            }
+
 			if(Event.current.type == EventType.Repaint) {
 				InkPlayerWindowState.Instance.storyPanelState.y = lastRect.yMax;
 			}
-			var viewportRect = new Rect(0,lastRect.yMax,position.width, InkPlayerWindowState.Instance.storyPanelState.height);
+			var viewportRect = new Rect(0, lastRect.yMax, position.width, InkPlayerWindowState.Instance.storyPanelState.height);
+            if(mainScrollViewActive) viewportRect.width -= GUI.skin.verticalScrollbar.fixedWidth;
 			var containerRect = new Rect(0,0,containerWidth, totalHeight);
 			
 			var newScrollPos = GUI.BeginScrollView(viewportRect, InkPlayerWindowState.Instance.storyPanelState.scrollPosition, containerRect, false, true);
@@ -1235,7 +1313,7 @@ namespace Ink.UnityIntegration {
 					// }
 					var content = validHistory[i];
 					var lineContainerRect = new Rect(0, y, containerWidth, heights[i]);
-					var lineRect = new Rect(lineContainerRect.x + storyContentMargin, lineContainerRect.y + storyContentMargin, lineContainerRect.width - storyContentMargin * 2, lineContainerRect.height - storyContentMargin * 2);
+					var lineRect = new Rect(lineContainerRect.x + contentMarginXY, lineContainerRect.y + contentMarginXY, lineContainerRect.width - contentMarginXY * 2, lineContainerRect.height - contentMarginXY * 2);
 					
 					GUIStyle lineStyle = null;
 					if(selectedLine == content) lineStyle = historyItemBGStyleSelected.guiStyle;
@@ -1245,11 +1323,14 @@ namespace Ink.UnityIntegration {
 					if(Event.current.type == EventType.MouseDown && lineContainerRect.Contains(Event.current.mousePosition)) {
 						if(Event.current.button == 0) {
 							selectedLine = content;
-							// To avoid disruption, only scroll when the line is close to the edge of the panel
-							var targetY = GetTargetScrollPositionToCenterStoryLine(i, false);
-							if(Mathf.Abs(targetY-InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y) > viewportRect.height * 0.25f) {
-								ScrollToSelectedLine();
-							}
+                            OnRefreshSelectedLine();
+                            // To avoid disruption, only scroll when the line is close to the edge of the panel
+                            var targetY = GetTargetScrollPositionToCenterStoryLine(i, false);
+                            Debug.Log(viewportRect+" "+Mathf.Abs(targetY-InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y));
+                            if(Mathf.Abs(targetY-InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y) > viewportRect.height * 0.225f) {
+                                ScrollToSelectedLine();
+                            }
+                            Event.current.Use();
 						}
 					}
 					string textToDisplay = String.Empty;
@@ -1285,6 +1366,9 @@ namespace Ink.UnityIntegration {
 								contextMenu.AddItem(new GUIContent("Copy"), false, () => {
 									GUIUtility.systemCopyBuffer = content.content;
 								});
+                                foreach(var contextMenuDelegate in contextMenuDelegates) {
+                                    contextMenuDelegate(contextMenu, content);
+                                }
 								contextMenu.ShowAsContext();
 								Event.current.Use();
 							}
@@ -1296,7 +1380,7 @@ namespace Ink.UnityIntegration {
 				y = endY;
 			}
 
-			var lineX = storyContentMargin;
+			var lineX = contentMarginXY;
 			if(showTimestamp) {
 				lineX += timestampWidth;
 				lineX += contentSpacing * 0.5f;
@@ -1583,68 +1667,115 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.EndHorizontal();
 		}
 
-		void DrawNamedContentPanel () {
-			GUILayout.BeginVertical();
-			DrawNamedContentContainer(string.Empty, story.mainContentContainer);
-			GUILayout.EndVertical();
-		}
-
-		void DrawNamedContentContainer (string currentPath, Container container) {
-			if(container == null || container.namedOnlyContent == null) return;
-			EditorGUI.indentLevel++;
-			foreach(var contentKVP in container.namedOnlyContent) {
-				var newPath = currentPath.Length == 0 ? contentKVP.Key : currentPath+"."+contentKVP.Key;
-				DrawNamedContent(newPath, contentKVP);
-			}
-			EditorGUI.indentLevel--;
-		}
-		void DrawNamedContent (string currentPath, KeyValuePair<string, Runtime.Object> contentKVP) {
-			GUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField(new GUIContent(currentPath, "Path"), GUILayout.Width(200));
-			EditorGUILayout.LabelField(new GUIContent(story.state.VisitCountAtPathString(currentPath).ToString(), "Read count"), GUILayout.Width(40));
-			if (GUILayout.Button("Divert", GUILayout.Width(80))) {
-				AddToHistory(InkHistoryContentItem.CreateForDebugNote("Diverted to '"+currentPath+"'"));
-				story.ChoosePathString(currentPath);
-				PingAutomator();
-			}
-			GUILayout.EndHorizontal();
+        void DrawNamedContentPanel () {	
+			float contentMarginX = 4;
+			float contentMarginY = 0;
+			float indentChangeVerticalSpacing = 6;
 			
-			var namedContainer = contentKVP.Value as Container;
-			DrawNamedContentContainer(currentPath, namedContainer);		
-		}
-		#endregion
+			var lastRect = GUILayoutUtility.GetLastRect();
+			var containerWidth = position.width - GUI.skin.verticalScrollbar.fixedWidth;
+            if(mainScrollViewActive) containerWidth -= GUI.skin.verticalScrollbar.fixedWidth;
+			
+			float totalHeight = 0;
 
+			List<Rect> rects = new List<Rect>();
+			List<string> paths = new List<string>();
+            {
+                AddContainer(string.Empty, story.mainContentContainer);
+                void AddContainer (string currentPath, Container container, int indent = 0) {
+                    if(container == null || container.namedOnlyContent == null) return;
+                    
+                    var lastTotalHeight = totalHeight;
+                    indent++;
+                    foreach(var contentKVP in container.namedOnlyContent) {
+                        var newPath = currentPath.Length == 0 ? contentKVP.Key : currentPath+"."+contentKVP.Key;
+                        AddContent(newPath, contentKVP, indent);
+                    }
+                    indent--;
+                    if(lastTotalHeight != totalHeight) totalHeight += indentChangeVerticalSpacing;
+                }
+                void AddContent (string currentPath, KeyValuePair<string, Runtime.Object> contentKVP, int indent = 0) {
+                    if(SearchStringMatch(currentPath, InkPlayerWindowState.Instance.namedContentPanelState.searchString)) {
+                        var itemHeight = EditorGUIUtility.singleLineHeight;
+                        itemHeight += contentMarginY * 2;
 
-		#region Diverts
-		void DrawDiverts () {
-			DrawDivertsHeader();
-			if(InkPlayerWindowState.Instance.divertPanelState.showing)
-				DrawDivertsPanel ();
-		}
+                        rects.Add(new Rect(indent*8, totalHeight, containerWidth-indent*8, itemHeight));
+                        totalHeight += itemHeight;
+                        paths.Add(currentPath);
+                    }
+                    
+                    var namedContainer = contentKVP.Value as Container;
+                    AddContainer(currentPath, namedContainer, indent);
+                }
+            }
+            totalHeight -= indentChangeVerticalSpacing;
 
-		void DrawDivertsHeader () {
-			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-			InkPlayerWindowState.Instance.divertPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.divertPanelState.showing, "Diverts", true);
-			EditorGUILayout.EndHorizontal();
-		}
-
-		void DrawDivertsPanel () {
-			GUILayout.BeginVertical();
-			GUILayout.BeginHorizontal();
-			InkPlayerWindowState.Instance.divertPanelState.divertCommand = EditorGUILayout.TextField("Divert command", InkPlayerWindowState.Instance.divertPanelState.divertCommand);
-			EditorGUI.BeginDisabledGroup(InkPlayerWindowState.Instance.divertPanelState.divertCommand == "");
-			if (GUILayout.Button("Divert")) {
-				AddToHistory(InkHistoryContentItem.CreateForDebugNote("Diverted to '"+InkPlayerWindowState.Instance.divertPanelState.divertCommand+"'"));
-				story.ChoosePathString(InkPlayerWindowState.Instance.divertPanelState.divertCommand);
-				PingAutomator();
+			if(Event.current.type == EventType.Repaint) {
+				InkPlayerWindowState.Instance.namedContentPanelState.y = lastRect.yMax;
 			}
-			EditorGUI.EndDisabledGroup();
-			GUILayout.EndHorizontal();
-			GUILayout.EndVertical();
+			var viewportRect = new Rect(0, lastRect.yMax, position.width, InkPlayerWindowState.Instance.namedContentPanelState.height);
+            if(mainScrollViewActive) viewportRect.width -= GUI.skin.verticalScrollbar.fixedWidth;
+			var containerRect = new Rect(0,0,containerWidth, totalHeight);
+			
+			var newScrollPos = GUI.BeginScrollView(viewportRect, InkPlayerWindowState.Instance.namedContentPanelState.scrollPosition, containerRect, false, true);
+			if(newScrollPos != InkPlayerWindowState.Instance.namedContentPanelState.scrollPosition) {
+				doingAutoscroll = false;
+				InkPlayerWindowState.Instance.namedContentPanelState.scrollPosition = newScrollPos;
+			}
+
+			var panelTop = InkPlayerWindowState.Instance.namedContentPanelState.scrollPosition.y;
+			var panelBottom = InkPlayerWindowState.Instance.namedContentPanelState.scrollPosition.y + viewportRect.height;
+            
+			for(int i = 0; i < paths.Count; i++) {
+				if(panelTop <= rects[i].yMax && panelBottom >= rects[i].yMin) {
+					var content = paths[i];
+					var lineContainerRect = rects[i];
+					var lineRect = new Rect(lineContainerRect.x + contentMarginX, lineContainerRect.y + contentMarginY, lineContainerRect.width - contentMarginX * 2, lineContainerRect.height - contentMarginY * 2);		
+					DrawNamedContentItem(lineRect, content);
+				}
+			}
+
+			GUI.EndScrollView();
+			GUILayout.Space(viewportRect.height);
+		}
+
+		void DrawNamedContentItem (Rect rect, string currentPath) {
+			EditorGUI.LabelField(rect, new GUIContent(currentPath, "Path"));
+			EditorGUI.LabelField(new Rect(rect.xMax-200, rect.y, 32, rect.height), new GUIContent(story.state.VisitCountAtPathString(currentPath).ToString(), "Read count"));
+			if(GUI.Button(new Rect(rect.xMax-168, rect.y, 80, rect.height), new GUIContent("Divert"))) {
+                // This is a bit horrible tbh. Not all the paths we show are valid for diverting, but we don't really have a way of testing it.
+                // Additionally, doing this can brick the story, so it's important we prevent it.
+                // We test by creating an entirely new story and running it, and checking for errors in the flow.
+                // The result is that this function is really slow :(
+				var hadError = false;
+                try {
+                    // We might optimise this by caching story.ToJson() - we could use this in other places too.
+                    var tmpStory = new Story(story.ToJson());
+                    var state = story.state.ToJson();
+                    tmpStory.state.LoadJson(state);
+				    tmpStory.ChoosePathString(currentPath);
+				    tmpStory.ContinueMaximally();
+                } catch (Exception e) {
+                    Debug.LogWarning("Could not divert to "+currentPath+"! Only Knots and Stitches can be diverted to. Is this a function? Alternatively, the path might lead to an error, which we prevent from occuring in this tool to safeguard the state.\n"+e.ToString());
+                    hadError = true;
+                } finally {
+                    if(!hadError) {
+				        story.ChoosePathString(currentPath);
+                        AddToHistory(InkHistoryContentItem.CreateForDebugNote("Diverted to '"+currentPath+"'"));
+                    }
+                }
+            }
+
+            if(Event.current.type == EventType.MouseDown && Event.current.button == 1 && rect.Contains(Event.current.mousePosition)) {
+                var contextMenu = new GenericMenu();
+                contextMenu.AddItem(new GUIContent("Copy Path"), false, () => {
+                    GUIUtility.systemCopyBuffer = currentPath;
+                });
+                contextMenu.ShowAsContext();
+                Event.current.Use();
+            }
 		}
 		#endregion
-
-
 
 
 		#region Functions
@@ -1800,6 +1931,7 @@ namespace Ink.UnityIntegration {
 		
 		#region Variables
 		void DrawVariables () {
+            EditorGUILayout.BeginVertical();
 			if(InkEditorUtils.StoryContainsVariables(story)) {
 				DrawVariablesHeader();
 				if(InkPlayerWindowState.Instance.variablesPanelState.showing)
@@ -1811,6 +1943,7 @@ namespace Ink.UnityIntegration {
 						DrawObservedVariablesPanel ();
 				}
 			}
+            EditorGUILayout.EndVertical();
 		}
 
 		void DrawVariablesHeader () {
@@ -1831,27 +1964,7 @@ namespace Ink.UnityIntegration {
 			string variableToChange = null;
 			object newVariableValue = null;
 			foreach(string variable in story.variablesState) {
-				if(!string.IsNullOrWhiteSpace(InkPlayerWindowState.Instance.variablesPanelState.searchString) && !StringContains(variable, InkPlayerWindowState.Instance.variablesPanelState.searchString, StringComparison.OrdinalIgnoreCase)) continue;
-				EditorGUILayout.BeginHorizontal();
-				object variableValue = story.variablesState[variable];
-				EditorGUI.BeginChangeCheck();
-				variableValue = DrawVariable(new GUIContent(variable), variable, variableValue);
-				if(EditorGUI.EndChangeCheck() && story.variablesState[variable] != variableValue) {
-					variableToChange = variable;
-					newVariableValue = variableValue;
-				}
-
-				if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.ContainsKey(variable)) {
-					if(GUILayout.Button(new GUIContent("<-", "Un-observe this variable"), GUILayout.Width(24))) {
-						UnobserveVariable(variable, true);
-					}
-				} else {
-					if(GUILayout.Button(new GUIContent("->", "Click to observe this variable, tracking changes"), GUILayout.Width(24))) {
-						var observedVariable = ObserveVariable(variable, true);
-						observedVariable.AddValueState(variableValue);
-					}
-				}
-				EditorGUILayout.EndHorizontal();
+				DrawObservableVariable(variable, ref variableToChange, ref newVariableValue);
 			}
 			if(variableToChange != null) {
 				AddToHistory(InkHistoryContentItem.CreateForDebugNote("Change '"+variableToChange+"' from '"+story.variablesState[variableToChange]+"' to '"+newVariableValue+"'"));
@@ -1863,6 +1976,32 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.EndScrollView();
 			GUILayout.EndVertical();
 		}
+
+        // TODO - only draw those that are visible in the scroll rect, as we do for content. Important for performance on larger projects.
+        void DrawObservableVariable (string variable, ref string variableToChange, ref object newVariableValue) {
+            if(!SearchStringMatch(variable, InkPlayerWindowState.Instance.variablesPanelState.searchString)) 
+                return;
+            EditorGUILayout.BeginHorizontal();
+            object variableValue = story.variablesState[variable];
+            EditorGUI.BeginChangeCheck();
+            variableValue = DrawVariable(new GUIContent(variable), variable, variableValue);
+            if(EditorGUI.EndChangeCheck() && story.variablesState[variable] != variableValue) {
+                variableToChange = variable;
+                newVariableValue = variableValue;
+            }
+
+            if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.ContainsKey(variable)) {
+                if(GUILayout.Button(new GUIContent("<-", "Un-observe this variable"), GUILayout.Width(24))) {
+                    UnobserveVariable(variable, true);
+                }
+            } else {
+                if(GUILayout.Button(new GUIContent("->", "Click to observe this variable, tracking changes"), GUILayout.Width(24))) {
+                    var observedVariable = ObserveVariable(variable, true);
+                    observedVariable.AddValueState(variableValue);
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+        }
 
 		static ObservedVariable ObserveVariable (string variableName, bool alsoAddToCache) {
 			if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.ContainsKey(variableName)) return InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables[variableName];
@@ -2099,7 +2238,7 @@ namespace Ink.UnityIntegration {
 
 
 
-		bool dragging;
+		BaseStoryPanelState resizingPanel;
 		// float height = 50;
 		Rect GetResizeArea (float x, float width, float centerY) {
 			float height = 10;
@@ -2111,26 +2250,6 @@ namespace Ink.UnityIntegration {
         	// GUI.Box (area1, "Add Trigger");
         	// GUI.Box (area2, "Add Trigger");
 
-			var resizeArea = GetResizeArea(0, position.width, InkPlayerWindowState.Instance.storyPanelState.y+InkPlayerWindowState.Instance.storyPanelState.height);
-			EditorGUIUtility.AddCursorRect(resizeArea, MouseCursor.ResizeVertical);
-			
-			if (Event.current.type == EventType.MouseDown) {
-				if(resizeArea.Contains(Event.current.mousePosition)) {
-					dragging = true;
-					Event.current.Use();
-				}
-			}
-			if (dragging) {
-				if (Event.current.type == EventType.MouseUp) {
-					dragging = false;
-					Event.current.Use();
-				}
-				if(Event.current.type == EventType.MouseDrag) {
-					var targetHeight = InkPlayerWindowState.Instance.storyPanelState.height + Event.current.delta.y;
-					InkPlayerWindowState.Instance.storyPanelState.height = Mathf.Clamp(targetHeight, StoryPanelState.minScrollRectHeight, StoryPanelState.maxScrollRectHeight);
-					Event.current.Use();
-				}
-			}
 			// if (Event.current.type == EventType.DragUpdated) {
 			// 	DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
 			// 	Event.current.Use();
@@ -2144,8 +2263,32 @@ namespace Ink.UnityIntegration {
 			// 		}
 			// 	}
 			// }
+            
+            if (resizingPanel != null && Event.current.type == EventType.MouseUp) {
+                resizingPanel = null;
+                Event.current.Use();
+            }
+            HandlePanelResize(InkPlayerWindowState.Instance.storyPanelState, StoryPanelState.minScrollRectHeight, StoryPanelState.maxScrollRectHeight);
+            HandlePanelResize(InkPlayerWindowState.Instance.namedContentPanelState, StoryPanelState.minScrollRectHeight, StoryPanelState.maxScrollRectHeight);
 		}
-
+		void HandlePanelResize (BaseStoryPanelState panel, float minHeight, float maxHeight) {
+			var resizeArea = GetResizeArea(0, position.width, panel.y+panel.height);
+			EditorGUIUtility.AddCursorRect(resizeArea, MouseCursor.ResizeVertical);
+			
+			if (Event.current.type == EventType.MouseDown) {
+				if(resizeArea.Contains(Event.current.mousePosition)) {
+					resizingPanel = panel;
+					Event.current.Use();
+				}
+			}
+			if (resizingPanel == panel) {
+				if(Event.current.type == EventType.MouseDrag) {
+					var targetHeight = panel.height + Event.current.delta.y;
+					panel.height = Mathf.Clamp(targetHeight, minHeight, maxHeight);
+					Event.current.Use();
+				}
+			}
+        }
 		
 		#region Utils
 		static bool StringContains(string str, string toCheck, StringComparison comp) {
@@ -2161,6 +2304,11 @@ namespace Ink.UnityIntegration {
 			}
 			return lastString != searchString;
 		}
+
+        static bool SearchStringMatch (string content, string searchString) {
+            return string.IsNullOrWhiteSpace(searchString) || StringContains(content, searchString, StringComparison.OrdinalIgnoreCase);
+        }
+
 
 		static void EditorGUILayoutInkListField (GUIContent guiContent, InkList inkList, string expandedVariableKey = null) {
 			if(inkList.Any()) {
@@ -2252,7 +2400,7 @@ namespace Ink.UnityIntegration {
 			values.Add(new ObservedVariableState(value));
 		}
 	}
-
+    
 
 	public class ColoredBackgroundGUIStyle {
 		public GUIStyle guiStyle;
