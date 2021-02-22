@@ -19,9 +19,9 @@ namespace Ink.UnityIntegration {
     #else
 	public class InkLibrary : ScriptableObject, IEnumerable<InkFile> {
     #endif
-        //
+        // Ink version. This should really come from the core ink code.
 		public static System.Version inkVersionCurrent = new System.Version(1,0,0);
-		public static System.Version unityIntegrationVersionCurrent = new System.Version(1,0,0);
+		public static System.Version unityIntegrationVersionCurrent = new System.Version(1,0,2);
 
 		static string absoluteSavePath {
 			get {
