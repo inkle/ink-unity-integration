@@ -63,11 +63,25 @@ namespace Ink.UnityIntegration {
 			{
 				scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 				{
+                    // 1.0.0
+					EditorGUILayout.BeginVertical(GUI.skin.box);
+					EditorGUILayout.LabelField("🎉Version 1.0.0🎉:", EditorStyles.boldLabel);
+					EditorGUILayout.LabelField("• Update ink to 1.0.0", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Allow resizing ink editor window story panel", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Improved performance for the ink editor window", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Allow compiling include files that don't have the .ink file extension", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Remove legacy custom inklecate", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Fixes settings menu on 2020+.", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Improved migration from earlier versions.", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.EndVertical();
+					EditorGUILayout.BeginVertical(GUI.skin.box);
+                    // 0.9.71
 					EditorGUILayout.BeginVertical(GUI.skin.box);
 					EditorGUILayout.LabelField("Version 0.9.71:", EditorStyles.boldLabel);
 					EditorGUILayout.LabelField("• Resolves some compilation issues.", EditorStyles.wordWrappedLabel);
 					EditorGUILayout.EndVertical();
 					EditorGUILayout.BeginVertical(GUI.skin.box);
+                    // 0.9.60
 					EditorGUILayout.LabelField("Version 0.9.60:", EditorStyles.boldLabel);
 					EditorGUILayout.LabelField("• Moved InkLibrary and InkSettings from Assets into Library and ProjectSettings.", EditorStyles.wordWrappedLabel);
 					EditorGUILayout.LabelField("   ‣ InkLibrary should no longer be tracked in source control.", EditorStyles.wordWrappedLabel);
