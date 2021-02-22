@@ -19,11 +19,3 @@ MonoBehaviour:
   handleJSONFilesAutomatically: 1
   compileTimeout: 30
   printInkLogsInConsoleOnCompile: 0
-  customInklecateOptions:
-    runInklecateWithMono: 0
-    monoPaths:
-    - /usr/bin/mono
-    - /usr/local/bin/mono
-    - /Library/Frameworks/Mono.framework/Versions/Current/Commands/mono
-    additionalCompilerOptions: 
-    inklecate: {fileID: 0}
