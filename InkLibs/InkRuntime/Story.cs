@@ -90,6 +90,11 @@ namespace Ink.Runtime
         public List<string> currentWarnings { get { return state.currentWarnings; } }
 
         /// <summary>
+        /// The current flow name if using multi-flow funtionality - see SwitchFlow
+        /// </summary>
+        public string currentFlowName => state.currentFlowName;
+
+        /// <summary>
         /// Whether the currentErrors list contains any errors.
         /// THIS MAY BE REMOVED - you should be setting an error handler directly
         /// using Story.onError.
@@ -331,6 +336,25 @@ namespace Ink.Runtime
 
             state.variablesState.SnapshotDefaultGlobals ();
         }
+
+        public void SwitchFlow(string flowName)
+        {
+            IfAsyncWeCant("switch flow");
+            if (_asyncSaving) throw new System.Exception("Story is already in background saving mode, can't switch flow to "+flowName);
+
+            state.SwitchFlow_Internal(flowName);
+        }
+
+        public void RemoveFlow(string flowName)
+        {
+            state.RemoveFlow_Internal(flowName);
+        }
+
+        public void SwitchToDefaultFlow()
+        {
+            state.SwitchToDefaultFlow_Internal();
+        }
+
 
         /// <summary>
         /// Continue the story for one line of content, if possible.
