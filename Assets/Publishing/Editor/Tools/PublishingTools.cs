@@ -48,7 +48,7 @@ public static class PublishingTools {
 
 		var match = Regex.Match(json, pattern);
 		var prevVersion = match.Groups[1].Value;
-		var nextVersion = InkLibrary.versionCurrent.ToString();
+		var nextVersion = InkLibrary.unityIntegrationVersionCurrent.ToString();
 		if (prevVersion == nextVersion) {
 			Debug.LogWarning("SyncPackageJsonVersion: package.json version was already " + nextVersion + ". Did you forget to update it in InkLibrary?");
 		} else {
@@ -126,7 +126,7 @@ public static class PublishingTools {
 		// }
 
 		// Create a .unitypackage
-		var version = InkLibrary.versionCurrent;
+		var version = InkLibrary.unityIntegrationVersionCurrent;
 		var packageExportPath = string.Format("../Ink Unity Integration {0}.{1}.{2}.unitypackage", version.Major, version.Minor, version.Build);
 		AssetDatabase.ExportPackage("Assets/Ink", packageExportPath, ExportPackageOptions.Recurse);
 		

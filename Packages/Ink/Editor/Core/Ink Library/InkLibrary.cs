@@ -19,12 +19,13 @@ namespace Ink.UnityIntegration {
     #else
 	public class InkLibrary : ScriptableObject, IEnumerable<InkFile> {
     #endif
-		public static System.Version versionCurrent = new System.Version(1,0,0);
+        //
+		public static System.Version inkVersionCurrent = new System.Version(1,0,0);
+		public static System.Version unityIntegrationVersionCurrent = new System.Version(1,0,0);
 
 		static string absoluteSavePath {
 			get {
 				return System.IO.Path.GetFullPath(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(),"Library","InkLibrary.asset"));
-				// return System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,"..","Library","InkLibrary.asset"));
 			}
 		}
 		
@@ -228,7 +229,7 @@ namespace Ink.UnityIntegration {
             Clean();
 
 			// Reset the asset name
-			instance.name = "Ink Library "+versionCurrent.ToString();
+			instance.name = "Ink Library "+unityIntegrationVersionCurrent.ToString();
             
 			// Add any new file connections (if any are found it replaces the old library entirely)
 			string[] inkFilePaths = GetAllInkFilePaths();
