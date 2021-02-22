@@ -68,13 +68,13 @@ namespace Ink.UnityIntegration {
 				instance = ScriptableObject.CreateInstance<InkLibrary>();
 				instance.hideFlags = HideFlags.HideAndDontSave;
 				Rebuild();
-				Save();
+				instance.Save(true);
 			}
 		}
 		
-		static void Save () {
+		public void Save (bool saveAsText) {
 			if(!created) return;			
-			InternalEditorUtility.SaveToSerializedFileAndForget((Object[]) new InkLibrary[1] {this}, absoluteSavePath, true);
+			InternalEditorUtility.SaveToSerializedFileAndForget((Object[]) new InkLibrary[1] {instance}, absoluteSavePath, saveAsText);
 		}
 
 		static void EnsureCreated () {
@@ -84,7 +84,7 @@ namespace Ink.UnityIntegration {
         
         public class AssetSaver : UnityEditor.AssetModificationProcessor {
             static string[] OnWillSaveAssets(string[] paths) {
-                InkLibrary.instance.Save(true);
+                instance.Save(true);
                 return paths;
             }
         }

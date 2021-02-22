@@ -30,7 +30,7 @@ namespace Ink.UnityIntegration {
 			UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget(new[] { instance }, absoluteSavePath, saveAsText);
 		}
         public void Save (bool saveAsText) {
-			InternalEditorUtility.SaveToSerializedFileAndForget((UnityEngine.Object[]) new InkSettings[1] {this}, absoluteSavePath, saveAsText);
+			UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget((UnityEngine.Object[]) new InkSettings[1] {this}, absoluteSavePath, saveAsText);
 		}
 
 		private static InkSettings _instance;
@@ -51,6 +51,10 @@ namespace Ink.UnityIntegration {
 				_instance = value;
 			}
 		}
+        #else
+		public static void SaveStatic (bool saveAsText) {
+			instance.Save(saveAsText);
+		}
         #endif
 
         public class AssetSaver : UnityEditor.AssetModificationProcessor {
@@ -59,12 +63,6 @@ namespace Ink.UnityIntegration {
                 return paths;
             }
         }
-		public static void SaveStatic (bool saveAsText) {
-			#if !UNITY_2020_1_OR_NEWER
-            if(!created) return;
-			#endif
-            instance.Save(saveAsText);
-		}
 
 		
 		
