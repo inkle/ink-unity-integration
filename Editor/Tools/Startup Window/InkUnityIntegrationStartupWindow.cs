@@ -80,6 +80,12 @@ namespace Ink.UnityIntegration {
 			{
 				scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 				{
+                    // 1.0.3
+					EditorGUILayout.BeginVertical(GUI.skin.box);
+					EditorGUILayout.LabelField("Version 1.0.3:", EditorStyles.boldLabel);
+					EditorGUILayout.LabelField("• Fix a very rare but quite nasty compilation bug.", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.EndVertical();
+					EditorGUILayout.BeginVertical(GUI.skin.box);
                     // 1.0.0
 					EditorGUILayout.BeginVertical(GUI.skin.box);
 					EditorGUILayout.LabelField("🎉Version 1.0.0🎉:", EditorStyles.boldLabel);
@@ -94,7 +100,6 @@ namespace Ink.UnityIntegration {
 					EditorGUILayout.LabelField("• Moved persistent compilation tracking code from InkLibrary into InkCompiler", EditorStyles.wordWrappedLabel);
 					EditorGUILayout.LabelField("• Use Unity's new ScriptableSingleton for InkLibrary, InkSettings and InkCompiler on 2020+", EditorStyles.wordWrappedLabel);
 					EditorGUILayout.EndVertical();
-					EditorGUILayout.BeginVertical(GUI.skin.box);
                     // 0.9.71
 					EditorGUILayout.BeginVertical(GUI.skin.box);
 					EditorGUILayout.LabelField("Version 0.9.71:", EditorStyles.boldLabel);
@@ -102,6 +107,7 @@ namespace Ink.UnityIntegration {
 					EditorGUILayout.EndVertical();
 					EditorGUILayout.BeginVertical(GUI.skin.box);
                     // 0.9.60
+					EditorGUILayout.BeginVertical(GUI.skin.box);
 					EditorGUILayout.LabelField("Version 0.9.60:", EditorStyles.boldLabel);
 					EditorGUILayout.LabelField("• Moved InkLibrary and InkSettings from Assets into Library and ProjectSettings.", EditorStyles.wordWrappedLabel);
 					EditorGUILayout.LabelField("   ‣ InkLibrary should no longer be tracked in source control.", EditorStyles.wordWrappedLabel);
