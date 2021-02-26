@@ -441,64 +441,75 @@ namespace Ink.UnityIntegration {
 				Debug.LogWarning("Delayed, but a file is now compiling! You can ignore this warning.");
 				return;
 			}
+            // Clone and clear the list. This is a surefire way to ensure the list is cleared in case of unhandled errors in this code.
+            // A Try-catch would be better but I'm debugging blind as I write this and the nuclear option will definitely work!
+            List<CompilationStackItem> compilationStack = new List<CompilationStackItem>(instance.compilationStack);
+			ClearCompilationStack();
+
 			bool errorsFound = false;
 			StringBuilder filesCompiledLog = new StringBuilder("Files compiled:");
 
-			// Create and import compiled files
+            // Create and import compiled files
 			AssetDatabase.StartAssetEditing();
-			foreach (var compilingFile in instance.compilationStack) {
+			foreach (var compilingFile in compilationStack) {
 				// Complete status is also set when an error occured, in these cases 'compiledJson' will be null so there's no import to process
 				if (compilingFile.compiledJson == null) continue;
 				
 				// Write new compiled data to the file system
 				File.WriteAllText(compilingFile.jsonAbsoluteFilePath, compilingFile.compiledJson, Encoding.UTF8);
-				AssetDatabase.ImportAsset(compilingFile.inkFile.jsonPath);
+                if(compilingFile.inkFile.inkAsset != null) AssetDatabase.ImportAsset(compilingFile.inkFile.jsonPath);
 			}
 			AssetDatabase.StopAssetEditing();
 
-			foreach (var compilingFile in instance.compilationStack) {
-				// Load and store a reference to the compiled file
-				compilingFile.inkFile.FindCompiledJSONAsset();
-				
-				filesCompiledLog.AppendLine().Append(compilingFile.inkFile.filePath);
-				filesCompiledLog.Append(string.Format(" ({0}s)", compilingFile.timeTaken));
-				if(compilingFile.unhandledErrorOutput.Count > 0) {
-					filesCompiledLog.Append(" (With unhandled error)");
-					StringBuilder errorLog = new StringBuilder ();
-					errorLog.Append ("Unhandled error(s) occurred compiling Ink file ");
-					errorLog.Append ("'");
-					errorLog.Append (compilingFile.inkFile.filePath);
-					errorLog.Append ("'");
-					errorLog.AppendLine ("! Please report following error(s) as a bug:");
-					foreach (var error in compilingFile.unhandledErrorOutput)
-						errorLog.AppendLine (error);
-					Debug.LogError(errorLog);
-					compilingFile.inkFile.unhandledCompileErrors = compilingFile.unhandledErrorOutput;
-					errorsFound = true;
-				} else {
-					SetOutputLog(compilingFile);
-					bool errorsInEntireStory = false;
-					bool warningsInEntireStory = false;
-					foreach(var inkFile in compilingFile.inkFile.inkFilesInIncludeHierarchy) {
-						if(inkFile.hasErrors) {
-							errorsInEntireStory = true;
-						}
-						if(inkFile.hasWarnings) {
-							warningsInEntireStory = true;
-						}
-					}
-					if(errorsInEntireStory) {
-						filesCompiledLog.Append(" (With error)");
-						errorsFound = true;
-					}
-					if(warningsInEntireStory) {
-						filesCompiledLog.Append(" (With warning)");
-					}
-				}
+			foreach (var compilingFile in compilationStack) {
+				if(compilingFile.inkFile.inkAsset != null) {
+                    // Load and store a reference to the compiled file
+                    compilingFile.inkFile.FindCompiledJSONAsset();
+                    
+                    filesCompiledLog.AppendLine().Append(compilingFile.inkFile.filePath);
+                    filesCompiledLog.Append(string.Format(" ({0}s)", compilingFile.timeTaken));
+                    if(compilingFile.unhandledErrorOutput.Count > 0) {
+                        filesCompiledLog.Append(" (With unhandled error)");
+                        StringBuilder errorLog = new StringBuilder ();
+                        errorLog.Append ("Unhandled error(s) occurred compiling Ink file ");
+                        errorLog.Append ("'");
+                        errorLog.Append (compilingFile.inkFile.filePath);
+                        errorLog.Append ("'");
+                        errorLog.AppendLine ("! Please report following error(s) as a bug:");
+                        foreach (var error in compilingFile.unhandledErrorOutput)
+                            errorLog.AppendLine (error);
+                        Debug.LogError(errorLog);
+                        compilingFile.inkFile.unhandledCompileErrors = compilingFile.unhandledErrorOutput;
+                        errorsFound = true;
+                    } else {
+                        SetOutputLog(compilingFile);
+                        bool errorsInEntireStory = false;
+                        bool warningsInEntireStory = false;
+                        foreach(var inkFile in compilingFile.inkFile.inkFilesInIncludeHierarchy) {
+                            if(inkFile.hasErrors) {
+                                errorsInEntireStory = true;
+                            }
+                            if(inkFile.hasWarnings) {
+                                warningsInEntireStory = true;
+                            }
+                        }
+                        if(errorsInEntireStory) {
+                            filesCompiledLog.Append(" (With error)");
+                            errorsFound = true;
+                        }
+                        if(warningsInEntireStory) {
+                            filesCompiledLog.Append(" (With warning)");
+                        }
+                    }
+                } else {
+                    filesCompiledLog.AppendLine().Append(compilingFile.inkAbsoluteFilePath);
+                    filesCompiledLog.Append(" (With post-compile missing file error)");
+                    Debug.LogError("Ink file at "+compilingFile.inkAbsoluteFilePath+" was not found after compilation");
+                }
 			}
 			
 
-			foreach (var compilingFile in instance.compilationStack) {
+			foreach (var compilingFile in compilationStack) {
 				if (OnCompileInk != null) {
 					OnCompileInk (compilingFile.inkFile);
 				}
@@ -517,7 +528,6 @@ namespace Ink.UnityIntegration {
 				Debug.Log(outputLog);
 			}
 
-			ClearCompilationStack();
 			
 			#if !UNITY_EDITOR_LINUX
 			EditorUtility.ClearProgressBar();
