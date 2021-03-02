@@ -1326,7 +1326,6 @@ namespace Ink.UnityIntegration {
                             OnRefreshSelectedLine();
                             // To avoid disruption, only scroll when the line is close to the edge of the panel
                             var targetY = GetTargetScrollPositionToCenterStoryLine(i, false);
-                            Debug.Log(viewportRect+" "+Mathf.Abs(targetY-InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y));
                             if(Mathf.Abs(targetY-InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y) > viewportRect.height * 0.225f) {
                                 ScrollToSelectedLine();
                             }
