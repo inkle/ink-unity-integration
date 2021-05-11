@@ -128,7 +128,7 @@ namespace Ink.UnityIntegration {
 			public bool disableChoices;
 			public bool disableStateLoading;
 			public bool disableSettingVariables;
-
+            
 			public static InkPlayerParams Standard {
 				get {
 					return new InkPlayerParams();
@@ -285,6 +285,7 @@ namespace Ink.UnityIntegration {
 				}
 			}
 		}
+        public static Action<Story> OnDidSetStory;
 
 		private static TextAsset _storyStateTextAsset;
 		public static TextAsset storyStateTextAsset {
@@ -350,6 +351,14 @@ namespace Ink.UnityIntegration {
 			
 			public const float minScrollRectHeight = 30;
 			public const float maxScrollRectHeight = 480;
+                
+            public enum AutoScrollMode {
+                WhenAtBottom,
+                Always,
+                Off
+            }
+            // Controls when story view should scroll to the bottom when the story view changes.
+            public AutoScrollMode autoScrollMode = AutoScrollMode.WhenAtBottom;
 		}
 
 
@@ -447,14 +456,19 @@ namespace Ink.UnityIntegration {
 		static float lastOnGUITime = -1f;
 		static float lastUpdateTime = -1f;
 
-		public enum AutoScrollMode {
+        
+
+        // Lots of bits to do with the story view scroll rect
+		public enum AutoScrollSmoothingMode {
 			NONE,
 			Snap,
 			Smooth
 		}
-		static AutoScrollMode markedForScrollToBottom;
-		
-		static AutoScrollMode markedForScrollToSelectedLine;
+        
+        static float storyScrollRectBottom;
+        static bool storyScrollSnappedToBottom;
+		static AutoScrollSmoothingMode storyScrollMarkedForBottom;
+		static AutoScrollSmoothingMode storyScrollMarkedForSelectedLine;
 		static InkHistoryContentItem selectedLine;
 
         static bool mainScrollViewActive;
@@ -462,7 +476,9 @@ namespace Ink.UnityIntegration {
 		static bool doingAutoscroll;
 		static float autoscrollTarget;
 		static float autoscrollVelocity;
-		static float autoscrollSmoothTime = 0.25f;
+		static float autoscrollSmoothTime = 0.225f;
+
+
 
 		static float timeUntilNextAutomaticChoice = 0;
 		static float timeUntilNextAutomaticContinue = 0;
@@ -778,6 +794,8 @@ namespace Ink.UnityIntegration {
 			_story.onCompleteEvaluateFunction += OnCompleteEvaluateFunction;
 			_story.onChoosePathString += OnChoosePathString;
 			_story.state.onDidLoadState += OnLoadState;
+
+            if(OnDidSetStory != null) OnDidSetStory(story);
 			
 			// Recalculate function ink variables
 			foreach(var input in InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs) {
@@ -798,6 +816,9 @@ namespace Ink.UnityIntegration {
 					observedVariable.AddValueState(_story.variablesState[observedVariableName]);
 				}
 			}
+
+            RefreshVisibleHistory();
+            RefreshVisibleVariables();
 
 			InkPlayerWindowState.Instance.lastStoryWasPlaying = true;
 			InkPlayerWindowState.Save();
@@ -822,8 +843,9 @@ namespace Ink.UnityIntegration {
 		static void Clear () {
 			if(storyStateHistory != null) storyStateHistory.Clear();
 			if(storyHistory != null) storyHistory.Clear();
-            RefreshVisibleHistory();
 			story = null;
+            RefreshVisibleHistory();
+            RefreshVisibleVariables();
 		}
 		
 		static void Restart () {
@@ -846,7 +868,8 @@ namespace Ink.UnityIntegration {
 		static void AddToHistory (InkHistoryContentItem content) {
 			storyHistory.Add(content);
             RefreshVisibleHistory();
-			ScrollToBottom();
+            if(GetShouldAutoScrollOnStoryChange())
+			    ScrollToBottom();
 		}
 
 		static void AddToStateHistory () {
@@ -859,7 +882,8 @@ namespace Ink.UnityIntegration {
 			story.state.LoadJson(item.inkStateJSON);
 			storyHistory = new List<InkHistoryContentItem>(item.storyHistory);
             RefreshVisibleHistory();
-            ScrollToBottom();
+            if(GetShouldAutoScrollOnStoryChange())
+                ScrollToBottom();
 		}
 		
 		static void Redo () {
@@ -867,7 +891,8 @@ namespace Ink.UnityIntegration {
 			story.state.LoadJson(item.inkStateJSON);
 			storyHistory = new List<InkHistoryContentItem>(item.storyHistory);
 			RefreshVisibleHistory();
-            ScrollToBottom();
+            if(GetShouldAutoScrollOnStoryChange())
+                ScrollToBottom();
 		}
 
 		static void SaveStoryState (string storyStateJSON) {
@@ -891,12 +916,19 @@ namespace Ink.UnityIntegration {
 			story.state.LoadJson(storyStateJSON);
 		}
 
+        static bool GetShouldAutoScrollOnStoryChange () {
+            if(InkPlayerWindowState.Instance.storyPanelState.autoScrollMode == StoryPanelState.AutoScrollMode.Off) return false;
+            if(InkPlayerWindowState.Instance.storyPanelState.autoScrollMode == StoryPanelState.AutoScrollMode.Always) return true;
+            if(InkPlayerWindowState.Instance.storyPanelState.autoScrollMode == StoryPanelState.AutoScrollMode.WhenAtBottom && storyScrollSnappedToBottom) return true;
+            return false;
+        }
+
 		static void ScrollToBottom (bool instant = false) {
-			markedForScrollToBottom = instant ? AutoScrollMode.Snap : AutoScrollMode.Smooth;
+			storyScrollMarkedForBottom = instant ? AutoScrollSmoothingMode.Snap : AutoScrollSmoothingMode.Smooth;
 		}
 
 		static void ScrollToSelectedLine (bool instant = false) {
-			markedForScrollToSelectedLine = instant ? AutoScrollMode.Snap : AutoScrollMode.Smooth;
+			storyScrollMarkedForSelectedLine = instant ? AutoScrollSmoothingMode.Snap : AutoScrollSmoothingMode.Smooth;
 		}
 
 		static void TryContinue () {
@@ -910,8 +942,7 @@ namespace Ink.UnityIntegration {
 				ContinueStory();
 			// }
 		}
-		
-		void OnGUI () {
+        void OnGUI () {
 			HandleDragAndDrop();
 			if(searchTextFieldStyle == null) searchTextFieldStyle = GUI.skin.FindStyle("ToolbarSeachTextField");
 			if(searchCancelButtonStyle == null) searchCancelButtonStyle = GUI.skin.FindStyle("ToolbarSeachCancelButton");
@@ -926,7 +957,9 @@ namespace Ink.UnityIntegration {
 			if(doingAutoscroll) {
 				var newY = Mathf.SmoothDamp(InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y, autoscrollTarget, ref autoscrollVelocity, autoscrollSmoothTime, Mathf.Infinity, deltaTime);
 				InkPlayerWindowState.Instance.storyPanelState.scrollPosition = new Vector2(InkPlayerWindowState.Instance.storyPanelState.scrollPosition.x, newY);
-				if(Mathf.Abs(InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y - autoscrollTarget) < 0.1f) doingAutoscroll = false;
+				if(Mathf.Abs(InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y - autoscrollTarget) < 0.1f) {
+                    doingAutoscroll = false;
+                }
 			}
 
 			this.Repaint();
@@ -978,6 +1011,7 @@ namespace Ink.UnityIntegration {
 				EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
 				var headerTitle = new System.Text.StringBuilder("Attached");
 				if(attachedWhileInPlayMode != EditorApplication.isPlaying) {
+                    playerParams = InkPlayerParams.Standard;
 					if(attachedWhileInPlayMode) headerTitle.Append(" (Ex-play-mode story)");
 				}
 				GUILayout.Label(new GUIContent(headerTitle.ToString(), "This story reference has been attached from elsewhere"));
@@ -1109,19 +1143,39 @@ namespace Ink.UnityIntegration {
 			InkPlayerWindowState.Instance.storyPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.storyPanelState.showing, "Content", true);
 			
 			if(GUILayout.Button(new GUIContent("Clear", "Clears the output"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false))) {
-				storyHistory.Clear();
-				ScrollToBottom();
+				ClearStoryHistory();
 			}
-			GUILayout.Space(6);
+			GUILayout.Space(12);
 			if(GUILayout.Button(new GUIContent("Copy", "Copy the output to clipboard"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false))) {
 				CopyStoryHistoryToClipboard();
 			}
+
+			GUILayout.Space(12);
+            {
+                var lw = EditorGUIUtility.labelWidth;
+                var autoScrollGUIContent = EditorGUIUtility.IconContent("ScrollRect Icon");
+                autoScrollGUIContent.tooltip = "Autoscroll Mode";
+                EditorGUIUtility.labelWidth = 20;
+                InkPlayerWindowState.Instance.storyPanelState.autoScrollMode = (StoryPanelState.AutoScrollMode)EditorGUILayout.EnumPopup(autoScrollGUIContent, InkPlayerWindowState.Instance.storyPanelState.autoScrollMode, EditorStyles.toolbarPopup, GUILayout.Width(130));
+                EditorGUIUtility.labelWidth = lw;
+            }
+            
 			
+			GUILayout.Space(12);
 			EditorGUI.BeginChangeCheck();
             DrawVisibilityOptions();
-
+			if(EditorGUI.EndChangeCheck()) {
+                RefreshVisibleHistory();
+                if(GetShouldAutoScrollOnStoryChange())
+				    ScrollToBottom();
+			}
             void DrawVisibilityOptions () {
-                Enum newVisibilityOptions = EditorGUILayout.EnumFlagsField(GUIContent.none, InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions, EditorStyles.toolbarDropDown, GUILayout.Width(80));
+                var lw = EditorGUIUtility.labelWidth;
+                var visibilityOptionsGUIContent = EditorGUIUtility.IconContent("d_ViewToolOrbit");
+                visibilityOptionsGUIContent.tooltip = "Visiblity Options";
+                EditorGUIUtility.labelWidth = 20;
+                Enum newVisibilityOptions = EditorGUILayout.EnumFlagsField(visibilityOptionsGUIContent, InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions, EditorStyles.toolbarDropDown, GUILayout.Width(80));
+                EditorGUIUtility.labelWidth = lw;
                 InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions = (DisplayOptions.VisibilityOptions)(int)Convert.ChangeType(newVisibilityOptions, typeof(DisplayOptions.VisibilityOptions));
 
                 // TODO: tooltips for options. I'd REALLY like for it not to show "Mixed ..." in the box mais c'est la vie
@@ -1145,10 +1199,6 @@ namespace Ink.UnityIntegration {
 
                 // InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions = (DisplayOptions.VisibilityOptions)EditorGUI.MaskField(position, (int)enumValue, displayNames, style);
             }
-			if(EditorGUI.EndChangeCheck()) {
-                RefreshVisibleHistory();
-				ScrollToBottom();
-			}
 
 			bool changed = DrawSearchBar(ref InkPlayerWindowState.Instance.storyPanelState.searchString);
 			if(changed) {
@@ -1159,6 +1209,12 @@ namespace Ink.UnityIntegration {
 
 			EditorGUILayout.EndHorizontal();
 		}
+
+        void ClearStoryHistory () {
+            storyHistory.Clear();
+            RefreshVisibleHistory();
+            ScrollToBottom();
+        }
 
 		void CopyStoryHistoryToClipboard () {
 			StringBuilder sb = new StringBuilder("Story Log\n");
@@ -1176,7 +1232,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		static bool ShouldShowContentWithSearchString (string contentString, string searchString) {
-			if(StringContains(contentString, InkPlayerWindowState.Instance.storyPanelState.searchString, StringComparison.OrdinalIgnoreCase)) return true;
+			if(StringContains(contentString, searchString, StringComparison.OrdinalIgnoreCase)) return true;
 			return false;
 		}
 
@@ -1207,9 +1263,9 @@ namespace Ink.UnityIntegration {
 			return false;
 		}
 		
-		static List<InkHistoryContentItem> validHistory = new List<InkHistoryContentItem>();
+		static List<InkHistoryContentItem> visibleHistory = new List<InkHistoryContentItem>();
 		static void RefreshVisibleHistory () {
-			validHistory.Clear();
+			visibleHistory.Clear();
 			bool doingSearch = !string.IsNullOrWhiteSpace(InkPlayerWindowState.Instance.storyPanelState.searchString);
 			var visibilityOpts = InkPlayerWindowState.Instance.storyPanelState.displayOptions.visibilityOptions;
 			var count = storyHistory.Count;
@@ -1217,10 +1273,11 @@ namespace Ink.UnityIntegration {
 				var content = storyHistory[i];
 				if(doingSearch && !ShouldShowContentWithSearchString(content.content, InkPlayerWindowState.Instance.storyPanelState.searchString)) continue;
 				if(!ShouldShowContent(content, visibilityOpts)) continue;
-				validHistory.Add(content);
+				visibleHistory.Add(content);
 			}
 		}
-		void DisplayStoryBody () {	
+
+        void DisplayStoryBody () {	
 			float contentMarginXY = 4;
 			float contentSpacing = 8;
 			
@@ -1254,8 +1311,8 @@ namespace Ink.UnityIntegration {
 			int selectedLineIndex = -1;
 			float selectedLineY = -1;
 
-			for(int i = 0; i < validHistory.Count; i++) {
-				var content = validHistory[i];
+			for(int i = 0; i < visibleHistory.Count; i++) {
+				var content = visibleHistory[i];
 				heights[i] = EditorStyles.wordWrappedLabel.CalcHeight(new GUIContent(content.content), contentWidth);
 				if(showTags) {
 					var tagsHeight = EditorStyles.wordWrappedLabel.CalcHeight(new GUIContent(GetTagsString(content.tags)), tagsWidth);
@@ -1271,8 +1328,8 @@ namespace Ink.UnityIntegration {
 
             void OnRefreshSelectedLine () {
                 float _totalHeight = 0;
-                for(int i = 0; i < validHistory.Count; i++) {
-                    var content = validHistory[i];
+                for(int i = 0; i < visibleHistory.Count; i++) {
+                    var content = visibleHistory[i];
                     if(content == selectedLine) {
                         selectedLineIndex = i;
                         selectedLineY = _totalHeight;
@@ -1284,14 +1341,32 @@ namespace Ink.UnityIntegration {
 			if(Event.current.type == EventType.Repaint) {
 				InkPlayerWindowState.Instance.storyPanelState.y = lastRect.yMax;
 			}
+
 			var viewportRect = new Rect(0, lastRect.yMax, position.width, InkPlayerWindowState.Instance.storyPanelState.height);
             if(mainScrollViewActive) viewportRect.width -= GUI.skin.verticalScrollbar.fixedWidth;
 			var containerRect = new Rect(0,0,containerWidth, totalHeight);
+
+
+            var showScrollToBottomButton = (totalHeight - viewportRect.height) - (doingAutoscroll ? autoscrollTarget : InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y) > 100;
+            var scrollToBottomButtonRect = new Rect(viewportRect.center.x - 80, viewportRect.yMax-40, 160, 32);
+            
+            if(showScrollToBottomButton) {
+                EditorGUIUtility.AddCursorRect(scrollToBottomButtonRect, MouseCursor.Link);
+                if(Event.current.type == EventType.MouseDown && Event.current.button == 0 && scrollToBottomButtonRect.Contains(Event.current.mousePosition)) {
+                    GUI.FocusControl(null);
+                    ScrollToBottom();
+                    Event.current.Use();
+                }
+            }
+
+            storyScrollRectBottom = totalHeight - viewportRect.height;
+
 			
 			var newScrollPos = GUI.BeginScrollView(viewportRect, InkPlayerWindowState.Instance.storyPanelState.scrollPosition, containerRect, false, true);
 			if(newScrollPos != InkPlayerWindowState.Instance.storyPanelState.scrollPosition) {
 				doingAutoscroll = false;
 				InkPlayerWindowState.Instance.storyPanelState.scrollPosition = newScrollPos;
+                storyScrollSnappedToBottom = storyScrollRectBottom - InkPlayerWindowState.Instance.storyPanelState.scrollPosition.y < 0.1f;
 			}
 
 			var y = 0f;
@@ -1301,17 +1376,19 @@ namespace Ink.UnityIntegration {
 			// var log = "";
 
 			// This appears to be necessary, else the selected text moves around when scrolling!
-			if(doingAutoscroll) {
-				GUI.FocusControl(null);
-			}
+			// if(doingAutoscroll) {
+			// 	GUI.FocusControl(null);
+			// }
+            
 
-			for(int i = 0; i < validHistory.Count; i++) {
+
+			for(int i = 0; i < visibleHistory.Count; i++) {
 				var endY = y + heights[i];
 				if(panelTop <= endY && panelBottom >= y) {
 					// if(numShown == 0) {
 					//     log += "Total space "+totalHeight+" Scroll "+InkPlayerWindowState.Instance.storyPanelState.storyScrollPosition.y+" Space "+y+", showing: ";
 					// }
-					var content = validHistory[i];
+					var content = visibleHistory[i];
 					var lineContainerRect = new Rect(0, y, containerWidth, heights[i]);
 					var lineRect = new Rect(lineContainerRect.x + contentMarginXY, lineContainerRect.y + contentMarginXY, lineContainerRect.width - contentMarginXY * 2, lineContainerRect.height - contentMarginXY * 2);
 					
@@ -1320,6 +1397,7 @@ namespace Ink.UnityIntegration {
 					else lineStyle = i % 2 == 0 ? historyItemBGStyleDark.guiStyle : historyItemBGStyleLight.guiStyle;
 					
 					GUI.Box(lineContainerRect, GUIContent.none, lineStyle);
+                    EditorGUIUtility.AddCursorRect(lineContainerRect, MouseCursor.ArrowPlus);
 					if(Event.current.type == EventType.MouseDown && lineContainerRect.Contains(Event.current.mousePosition)) {
 						if(Event.current.button == 0) {
 							selectedLine = content;
@@ -1358,7 +1436,7 @@ namespace Ink.UnityIntegration {
 					}
 
 					if(Event.current.type == EventType.MouseDown && lineContainerRect.Contains(Event.current.mousePosition)) {
-						if(Event.current.button == 1) {
+                        if(Event.current.button == 1) {
 							if(GUI.GetNameOfFocusedControl() != content.GetHashCode().ToString()) {
 								GUI.FocusControl(null);
 								var contextMenu = new GenericMenu();
@@ -1400,32 +1478,41 @@ namespace Ink.UnityIntegration {
 			}
 
 			GUI.EndScrollView();
+
+            if(showScrollToBottomButton) {
+                GUI.Box(scrollToBottomButtonRect, "Scroll to bottom", GUI.skin.button);
+            }
+
 			GUILayout.Space(viewportRect.height);
 
+
+
 			if(Event.current.type == EventType.Layout) {
-				if(markedForScrollToBottom != AutoScrollMode.NONE) {
+				if(storyScrollMarkedForBottom != AutoScrollSmoothingMode.NONE) {
 					var targetPosition = totalHeight - viewportRect.height;
-					if(markedForScrollToBottom == AutoScrollMode.Smooth) {
+					if(storyScrollMarkedForBottom == AutoScrollSmoothingMode.Smooth) {
 						doingAutoscroll = true;
 						autoscrollTarget = targetPosition;
-					} else if(markedForScrollToBottom == AutoScrollMode.Snap) {
+					} else if(storyScrollMarkedForBottom == AutoScrollSmoothingMode.Snap) {
 						doingAutoscroll = false;
 						InkPlayerWindowState.Instance.storyPanelState.scrollPosition = new Vector2(InkPlayerWindowState.Instance.storyPanelState.scrollPosition.x, targetPosition);
 					}
 					autoscrollVelocity = 0;
-					markedForScrollToBottom = AutoScrollMode.NONE;
+                    storyScrollSnappedToBottom = true;
+					storyScrollMarkedForBottom = AutoScrollSmoothingMode.NONE;
 				}
-				if(markedForScrollToSelectedLine != AutoScrollMode.NONE && selectedLineIndex != -1) {
+				if(storyScrollMarkedForSelectedLine != AutoScrollSmoothingMode.NONE && selectedLineIndex != -1) {
 					var targetPosition = GetTargetScrollPositionToCenterStoryLine(selectedLineIndex);
-					if(markedForScrollToSelectedLine == AutoScrollMode.Smooth) {
+					if(storyScrollMarkedForSelectedLine == AutoScrollSmoothingMode.Smooth) {
 						doingAutoscroll = true;
 						autoscrollTarget = targetPosition;
-					} else if(markedForScrollToSelectedLine == AutoScrollMode.Snap) {
+					} else if(storyScrollMarkedForSelectedLine == AutoScrollSmoothingMode.Snap) {
 						doingAutoscroll = false;
 						InkPlayerWindowState.Instance.storyPanelState.scrollPosition = new Vector2(InkPlayerWindowState.Instance.storyPanelState.scrollPosition.x, targetPosition);
 					}
 					autoscrollVelocity = 0;
-					markedForScrollToSelectedLine = AutoScrollMode.NONE;
+                    storyScrollSnappedToBottom = (storyScrollRectBottom+viewportRect.height * 0.5f) - targetPosition < 0.1f;
+					storyScrollMarkedForSelectedLine = AutoScrollSmoothingMode.NONE;
 				}
 			}
 
@@ -1750,6 +1837,7 @@ namespace Ink.UnityIntegration {
                 try {
                     // We might optimise this by caching story.ToJson() - we could use this in other places too.
                     var tmpStory = new Story(story.ToJson());
+			        tmpStory.allowExternalFunctionFallbacks = true;
                     var state = story.state.ToJson();
                     tmpStory.state.LoadJson(state);
 				    tmpStory.ChoosePathString(currentPath);
@@ -1865,6 +1953,8 @@ namespace Ink.UnityIntegration {
 					EditorGUILayout.FloatField("Output (Float)", (float)InkPlayerWindowState.Instance.functionPanelState.functionReturnValue);
 				} else if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue is int) {
 					EditorGUILayout.IntField("Output (Int)", (int)InkPlayerWindowState.Instance.functionPanelState.functionReturnValue);
+				} else if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue is bool) {
+					EditorGUILayout.Toggle("Output (Bool)", (bool)InkPlayerWindowState.Instance.functionPanelState.functionReturnValue);
 				} else if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue is InkList) {
 					EditorGUILayoutInkListField(new GUIContent("Output (InkList)"), (InkList)InkPlayerWindowState.Instance.functionPanelState.functionReturnValue);
 				} else {
@@ -1951,7 +2041,10 @@ namespace Ink.UnityIntegration {
 
 			EditorGUI.BeginDisabledGroup(!InkPlayerWindowState.Instance.variablesPanelState.showing);
 			bool changed = DrawSearchBar(ref InkPlayerWindowState.Instance.variablesPanelState.searchString);
-			if(changed) InkPlayerWindowState.Instance.variablesPanelState.scrollPosition = Vector2.zero;
+			if(changed) {
+                RefreshVisibleVariables();
+                InkPlayerWindowState.Instance.variablesPanelState.scrollPosition = Vector2.zero;
+            }
 			EditorGUI.EndDisabledGroup();
 
 			EditorGUILayout.EndHorizontal();
@@ -1962,7 +2055,7 @@ namespace Ink.UnityIntegration {
 			InkPlayerWindowState.Instance.variablesPanelState.scrollPosition = EditorGUILayout.BeginScrollView(InkPlayerWindowState.Instance.variablesPanelState.scrollPosition);
 			string variableToChange = null;
 			object newVariableValue = null;
-			foreach(string variable in story.variablesState) {
+			foreach(string variable in visibleVariables) {
 				DrawObservableVariable(variable, ref variableToChange, ref newVariableValue);
 			}
 			if(variableToChange != null) {
@@ -1976,15 +2069,24 @@ namespace Ink.UnityIntegration {
 			GUILayout.EndVertical();
 		}
 
+        static List<string> visibleVariables = new List<string>();
+		static void RefreshVisibleVariables () {
+			visibleVariables.Clear();
+            if(story == null) return;
+			bool doingSearch = !string.IsNullOrWhiteSpace(InkPlayerWindowState.Instance.variablesPanelState.searchString);
+			foreach(string variable in story.variablesState) {
+				if(doingSearch && !ShouldShowContentWithSearchString(variable, InkPlayerWindowState.Instance.variablesPanelState.searchString)) continue;
+				visibleVariables.Add(variable);
+			}
+		}
+
         // TODO - only draw those that are visible in the scroll rect, as we do for content. Important for performance on larger projects.
         void DrawObservableVariable (string variable, ref string variableToChange, ref object newVariableValue) {
             if(!SearchStringMatch(variable, InkPlayerWindowState.Instance.variablesPanelState.searchString)) 
                 return;
             EditorGUILayout.BeginHorizontal();
             object variableValue = story.variablesState[variable];
-            EditorGUI.BeginChangeCheck();
-            variableValue = DrawVariable(new GUIContent(variable), variable, variableValue);
-            if(EditorGUI.EndChangeCheck() && story.variablesState[variable] != variableValue) {
+            if(DrawVariableLayout(new GUIContent(variable), variable, ref variableValue, "observable")) {
                 variableToChange = variable;
                 newVariableValue = variableValue;
             }
@@ -2037,26 +2139,32 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		object DrawVariable (GUIContent guiContent, string variableName, object variableValue) {
-			EditorGUILayout.BeginHorizontal();
+		bool DrawVariableLayout (GUIContent guiContent, string variableName, ref object variableValue, string expandedIDModifier) {
+			var lastVariableValue = variableValue;
+            var anythingChanged = false;
+            EditorGUILayout.BeginHorizontal();
 			if(variableValue is string) {
 				EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
-				variableValue = EditorGUILayout.TextField(guiContent, (string)variableValue);
+				variableValue = EditorGUILayout.DelayedTextField(guiContent, (string)variableValue);
+                anythingChanged = lastVariableValue != variableValue;
 				EditorGUI.EndDisabledGroup();
 			} else if(variableValue is float) {
 				EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.FloatField(guiContent, (float)variableValue);
+                anythingChanged = lastVariableValue != variableValue;
 				EditorGUI.EndDisabledGroup();
 			} else if(variableValue is int) {
 				EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.IntField(guiContent, (int)variableValue);
+                anythingChanged = lastVariableValue != variableValue;
 				EditorGUI.EndDisabledGroup();
 			} else if(variableValue is bool) {
 				EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.Toggle(guiContent, (bool)variableValue);
+                anythingChanged = lastVariableValue != variableValue;
 				EditorGUI.EndDisabledGroup();
 			} else if(variableValue is InkList) {
-				EditorGUILayoutInkListField(guiContent, (InkList)variableValue, variableName);
+				anythingChanged = EditorGUILayoutInkListField(guiContent, (InkList)variableValue, variableName+expandedIDModifier);
 			} else if(variableValue is Ink.Runtime.Path) {
 				var c = new GUIContent(((Ink.Runtime.Path)variableValue).ToString()+" (Ink.Runtime.Path)");
 				EditorGUILayout.LabelField(guiContent, c);
@@ -2066,7 +2174,7 @@ namespace Ink.UnityIntegration {
 				EditorGUILayout.LabelField(guiContent, new GUIContent("InkPlayerError: Variable is of unexpected type "+variableValue.GetType().Name+"."));
 			}
 			EditorGUILayout.EndHorizontal();
-			return variableValue;
+			return anythingChanged;
 		}
 
 		object DrawVariable (Rect rect, GUIContent variable, object variableValue) {
@@ -2133,7 +2241,7 @@ namespace Ink.UnityIntegration {
 				observedVariable.scrollPosition = EditorGUILayout.BeginScrollView(observedVariable.scrollPosition, GUI.skin.box);
 				
 				foreach(var value in observedVariable.values) {
-					DrawVariable(new GUIContent(value.dateTime.ToLongTimeString()), observedVariable.variable, value.state);
+					DrawVariableLayout(new GUIContent(value.dateTime.ToLongTimeString()), observedVariable.variable, ref value.state, "observed"+value.GetHashCode().ToString());
 				}
 				
 				EditorGUILayout.EndScrollView();
@@ -2309,8 +2417,9 @@ namespace Ink.UnityIntegration {
         }
 
 
-		static void EditorGUILayoutInkListField (GUIContent guiContent, InkList inkList, string expandedVariableKey = null) {
-			if(inkList.Any()) {
+		static bool EditorGUILayoutInkListField (GUIContent guiContent, InkList inkList, string expandedVariableKey = null) {
+			var anythingChanged = false;
+            // if(inkList.Any()) {
 				var show = expandedVariableKey == null ? true : InkPlayerWindowState.Instance.variablesPanelState.expandedVariables.Contains(expandedVariableKey);
 				var c = new GUIContent(guiContent);
 				c.text += " (InkList with "+inkList.Count+" entries)";
@@ -2325,24 +2434,47 @@ namespace Ink.UnityIntegration {
 				
 				if(show) {
 					EditorGUI.indentLevel++;
-					foreach(var item in inkList) {
+					var isOrigin = inkList.origins == null;
+                    var list = isOrigin ? inkList : inkList.all;
+                    List<KeyValuePair<InkListItem, int>> toAdd = null;
+                    List<InkListItem> toRemove = null;
+                    foreach(var item in list) {
 						EditorGUILayout.BeginHorizontal();
 						EditorGUILayout.LabelField(new GUIContent(item.Key.fullName));
 						// Disabled until I can be bothered to integrate this into the change detection system
+						var contains = inkList.Contains(item);
+						var newContains = EditorGUILayout.Toggle(contains, GUILayout.Width(100));
+                        if(contains != newContains) {
+                            if(newContains) {
+                                if(toAdd == null) toAdd = new List<KeyValuePair<InkListItem, int>>();
+                                toAdd.Add(item);
+                            } else {
+                                if(toRemove == null) toRemove = new List<InkListItem>();
+                                toRemove.Add(item.Key);
+                            }
+                            anythingChanged = true;
+                        }
 						EditorGUI.BeginDisabledGroup(true);
 						EditorGUILayout.IntField(item.Value, GUILayout.Width(100));
 						EditorGUI.EndDisabledGroup();
 						EditorGUILayout.EndHorizontal();
 					}
+                    if(toAdd != null)
+                        foreach(var item in toAdd)
+                            inkList.Add(item.Key, item.Value);
+                    if(toRemove != null)
+                        foreach(var item in toRemove)
+                            inkList.Remove(item);
 					EditorGUI.indentLevel--;
 				}
 				EditorGUILayout.EndVertical();
-			} else {
-				var c = new GUIContent(guiContent);
-				c.text += " (InkList)";
-				EditorGUILayout.PrefixLabel(c);
-				EditorGUILayout.LabelField("Empty");
-			}
+			// } else {
+			// 	var c = new GUIContent(guiContent);
+			// 	c.text += " (InkList)";
+			// 	EditorGUILayout.PrefixLabel(c);
+			// 	EditorGUILayout.LabelField("Empty");
+			// }
+            return anythingChanged;
 		}
 
 		// static void EditorGUILayoutInkListField (string text, InkList inkList) {
