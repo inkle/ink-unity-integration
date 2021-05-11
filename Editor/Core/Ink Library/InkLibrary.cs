@@ -173,9 +173,6 @@ namespace Ink.UnityIntegration {
                 if(!instance.inkLibraryDictionary.ContainsKey(inkFile.inkAsset)) {
                     return true;
                 }
-                if(inkFile.inkAsset == null) {
-                    return true;
-                }
                 foreach(var include in inkFile.includes) {
                     if(include == null) {
                         return true;
