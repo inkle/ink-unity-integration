@@ -168,6 +168,7 @@ namespace Ink.UnityIntegration {
                     return true;
                 }
                 if(inkFile.inkAsset == null) {
+                    // This can occur when the asset has not yet been imported!
                     return true;
                 }
                 if(!instance.inkLibraryDictionary.ContainsKey(inkFile.inkAsset)) {
