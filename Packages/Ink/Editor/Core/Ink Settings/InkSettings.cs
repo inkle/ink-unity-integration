@@ -66,7 +66,7 @@ namespace Ink.UnityIntegration {
 
 		
 		
-		public TextAsset templateFile;
+		public DefaultAsset templateFile;
 		public string templateFilePath {
 			get {
 				if(templateFile == null) return "";
