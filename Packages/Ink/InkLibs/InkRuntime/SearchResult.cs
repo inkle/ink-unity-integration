@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE1006
+
+using System;
 namespace Ink.Runtime
 {
     // When looking up content within the story (e.g. in Container.ContentAtPath),

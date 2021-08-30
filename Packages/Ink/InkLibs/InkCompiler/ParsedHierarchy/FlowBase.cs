@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#pragma warning disable IDE1006
+
+using System.Collections.Generic;
 
 namespace Ink.Parsed
 {
@@ -186,7 +188,9 @@ namespace Ink.Parsed
                 }
             }
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var container = new Runtime.Container ();
+#pragma warning restore IDE0017 // Simplify object initialization
             container.name = identifier?.name;
 
             if( this.story.countAllVisits ) {
@@ -212,7 +216,9 @@ namespace Ink.Parsed
                 // Inner knots and stitches
                 if (obj is FlowBase) {
 
+#pragma warning disable IDE0020 // Use pattern matching
                     var childFlow = (FlowBase)obj;
+#pragma warning restore IDE0020 // Use pattern matching
 
                     var childFlowRuntime = childFlow.runtimeObject;
 
@@ -227,7 +233,9 @@ namespace Ink.Parsed
 
                     // Check for duplicate knots/stitches with same name
                     var namedChild = (Runtime.INamedContent)childFlowRuntime;
+#pragma warning disable IDE0018 // Inline variable declaration
                     Runtime.INamedContent existingChild = null;
+#pragma warning restore IDE0018 // Inline variable declaration
                     if (container.namedContent.TryGetValue(namedChild.name, out existingChild) ) {
                         var errorMsg = string.Format ("{0} already contains flow named '{1}' (at {2})",
                             this.GetType().Name,
@@ -292,7 +300,9 @@ namespace Ink.Parsed
 
             if ( level == FlowLevel.WeavePoint || level == null ) {
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 Parsed.Object weavePointResult = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
                 if (_rootWeave) {
                     weavePointResult = (Parsed.Object)_rootWeave.WeavePointNamed (name);
@@ -310,7 +320,11 @@ namespace Ink.Parsed
             if (level != null && level < this.flowLevel)
                 return null;
 
+#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             FlowBase subFlow = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+#pragma warning restore IDE0018 // Inline variable declaration
 
             if (_subFlowsByName.TryGetValue (name, out subFlow)) {
                 if (level == null || level == subFlow.flowLevel)

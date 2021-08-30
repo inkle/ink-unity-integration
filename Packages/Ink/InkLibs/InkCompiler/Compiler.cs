@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE1006
+
+using System;
 using System.Collections.Generic;
 using Ink;
 
@@ -107,7 +109,9 @@ namespace Ink
            // Variable assignment: create in Parsed.Story as well as the Runtime.Story
            // so that we don't get an error message during reference resolution
            if (parsedObj is Parsed.VariableAssignment) {
+#pragma warning disable IDE0020 // Use pattern matching
                var varAssign = (Parsed.VariableAssignment)parsedObj;
+#pragma warning restore IDE0020 // Use pattern matching
                if (varAssign.isNewTemporaryDeclaration) {
                    _parsedStory.TryAddNewVariableDeclaration (varAssign);
                }
@@ -145,7 +149,9 @@ namespace Ink
             foreach (var outputObj in _runtimeStory.state.outputStream) {
                 var textContent = outputObj as Runtime.StringValue;
                 if (textContent != null) {
+#pragma warning disable IDE0017 // Simplify object initialization
                     var range = new DebugSourceRange ();
+#pragma warning restore IDE0017 // Simplify object initialization
                     range.length = textContent.value.Length;
                     range.debugMetadata = textContent.debugMetadata;
                     range.text = textContent.value;
@@ -192,18 +198,28 @@ namespace Ink
                 throw new System.Exception(message);
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         string _inputString;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
         Options _options;
+#pragma warning restore IDE0044 // Add readonly modifier
 
 
         InkParser _parser;
         Parsed.Story _parsedStory;
         Runtime.Story _runtimeStory;
 
+#pragma warning disable IDE0044 // Add readonly modifier
         PluginManager _pluginManager;
+#pragma warning restore IDE0044 // Add readonly modifier
 
         bool _hadParseError;
 
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
         List<DebugSourceRange> _debugSourceRanges = new List<DebugSourceRange> ();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }

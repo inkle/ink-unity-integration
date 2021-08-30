@@ -1,3 +1,5 @@
+#pragma warning disable IDE1006
+
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -19,7 +21,9 @@ namespace Ink.Runtime
                 AddContent (value);
             }
         }
+#pragma warning disable IDE0044 // Add readonly modifier
         List<Runtime.Object> _content;
+#pragma warning restore IDE0044 // Add readonly modifier
 
 		public Dictionary<string, INamedContent> namedContent { get; set; }
 
@@ -31,7 +35,9 @@ namespace Ink.Runtime
                 }
 
                 foreach (var c in content) {
+#pragma warning disable IDE0019 // Use pattern matching
                     var named = c as INamedContent;
+#pragma warning restore IDE0019 // Use pattern matching
                     if (named != null && named.hasValidName) {
                         namedOnlyContentDict.Remove (named.name);
                     }
@@ -54,7 +60,9 @@ namespace Ink.Runtime
                     return;
                 
                 foreach (var kvPair in value) {
+#pragma warning disable IDE0019 // Use pattern matching
                     var named = kvPair.Value as INamedContent;
+#pragma warning restore IDE0019 // Use pattern matching
                     if( named != null )
                         AddToNamedContentOnly (named);
                 }
@@ -172,7 +180,9 @@ namespace Ink.Runtime
             
 		public void TryAddNamedContent(Runtime.Object contentObj)
 		{
+#pragma warning disable IDE0019 // Use pattern matching
 			var namedContentObj = contentObj as INamedContent;
+#pragma warning restore IDE0019 // Use pattern matching
 			if (namedContentObj != null && namedContentObj.hasValidName) {
 				AddToNamedContentOnly (namedContentObj);
 			}
@@ -217,7 +227,11 @@ namespace Ink.Runtime
             }
 
             else {
+#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 INamedContent foundContent = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+#pragma warning restore IDE0018 // Inline variable declaration
                 if (namedContent.TryGetValue (component.name, out foundContent)) {
                     return (Runtime.Object)foundContent;
                 } else {
@@ -231,7 +245,9 @@ namespace Ink.Runtime
             if (partialPathLength == -1)
                 partialPathLength = path.length;
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var result = new SearchResult ();
+#pragma warning restore IDE0017 // Simplify object initialization
             result.approximate = false;
 
             Container currentContainer = this;
@@ -265,7 +281,9 @@ namespace Ink.Runtime
          
         public void BuildStringOfHierarchy(StringBuilder sb, int indentation, Runtime.Object pointedObj)
         {
+#pragma warning disable IDE0039 // Use local function
             Action appendIndentation = () => { 
+#pragma warning restore IDE0039 // Use local function
                 const int spacesPerIndent = 4;
                 for(int i=0; i<spacesPerIndent*indentation;++i) { 
                     sb.Append(" "); 
@@ -293,7 +311,9 @@ namespace Ink.Runtime
 
                 if (obj is Container) {
 
+#pragma warning disable IDE0020 // Use pattern matching
                     var container = (Container)obj;
+#pragma warning restore IDE0020 // Use pattern matching
 
                     container.BuildStringOfHierarchy (sb, indentation, pointedObj);
 

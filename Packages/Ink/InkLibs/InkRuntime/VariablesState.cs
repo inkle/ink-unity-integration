@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE1006
+
+using System;
 using System.Collections.Generic;
 
 namespace Ink.Runtime
@@ -63,7 +65,9 @@ namespace Ink.Runtime
         public object this[string variableName]
         {
             get {
+#pragma warning disable IDE0018 // Inline variable declaration
                 Runtime.Object varContents;
+#pragma warning restore IDE0018 // Inline variable declaration
 
                 if (patch != null && patch.TryGetGlobal(variableName, out varContents))
                     return (varContents as Runtime.Value).valueObject;
@@ -135,7 +139,9 @@ namespace Ink.Runtime
             _globalVariables.Clear();
 
             foreach (var varVal in _defaultGlobalVariables) {
+#pragma warning disable IDE0018 // Inline variable declaration
                 object loadedToken;
+#pragma warning restore IDE0018 // Inline variable declaration
                 if( jToken.TryGetValue(varVal.Key, out loadedToken) ) {
                     _globalVariables[varVal.Key] = Json.JTokenToRuntimeObject(loadedToken);
                 } else {
@@ -166,7 +172,9 @@ namespace Ink.Runtime
 
                 if(dontSaveDefaultValues) {
                     // Don't write out values that are the same as the default global values
+#pragma warning disable IDE0018 // Inline variable declaration
                     Runtime.Object defaultVal;
+#pragma warning restore IDE0018 // Inline variable declaration
                     if (_defaultGlobalVariables.TryGetValue(name, out defaultVal))
                     {
                         if (RuntimeObjectsEqual(val, defaultVal))
@@ -220,7 +228,11 @@ namespace Ink.Runtime
 
         public Runtime.Object TryGetDefaultVariableValue (string name)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             Runtime.Object val = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+#pragma warning restore IDE0018 // Inline variable declaration
             _defaultGlobalVariables.TryGetValue (name, out val);
             return val;
         }
@@ -245,7 +257,9 @@ namespace Ink.Runtime
 
         Runtime.Object GetRawVariableWithName(string name, int contextIndex)
         {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             Runtime.Object varValue = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
             // 0 context = global
             if (contextIndex == 0 || contextIndex == -1) {
@@ -286,7 +300,9 @@ namespace Ink.Runtime
             int contextIndex = -1;
 
             // Are we assigning to a global variable?
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             bool setGlobal = false;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
             if (varAss.isNewDeclaration) {
                 setGlobal = varAss.isGlobal;
             } else {
@@ -308,7 +324,9 @@ namespace Ink.Runtime
             else {
 
                 // De-reference variable reference to point to
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 VariablePointerValue existingPointer = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
                 do {
                     existingPointer = GetRawVariableWithName (name, contextIndex) as VariablePointerValue;
                     if (existingPointer) {
@@ -332,7 +350,9 @@ namespace Ink.Runtime
             _defaultGlobalVariables = new Dictionary<string, Object> (_globalVariables);
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         void RetainListOriginsForAssignment (Runtime.Object oldValue, Runtime.Object newValue)
+#pragma warning restore IDE0051 // Remove unused private members
         {
             var oldList = oldValue as ListValue;
             var newList = newValue as ListValue;
@@ -342,7 +362,11 @@ namespace Ink.Runtime
 
         public void SetGlobal(string variableName, Runtime.Object value)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             Runtime.Object oldValue = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+#pragma warning restore IDE0018 // Inline variable declaration
             if( patch == null || !patch.TryGetGlobal(variableName, out oldValue) )
                 _globalVariables.TryGetValue (variableName, out oldValue);
 
@@ -404,14 +428,18 @@ namespace Ink.Runtime
             return _callStack.currentElementIndex;
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         Dictionary<string, Runtime.Object> _globalVariables;
+#pragma warning restore IDE0044 // Add readonly modifier
 
         Dictionary<string, Runtime.Object> _defaultGlobalVariables;
 
         // Used for accessing temporary variables
         CallStack _callStack;
         HashSet<string> _changedVariablesForBatchObs;
+#pragma warning disable IDE0044 // Add readonly modifier
         ListDefinitionsOrigin _listDefsOrigin;
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }
 

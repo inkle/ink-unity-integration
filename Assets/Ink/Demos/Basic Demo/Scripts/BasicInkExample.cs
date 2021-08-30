@@ -7,7 +7,9 @@ using Ink.Runtime;
 public class BasicInkExample : MonoBehaviour {
     public static event Action<Story> OnCreateStory;
 	
+#pragma warning disable IDE0051 // Remove unused private members
     void Awake () {
+#pragma warning restore IDE0051 // Remove unused private members
 		// Remove the default message
 		RemoveChildren();
 		StartStory();
@@ -16,7 +18,9 @@ public class BasicInkExample : MonoBehaviour {
 	// Creates a new Story object with the compiled story which we can then play!
 	void StartStory () {
 		story = new Story (inkJSONAsset.text);
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
         if(OnCreateStory != null) OnCreateStory(story);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
 		RefreshView();
 	}
 	
@@ -96,15 +100,23 @@ public class BasicInkExample : MonoBehaviour {
 	}
 
 	[SerializeField]
+#pragma warning disable IDE0044 // Add readonly modifier
 	private TextAsset inkJSONAsset = null;
+#pragma warning restore IDE0044 // Add readonly modifier
 	public Story story;
 
 	[SerializeField]
+#pragma warning disable IDE0044 // Add readonly modifier
 	private Canvas canvas = null;
+#pragma warning restore IDE0044 // Add readonly modifier
 
 	// UI Prefabs
 	[SerializeField]
+#pragma warning disable IDE0044 // Add readonly modifier
 	private Text textPrefab = null;
+#pragma warning restore IDE0044 // Add readonly modifier
 	[SerializeField]
+#pragma warning disable IDE0044 // Add readonly modifier
 	private Button buttonPrefab = null;
+#pragma warning restore IDE0044 // Add readonly modifier
 }

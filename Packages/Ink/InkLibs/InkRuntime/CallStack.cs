@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#pragma warning disable IDE1006
+
+using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 
@@ -32,7 +34,9 @@ namespace Ink.Runtime
 
             public Element Copy()
             {
+#pragma warning disable IDE0017 // Simplify object initialization
                 var copy = new Element (this.type, currentPointer, this.inExpressionEvaluation);
+#pragma warning restore IDE0017 // Simplify object initialization
                 copy.temporaryVariables = new Dictionary<string,Object>(this.temporaryVariables);
                 copy.evaluationStackHeightWhenPushed = evaluationStackHeightWhenPushed;
                 copy.functionStartInOuputStream = functionStartInOuputStream;
@@ -63,7 +67,9 @@ namespace Ink.Runtime
                     Pointer pointer = Pointer.Null;
 
 					string currentContainerPathStr = null;
+#pragma warning disable IDE0018 // Inline variable declaration
 					object currentContainerPathStrToken;
+#pragma warning restore IDE0018 // Inline variable declaration
 					if (jElementObj.TryGetValue ("cPath", out currentContainerPathStrToken)) {
 						currentContainerPathStr = currentContainerPathStrToken.ToString ();
 
@@ -81,7 +87,9 @@ namespace Ink.Runtime
 
 					var el = new Element (pushPopType, pointer, inExpressionEvaluation);
 
+#pragma warning disable IDE0018 // Inline variable declaration
                     object temps;
+#pragma warning restore IDE0018 // Inline variable declaration
                     if ( jElementObj.TryGetValue("temp", out temps) ) {
                         el.temporaryVariables = Json.JObjectToDictionaryRuntimeObjs((Dictionary<string, object>)temps);
                     } else {
@@ -91,7 +99,9 @@ namespace Ink.Runtime
 					callstack.Add (el);
 				}
 
+#pragma warning disable IDE0018 // Inline variable declaration
 				object prevContentObjPath;
+#pragma warning restore IDE0018 // Inline variable declaration
 				if( jThreadObj.TryGetValue("previousContentObject", out prevContentObjPath) ) {
 					var prevPath = new Path((string)prevContentObjPath);
                     previousPointer = storyContext.PointerAtPath(prevPath);
@@ -99,7 +109,9 @@ namespace Ink.Runtime
 			}
 
             public Thread Copy() {
+#pragma warning disable IDE0017 // Simplify object initialization
                 var copy = new Thread ();
+#pragma warning restore IDE0017 // Simplify object initialization
                 copy.threadIndex = threadIndex;
                 foreach(var e in callstack) {
                     copy.callstack.Add(e.Copy());
@@ -212,7 +224,9 @@ namespace Ink.Runtime
 
         public void Reset() 
         {
+#pragma warning disable IDE0028 // Simplify collection initialization
             _threads = new List<Thread>();
+#pragma warning restore IDE0028 // Simplify collection initialization
             _threads.Add(new Thread());
 
             _threads[0].callstack.Add(new Element(PushPopType.Tunnel, _startOfRoot));
@@ -306,11 +320,13 @@ namespace Ink.Runtime
         public void Push(PushPopType type, int externalEvaluationStackHeight = 0, int outputStreamLengthWithPushed = 0)
         {
             // When pushing to callstack, maintain the current content path, but jump out of expressions by default
+#pragma warning disable IDE0017 // Simplify object initialization
             var element = new Element (
                 type, 
                 currentElement.currentPointer,
                 inExpressionEvaluation: false
             );
+#pragma warning restore IDE0017 // Simplify object initialization
 
             element.evaluationStackHeightWhenPushed = externalEvaluationStackHeight;
             element.functionStartInOuputStream = outputStreamLengthWithPushed;
@@ -345,7 +361,11 @@ namespace Ink.Runtime
             if (contextIndex == -1)
                 contextIndex = currentElementIndex+1;
             
+#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             Runtime.Object varValue = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+#pragma warning restore IDE0018 // Inline variable declaration
 
             var contextElement = callStack [contextIndex-1];
 
@@ -367,7 +387,9 @@ namespace Ink.Runtime
                 throw new System.Exception ("Could not find temporary variable to set: " + name);
             }
 
+#pragma warning disable IDE0018 // Inline variable declaration
             Runtime.Object oldValue;
+#pragma warning restore IDE0018 // Inline variable declaration
             if( contextElement.temporaryVariables.TryGetValue(name, out oldValue) )
                 ListValue.RetainListOriginsForAssignment (oldValue, value);
 

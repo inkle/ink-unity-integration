@@ -26,7 +26,9 @@ namespace Ink.Parsed
 
                 var contentObjs = elementContentList.content;
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 Parsed.Object seqElObject = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
                 // Don't attempt to create a weave for the sequence element 
                 // if the content list is empty. Weaves don't like it!
@@ -60,7 +62,9 @@ namespace Ink.Parsed
         //
         public override Runtime.Object GenerateRuntimeObject ()
         {
+#pragma warning disable IDE0017 // Simplify object initialization
             var container = new Runtime.Container ();
+#pragma warning restore IDE0017 // Simplify object initialization
             container.visitsShouldBeCounted = true;
             container.countingAtStartOnly = true;
 
@@ -109,7 +113,9 @@ namespace Ink.Parsed
                     container.AddContent(new Runtime.IntValue(lastIdx));
                     container.AddContent(Runtime.NativeFunctionCall.CallWithName("=="));
 
+#pragma warning disable IDE0017 // Simplify object initialization
                     var skipShuffleDivert = new Runtime.Divert();
+#pragma warning restore IDE0017 // Simplify object initialization
                     skipShuffleDivert.isConditional = true;
                     container.AddContent(skipShuffleDivert);
 
@@ -143,7 +149,9 @@ namespace Ink.Parsed
                 container.AddContent (Runtime.ControlCommand.EvalEnd ());
 
                 // Divert branch for this sequence element
+#pragma warning disable IDE0017 // Simplify object initialization
                 var sequenceDivert = new Runtime.Divert ();
+#pragma warning restore IDE0017 // Simplify object initialization
                 sequenceDivert.isConditional = true;
                 container.AddContent (sequenceDivert);
 

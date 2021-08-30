@@ -1,3 +1,5 @@
+#pragma warning disable IDE1006
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -58,7 +60,9 @@ namespace Ink
             T firstElement = Parse (mainRule);
             if (firstElement == null) return null;
 
+#pragma warning disable IDE0028 // Simplify collection initialization
             var allElements = new List<T> ();
+#pragma warning restore IDE0028 // Simplify collection initialization
             allElements.Add (firstElement);
 
             do {
@@ -94,7 +98,9 @@ namespace Ink
 
         protected Runtime.DebugMetadata CreateDebugMetadata(StringParserState.Element stateAtStart, StringParserState.Element stateAtEnd)
         {
+#pragma warning disable IDE0017 // Simplify object initialization
             var md = new Runtime.DebugMetadata ();
+#pragma warning restore IDE0017 // Simplify object initialization
             md.startLineNumber = stateAtStart.lineIndex + 1;
             md.endLineNumber = stateAtEnd.lineIndex + 1;
             md.startCharacterNumber = stateAtStart.characterInLineIndex + 1;
@@ -114,7 +120,9 @@ namespace Ink
             }
 
             // A list of objects that doesn't already have metadata?
+#pragma warning disable IDE0019 // Use pattern matching
             var parsedListObjs = result as List<Parsed.Object>;
+#pragma warning restore IDE0019 // Use pattern matching
             if (parsedListObjs != null) {
                 foreach (var parsedListObj in parsedListObjs) {
                     if (!parsedListObj.hasOwnDebugMetadata) {
@@ -123,7 +131,9 @@ namespace Ink
                 }
             }
 
+#pragma warning disable IDE0019 // Use pattern matching
             var id = result as Parsed.Identifier;
+#pragma warning restore IDE0019 // Use pattern matching
             if (id != null) {
                 id.debugMetadata = CreateDebugMetadata(stateAtStart, stateAtEnd);
             }
@@ -161,11 +171,17 @@ namespace Ink
             }
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         IFileHandler _fileHandler;
+#pragma warning restore IDE0044 // Add readonly modifier
 
+#pragma warning disable IDE0044 // Add readonly modifier
         Ink.ErrorHandler _externalErrorHandler;
+#pragma warning restore IDE0044 // Add readonly modifier
 
+#pragma warning disable IDE0044 // Add readonly modifier
         string _filename;
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }
 

@@ -41,7 +41,9 @@ namespace Ink
 
 
             if (includedString != null ) {
+#pragma warning disable IDE0090 // Use 'new(...)'
                 InkParser parser = new InkParser(includedString, filename, _externalErrorHandler, _rootParser);
+#pragma warning restore IDE0090 // Use 'new(...)'
                 includedStory = parser.Parse();
             }
 
@@ -69,8 +71,12 @@ namespace Ink
             _rootParser._openFilenames.Remove (fullFilename);
         }
                    
+#pragma warning disable IDE0044 // Add readonly modifier
         InkParser _rootParser;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
         HashSet<string> _openFilenames;
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }
 

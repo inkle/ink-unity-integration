@@ -1,4 +1,5 @@
-﻿
+﻿#pragma warning disable IDE1006
+
 using System.Collections.Generic;
 
 namespace Ink.Parsed
@@ -84,7 +85,9 @@ namespace Ink.Parsed
             if ( duplicatesStackValue )
                 container.AddContent (Runtime.ControlCommand.Duplicate ());
 
+#pragma warning disable IDE0017 // Simplify object initialization
             _conditionalDivert = new Runtime.Divert ();
+#pragma warning restore IDE0017 // Simplify object initialization
 
             // else clause is unconditional catch-all, otherwise the divert is conditional
             _conditionalDivert.isConditional = !isElse;
@@ -152,7 +155,9 @@ namespace Ink.Parsed
         Runtime.Divert _conditionalDivert;
         Expression _ownExpression;
 
+#pragma warning disable IDE0044 // Add readonly modifier
         Weave _innerWeave;
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }
 

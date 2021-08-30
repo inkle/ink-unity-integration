@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#pragma warning disable IDE1006
+
+using System.Collections.Generic;
 using System.Text;
 
 namespace Ink.Parsed
@@ -118,7 +120,9 @@ namespace Ink.Parsed
                     break;
 
                 if (!hasWeavePoint) {
+#pragma warning disable IDE0019 // Use pattern matching
                     var weavePointAncestor = ancestor as IWeavePoint;
+#pragma warning restore IDE0019 // Use pattern matching
                     if (weavePointAncestor != null && weavePointAncestor.identifier != null) {
                         pathComponents.Add (weavePointAncestor.identifier);
                         hasWeavePoint = true;
@@ -229,7 +233,9 @@ namespace Ink.Parsed
         public delegate bool FindQueryFunc<T>(T obj);
         public T Find<T>(FindQueryFunc<T> queryFunc = null) where T : class
         {
+#pragma warning disable IDE0019 // Use pattern matching
             var tObj = this as T;
+#pragma warning restore IDE0019 // Use pattern matching
             if (tObj != null && (queryFunc == null || queryFunc (tObj) == true)) {
                 return tObj;
             }
@@ -258,7 +264,9 @@ namespace Ink.Parsed
 
         void FindAll<T>(FindQueryFunc<T> queryFunc, List<T> foundSoFar) where T : class
         {
+#pragma warning disable IDE0019 // Use pattern matching
             var tObj = this as T;
+#pragma warning restore IDE0019 // Use pattern matching
             if (tObj != null && (queryFunc == null || queryFunc (tObj) == true)) {
                 foundSoFar.Add (tObj);
             }
@@ -286,7 +294,9 @@ namespace Ink.Parsed
         {
             var ancestor = this.parent;
             while (ancestor) {
+#pragma warning disable IDE0038 // Use pattern matching
                 if (ancestor is FlowBase) {
+#pragma warning restore IDE0038 // Use pattern matching
                     return (FlowBase)ancestor;
                 }
                 ancestor = ancestor.parent;
@@ -332,7 +342,9 @@ namespace Ink.Parsed
         // if( myObj != null ) ...
         public static implicit operator bool (Object obj)
         {
+#pragma warning disable IDE0041 // Use 'is null' check
             var isNull = object.ReferenceEquals (obj, null);
+#pragma warning restore IDE0041 // Use 'is null' check
             return !isNull;
         }
 

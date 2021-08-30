@@ -62,7 +62,9 @@ namespace Ink
                 var result = new IncDecExpression (varIdentifier, assignedExpression, isIncrement);
                 return result;
             } else {
+#pragma warning disable IDE0017 // Simplify object initialization
                 var result = new VariableAssignment (varIdentifier, assignedExpression);
+#pragma warning restore IDE0017 // Simplify object initialization
                 result.isNewTemporaryDeclaration = isNewDeclaration;
                 return result;
             }
@@ -208,7 +210,9 @@ namespace Ink
             if (postfixOp != null) {
                 bool isInc = postfixOp == "++";
 
+#pragma warning disable IDE0038 // Use pattern matching
                 if (!(expr is VariableReference)) {
+#pragma warning restore IDE0038 // Use pattern matching
                     Error ("can only increment and decrement variables, but saw '" + expr + "'");
 
                     // Drop down and succeed without the increment after reporting error
@@ -291,7 +295,9 @@ namespace Ink
             parsingStringExpression = false;
 
             if (textAndLogic == null) {
+#pragma warning disable IDE0028 // Simplify collection initialization
                 textAndLogic = new List<Ink.Parsed.Object> ();
+#pragma warning restore IDE0028 // Simplify collection initialization
                 textAndLogic.Add (new Parsed.Text (""));
             }
 

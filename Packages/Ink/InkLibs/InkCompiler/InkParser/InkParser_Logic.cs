@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#pragma warning disable IDE1006
+
+using System.Collections.Generic;
 using System.Linq;
 using Ink.Parsed;
 
@@ -25,7 +27,9 @@ namespace Ink
             // ~ f()         -- expr
             // We don't treat variable decl/assign as an expression since we don't want an assignment
             // to have a return value, or to be used in compound expressions.
+#pragma warning disable IDE0039 // Use local function
             ParseRule afterTilda = () => OneOf (ReturnStatement, TempDeclarationOrAssignment, Expression);
+#pragma warning restore IDE0039 // Use local function
 
             var result = Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine) as Parsed.Object;
 
@@ -111,7 +115,9 @@ namespace Ink
                         Error ("Constant strings cannot contain any logic.");
                 }
 
+#pragma warning disable IDE0017 // Simplify object initialization
                 var result = new VariableAssignment (varName, expr);
+#pragma warning restore IDE0017 // Simplify object initialization
                 result.isGlobalDeclaration = true;
                 return result;
             }

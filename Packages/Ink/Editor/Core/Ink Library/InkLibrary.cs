@@ -1,3 +1,5 @@
+#pragma warning disable IDE1006
+
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
@@ -20,8 +22,12 @@ namespace Ink.UnityIntegration {
 	public class InkLibrary : ScriptableObject, IEnumerable<InkFile> {
     #endif
         // Ink version. This should really come from the core ink code.
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public static System.Version inkVersionCurrent = new System.Version(1,0,0);
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public static System.Version unityIntegrationVersionCurrent = new System.Version(1,0,2);
+#pragma warning restore IDE0090 // Use 'new(...)'
 
 		static string absoluteSavePath {
 			get {
@@ -83,13 +89,17 @@ namespace Ink.UnityIntegration {
         #endif
         
         public class AssetSaver : UnityEditor.AssetModificationProcessor {
+#pragma warning disable IDE0051 // Remove unused private members
             static string[] OnWillSaveAssets(string[] paths) {
+#pragma warning restore IDE0051 // Remove unused private members
                 instance.Save(true);
                 return paths;
             }
         }
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public List<InkFile> inkLibrary = new List<InkFile>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 		Dictionary<DefaultAsset, InkFile> inkLibraryDictionary;
 		
         public int Count {
@@ -112,12 +122,16 @@ namespace Ink.UnityIntegration {
             return inkLibrary.GetEnumerator();
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
 		void OnValidate () {
+#pragma warning restore IDE0051 // Remove unused private members
             BuildLookupDictionary();
             Validate();
         }
 		// After recompile, the data associated with the object is fetched (or whatever happens to it) by this point. 
+#pragma warning disable IDE0051 // Remove unused private members
 		void OnEnable () {
+#pragma warning restore IDE0051 // Remove unused private members
 			// Deletes the persistent version of this asset that we used to use prior to 0.9.71
 			if(!Application.isPlaying && EditorUtility.IsPersistent(this)) {
 				var path = AssetDatabase.GetAssetPath(this);
@@ -232,7 +246,9 @@ namespace Ink.UnityIntegration {
 			// Add any new file connections (if any are found it replaces the old library entirely)
 			string[] inkFilePaths = GetAllInkFilePaths();
 			bool inkLibraryChanged = false;
+#pragma warning disable IDE0090 // Use 'new(...)'
 			List<InkFile> newInkLibrary = new List<InkFile>(inkFilePaths.Length);
+#pragma warning restore IDE0090 // Use 'new(...)'
 			for (int i = 0; i < inkFilePaths.Length; i++) {
 				InkFile inkFile = GetInkFileWithAbsolutePath(inkFilePaths [i]);
 				// If the ink library doesn't have a representation for this file, then make one 
@@ -343,13 +359,17 @@ namespace Ink.UnityIntegration {
 			}
 
 			if (addIfMissing) {
+#pragma warning disable IDE0090 // Use 'new(...)'
 				InkFile newFile = new InkFile(file);
+#pragma warning restore IDE0090 // Use 'new(...)'
 				instance.inkLibrary.Add(newFile);
 				Debug.Log(file + " missing from ink library. Adding it now.");
 				return newFile;
 			}
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 			System.Text.StringBuilder listOfFiles = new System.Text.StringBuilder();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			foreach(InkFile inkFile in instance.inkLibrary) {
 				listOfFiles.AppendLine(inkFile.ToString());
 			}
@@ -392,7 +412,9 @@ namespace Ink.UnityIntegration {
 		/// Rebuilds which files are master files and the connections between the files.
 		/// </summary>
 		public static void RebuildInkFileConnections () {
+#pragma warning disable IDE0090 // Use 'new(...)'
 			Queue<InkFile> inkFileQueue = new Queue<InkFile>(instance.inkLibrary);
+#pragma warning restore IDE0090 // Use 'new(...)'
 			while (inkFileQueue.Count > 0) {
 				InkFile inkFile = inkFileQueue.Dequeue();
 				inkFile.parents = new List<DefaultAsset>();
@@ -423,7 +445,9 @@ namespace Ink.UnityIntegration {
 				}
 			}
 			// Next, we create a list of all the files owned by the actual master file, which we obtain by travelling up the parent tree from each file.
+#pragma warning disable IDE0090 // Use 'new(...)'
 			Dictionary<InkFile, List<InkFile>> masterChildRelationships = new Dictionary<InkFile, List<InkFile>>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			foreach (InkFile inkFile in instance.inkLibrary) {
 				foreach(var parentInkFile in inkFile.parentInkFiles) {
 					InkFile lastMasterInkFile = parentInkFile;

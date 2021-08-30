@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#pragma warning disable IDE1006
+
+using System.Collections.Generic;
 
 namespace Ink.Runtime
 {
@@ -58,9 +60,23 @@ namespace Ink.Runtime
             return _turnIndices.TryGetValue(container, out index);
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         Dictionary<string, Runtime.Object> _globals;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
         HashSet<string> _changedVariables = new HashSet<string>();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
         Dictionary<Container, int> _visitCounts = new Dictionary<Container, int>();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
         Dictionary<Container, int> _turnIndices = new Dictionary<Container, int>();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }

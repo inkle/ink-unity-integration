@@ -1,3 +1,5 @@
+#pragma warning disable IDE1006
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -82,7 +84,9 @@ namespace Ink.Runtime
 
                         while (container) {
 
+#pragma warning disable IDE0019 // Use pattern matching
                             var namedChild = child as INamedContent;
+#pragma warning restore IDE0019 // Use pattern matching
                             if (namedChild != null && namedChild.hasValidName) {
                                 comps.Push (new Path.Component (namedChild.name));
                             } else {
@@ -165,8 +169,10 @@ namespace Ink.Runtime
         // Find most compact representation for a path, whether relative or global
         public string CompactPathString(Path otherPath)
         {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             string globalPathStr = null;
             string relativePathStr = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
             if (otherPath.isRelative) {
                 relativePathStr = otherPath.componentsString;
                 globalPathStr = this.path.PathByAppendingPath(otherPath).componentsString;
@@ -218,7 +224,9 @@ namespace Ink.Runtime
         /// if( myObj != null ) ...
         public static implicit operator bool (Object obj)
         {
+#pragma warning disable IDE0041 // Use 'is null' check
             var isNull = object.ReferenceEquals (obj, null);
+#pragma warning restore IDE0041 // Use 'is null' check
             return !isNull;
         }
 

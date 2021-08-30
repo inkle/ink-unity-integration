@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE1006
+
+using System;
 using System.Collections.Generic;
 
 namespace Ink.Runtime
@@ -134,7 +136,11 @@ namespace Ink.Runtime
 
             if (paramCount == 2 || paramCount == 1) {
 
+#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 object opForTypeObj = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+#pragma warning restore IDE0018 // Inline variable declaration
                 if (!_operationFuncs.TryGetValue (valType, out opForTypeObj)) {
                     throw new StoryException ("Cannot perform operation '"+this.name+"' on "+valType);
                 }
@@ -219,7 +225,9 @@ namespace Ink.Runtime
                     }
                 }
                 if (itemOrigin != null) {
+#pragma warning disable IDE0018 // Inline variable declaration
                     InkListItem incrementedItem;
+#pragma warning restore IDE0018 // Inline variable declaration
                     if (itemOrigin.TryGetItemWithValue (targetInt, out incrementedItem))
                         resultRawList.Add (incrementedItem, targetInt);
                 }
@@ -264,7 +272,9 @@ namespace Ink.Runtime
                         int intVal = (int)val.valueObject;
                         var list = specialCaseList.value.originOfMaxItem;
 
+#pragma warning disable IDE0018 // Inline variable declaration
                         InkListItem item;
+#pragma warning restore IDE0018 // Inline variable declaration
                         if (list.TryGetItemWithValue (intVal, out item)) {
                             var castedValue = new ListValue (item, intVal);
                             parametersOut.Add (castedValue);
@@ -443,7 +453,11 @@ namespace Ink.Runtime
 
         static void AddOpToNativeFunc(string name, int args, ValueType valType, object op)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             NativeFunctionCall nativeFunc = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+#pragma warning restore IDE0018 // Inline variable declaration
             if (!_nativeFunctions.TryGetValue (name, out nativeFunc)) {
                 nativeFunc = new NativeFunctionCall (name, args);
                 _nativeFunctions [name] = nativeFunc;
@@ -496,7 +510,9 @@ namespace Ink.Runtime
         delegate object UnaryOp<T>(T val);
 
         NativeFunctionCall _prototype;
+#pragma warning disable IDE0044 // Add readonly modifier
         bool _isPrototype;
+#pragma warning restore IDE0044 // Add readonly modifier
 
         // Operations for each data type, for a single operation (e.g. "+")
         Dictionary<ValueType, object> _operationFuncs;

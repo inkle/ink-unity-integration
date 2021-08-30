@@ -1,4 +1,6 @@
-﻿using Ink.Runtime;
+﻿#pragma warning disable IDE1006
+
+using Ink.Runtime;
 
 namespace Ink.Runtime
 {
@@ -64,7 +66,9 @@ namespace Ink.Runtime
             };
         }
 
+#pragma warning disable IDE0090 // Use 'new(...)'
         public static Pointer Null = new Pointer { container = null, index = -1 };
+#pragma warning restore IDE0090 // Use 'new(...)'
 
 	}
 }

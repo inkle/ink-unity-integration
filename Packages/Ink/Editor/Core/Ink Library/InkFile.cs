@@ -1,3 +1,5 @@
+#pragma warning disable IDE1006
+
 using UnityEngine;
 using UnityEditor;
 using System.IO;
@@ -91,7 +93,9 @@ namespace Ink.UnityIntegration {
 
 
 		// Fatal unhandled errors that should be reported as compiler bugs.
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public List<string> unhandledCompileErrors = new List<string>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 		public bool hasUnhandledCompileErrors {
 			get {
 				return unhandledCompileErrors.Count > 0;
@@ -99,21 +103,27 @@ namespace Ink.UnityIntegration {
 		}
 
 		// Fatal errors caused by errors in the user's ink script.
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public List<InkCompilerLog> errors = new List<InkCompilerLog>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 		public bool hasErrors {
 			get {
 				return errors.Count > 0;
 			}
 		}
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public List<InkCompilerLog> warnings = new List<InkCompilerLog>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 		public bool hasWarnings {
 			get {
 				return warnings.Count > 0;
 			}
 		}
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public List<InkCompilerLog> todos = new List<InkCompilerLog>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 		public bool hasTodos {
 			get {
 				return todos.Count > 0;
@@ -137,7 +147,9 @@ namespace Ink.UnityIntegration {
 					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(jsonAsset));
 					return File.GetLastWriteTime(fullJSONFilePath);
 				} else {
+#pragma warning disable IDE0034 // Simplify 'default' expression
 					return default(DateTime);
+#pragma warning restore IDE0034 // Simplify 'default' expression
 				}
 			}
 		}
@@ -202,12 +214,18 @@ namespace Ink.UnityIntegration {
 
 		// The files included by this file
 		// We cache the paths of the files to be included for performance, giving us more freedom to refresh the actual includes list without needing to parse all the text.
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public List<string> includePaths = new List<string>();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public List<DefaultAsset> includes = new List<DefaultAsset>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 		// The InkFiles of the includes of this file
 		public List<InkFile> includesInkFiles {
 			get {
+#pragma warning disable IDE0090 // Use 'new(...)'
 				List<InkFile> _includesInkFiles = new List<InkFile>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 				foreach(var child in includes) {
 					if(child == null) {
 						Debug.LogError("Error compiling ink: Ink file include in "+filePath+" is null.", inkAsset);
@@ -221,7 +239,11 @@ namespace Ink.UnityIntegration {
 		// The InkFiles in the include hierarchy of this file.
 		public List<InkFile> inkFilesInIncludeHierarchy {
 			get {
+#pragma warning disable IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0028 // Simplify collection initialization
 				List<InkFile> _inkFilesInIncludeHierarchy = new List<InkFile>();
+#pragma warning restore IDE0028 // Simplify collection initialization
+#pragma warning restore IDE0090 // Use 'new(...)'
 				_inkFilesInIncludeHierarchy.Add(this);
 				foreach(var child in includesInkFiles) {
 					if (child == null)
@@ -327,7 +349,9 @@ namespace Ink.UnityIntegration {
 	                        if (endOfCommentIdx == -1)
 	                            endOfCommentIdx = inkStr.Length;
 	                        else if (inkStr [endOfCommentIdx - 1] == '\r')
+#pragma warning disable IDE0054 // Use '--' operator
 	                            endOfCommentIdx = endOfCommentIdx - 1;
+#pragma warning restore IDE0054 // Use '--' operator
 	                    } 
 	                    // Block comments
 	                    else if (commentStarter == "/*") {

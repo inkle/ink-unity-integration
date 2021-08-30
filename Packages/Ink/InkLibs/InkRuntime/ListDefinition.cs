@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#pragma warning disable IDE1006
+
+using System.Collections.Generic;
 
 namespace Ink.Runtime
 {
@@ -22,7 +24,9 @@ namespace Ink.Runtime
 
         public int ValueForItem (InkListItem item)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
             int intVal;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (_itemNameToValues.TryGetValue (item.itemName, out intVal))
                 return intVal;
             else
@@ -65,11 +69,15 @@ namespace Ink.Runtime
             _itemNameToValues = items;
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         string _name;
+#pragma warning restore IDE0044 // Add readonly modifier
 
         // The main representation should be simple item names rather than a RawListItem,
         // since we mainly want to access items based on their simple name, since that's
         // how they'll be most commonly requested from ink.
+#pragma warning disable IDE0044 // Add readonly modifier
         Dictionary<string, int> _itemNameToValues;
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }

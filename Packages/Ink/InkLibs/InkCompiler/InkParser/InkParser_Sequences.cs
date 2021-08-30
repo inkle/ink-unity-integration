@@ -79,7 +79,9 @@ namespace Ink
             return sequenceType;
         }
 
+#pragma warning disable IDE0090 // Use 'new(...)'
         CharacterSet _sequenceTypeSymbols = new CharacterSet("!&~$");
+#pragma warning restore IDE0090 // Use 'new(...)'
 
         protected object SequenceTypeWordAnnotation()
         {
@@ -171,7 +173,9 @@ namespace Ink
                 // Real content
                 else {
 
+#pragma warning disable IDE0019 // Use pattern matching
                     var content = contentOrPipe as List<Parsed.Object>;
+#pragma warning restore IDE0019 // Use pattern matching
                     if (content == null) {
                         Error ("Expected content, but got " + contentOrPipe + " (this is an ink compiler bug!)");
                     } else {

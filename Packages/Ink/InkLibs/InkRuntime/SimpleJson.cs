@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE1006
+
+using System;
 using System.Text;
 using System.Collections.Generic;
 using System.IO;
@@ -235,12 +237,16 @@ namespace Ink.Runtime
                 string numStr = _text.Substring (startOffset, _offset - startOffset);
 
                 if (isFloat) {
+#pragma warning disable IDE0018 // Inline variable declaration
                     float f;
+#pragma warning restore IDE0018 // Inline variable declaration
                     if (float.TryParse (numStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out f)) {
                         return f;
                     }
                 } else {
+#pragma warning disable IDE0018 // Inline variable declaration
                     int i;
+#pragma warning restore IDE0018 // Inline variable declaration
                     if (int.TryParse (numStr, out i)) {
                         return i;
                     }
@@ -295,10 +301,14 @@ namespace Ink.Runtime
                 }
             }
 
+#pragma warning disable IDE0044 // Add readonly modifier
             string _text;
+#pragma warning restore IDE0044 // Add readonly modifier
             int _offset;
 
+#pragma warning disable IDE0044 // Add readonly modifier
             object _rootObject;
+#pragma warning restore IDE0044 // Add readonly modifier
         }
 
 
@@ -637,8 +647,14 @@ namespace Ink.Runtime
                 public int childCount;
             }
 
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
             Stack<StateElement> _stateStack = new Stack<StateElement>();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
             TextWriter _writer;
+#pragma warning restore IDE0044 // Add readonly modifier
         }
 
 

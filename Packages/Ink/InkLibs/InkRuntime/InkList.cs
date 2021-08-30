@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#pragma warning disable IDE1006
+
+using System.Collections.Generic;
 using System.Text;
 
 namespace Ink.Runtime
@@ -76,7 +78,9 @@ namespace Ink.Runtime
         public override bool Equals (object obj)
         {
             if (obj is InkListItem) {
+#pragma warning disable IDE0020 // Use pattern matching
                 var otherItem = (InkListItem)obj;
+#pragma warning restore IDE0020 // Use pattern matching
                 return otherItem.itemName   == itemName 
                     && otherItem.originName == originName;
             }
@@ -132,7 +136,9 @@ namespace Ink.Runtime
         {
             SetInitialOriginName (singleOriginListName);
 
+#pragma warning disable IDE0018 // Inline variable declaration
             ListDefinition def;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (originStory.listDefinitions.TryListGetDefinition (singleOriginListName, out def))
                 origins = new List<ListDefinition> { def };
             else
@@ -174,7 +180,9 @@ namespace Ink.Runtime
             
             foreach (var origin in origins) {
                 if (origin.name == item.originName) {
+#pragma warning disable IDE0018 // Inline variable declaration
                     int intVal;
+#pragma warning restore IDE0018 // Inline variable declaration
                     if (origin.TryGetValueForItem (item, out intVal)) {
                         this [item] = intVal;
                         return;
@@ -285,7 +293,9 @@ namespace Ink.Runtime
         /// </summary>
         public KeyValuePair<InkListItem, int> maxItem {
             get {
+#pragma warning disable IDE0090 // Use 'new(...)'
                 KeyValuePair<InkListItem, int> max = new KeyValuePair<InkListItem, int>();
+#pragma warning restore IDE0090 // Use 'new(...)'
                 foreach (var kv in this) {
                     if (max.Key.isNull || kv.Value > max.Value)
                         max = kv;
@@ -486,22 +496,30 @@ namespace Ink.Runtime
             int minValue = 0;
             int maxValue = int.MaxValue;
 
+#pragma warning disable IDE0038 // Use pattern matching
             if (minBound is int)
+#pragma warning restore IDE0038 // Use pattern matching
             {
                 minValue = (int)minBound;
             }
 
             else
             {
+#pragma warning disable IDE0038 // Use pattern matching
                 if( minBound is InkList && ((InkList)minBound).Count > 0 )
+#pragma warning restore IDE0038 // Use pattern matching
                     minValue = ((InkList)minBound).minItem.Value;
             }
 
+#pragma warning disable IDE0038 // Use pattern matching
             if (maxBound is int)
+#pragma warning restore IDE0038 // Use pattern matching
                 maxValue = (int)maxBound;
             else 
             {
+#pragma warning disable IDE0038 // Use pattern matching
                 if (minBound is InkList && ((InkList)minBound).Count > 0)
+#pragma warning restore IDE0038 // Use pattern matching
                     maxValue = ((InkList)maxBound).maxItem.Value;
             }
 
@@ -522,7 +540,9 @@ namespace Ink.Runtime
         /// </summary>
         public override bool Equals (object other)
         {
+#pragma warning disable IDE0019 // Use pattern matching
             var otherRawList = other as InkList;
+#pragma warning restore IDE0019 // Use pattern matching
             if (otherRawList == null) return false;
             if (otherRawList.Count != Count) return false;
 

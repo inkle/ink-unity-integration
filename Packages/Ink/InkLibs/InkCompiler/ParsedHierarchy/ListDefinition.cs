@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE1006
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -34,7 +36,9 @@ namespace Ink.Parsed
                 }
             }
 
+#pragma warning disable IDE0018 // Inline variable declaration
             ListElementDefinition foundElement;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (_elementsByName.TryGetValue (itemName, out foundElement))
                 return foundElement;
 

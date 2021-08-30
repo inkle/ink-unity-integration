@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#pragma warning disable IDE1006
+
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Ink.Parsed
@@ -360,7 +362,11 @@ namespace Ink.Parsed
         void CheckExternalArgumentValidity(Story context)
         {
             string externalName = target.firstComponent;
+#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             ExternalDeclaration external = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+#pragma warning restore IDE0018 // Inline variable declaration
             var found = context.externals.TryGetValue(externalName, out external);
             System.Diagnostics.Debug.Assert (found, "external not found");
 

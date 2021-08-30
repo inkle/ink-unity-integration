@@ -8,6 +8,8 @@ namespace Ink.Parsed {
             return name;
         }
 
+#pragma warning disable IDE0090 // Use 'new(...)'
         public static Identifier Done = new Identifier { name = "DONE", debugMetadata = null };
+#pragma warning restore IDE0090 // Use 'new(...)'
     }
 }

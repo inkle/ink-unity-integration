@@ -15,7 +15,9 @@ namespace Ink
             // Try single thread first
             var threadDivert = Parse(StartThread);
             if (threadDivert) {
+#pragma warning disable IDE0028 // Simplify collection initialization
                 diverts = new List<Object> ();
+#pragma warning restore IDE0028 // Simplify collection initialization
                 diverts.Add (threadDivert);
                 return diverts;
             }
@@ -87,7 +89,9 @@ namespace Ink
 
             // Single -> (used for default choices)
             if (diverts.Count == 0 && arrowsAndDiverts.Count == 1) {
+#pragma warning disable IDE0017 // Simplify object initialization
                 var gatherDivert = new Divert ((Parsed.Object)null);
+#pragma warning restore IDE0017 // Simplify object initialization
                 gatherDivert.isEmpty = true;
                 diverts.Add (gatherDivert);
 

@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE1006
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Diagnostics;
@@ -30,9 +32,13 @@ namespace Ink
 		}
 
 		public class ParseSuccessStruct {};
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public static ParseSuccessStruct ParseSuccess = new ParseSuccessStruct();
+#pragma warning restore IDE0090 // Use 'new(...)'
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public static CharacterSet numbersCharacterSet = new CharacterSet("0123456789");
+#pragma warning restore IDE0090 // Use 'new(...)'
 
         protected ErrorHandler errorHandler { get; set; }
 
@@ -264,7 +270,9 @@ namespace Ink
         {
             int ruleId = BeginRule ();
 
+#pragma warning disable IDE0019 // Use pattern matching
             var result = rule () as T;
+#pragma warning restore IDE0019 // Use pattern matching
             if (result == null) {
                 FailRule (ruleId);
                 return null;
@@ -352,7 +360,9 @@ namespace Ink
 			}
 
 			if (flatten) {
+#pragma warning disable IDE0019 // Use pattern matching
 				var resultCollection = result as System.Collections.ICollection;
+#pragma warning restore IDE0019 // Use pattern matching
 				if (resultCollection != null) {
 					foreach (object obj in resultCollection) {
 						Debug.Assert (obj is T);
@@ -553,7 +563,9 @@ namespace Ink
 			int ruleId = BeginRule ();
 
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 			CharacterSet pauseAndEnd = new CharacterSet ();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			if (pauseCharacters != null) {
 				pauseAndEnd.UnionWith (pauseCharacters);
 			}
@@ -561,7 +573,9 @@ namespace Ink
 				pauseAndEnd.UnionWith (endCharacters);
 			}
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 			StringBuilder parsedString = new StringBuilder ();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			object ruleResultAtPause = null;
 
 			// Keep attempting to parse strings up to the pause (and end) points.
@@ -632,7 +646,9 @@ namespace Ink
                 return null;
             }
 
+#pragma warning disable IDE0018 // Inline variable declaration
 			int parsedInt;
+#pragma warning restore IDE0018 // Inline variable declaration
 			if (int.TryParse (parsedString, out parsedInt)) {
 				return negative ? -parsedInt : parsedInt;
 			}
@@ -679,7 +695,9 @@ namespace Ink
             }
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
 		private char[] _chars;
+#pragma warning restore IDE0044 // Add readonly modifier
 	}
 }
 

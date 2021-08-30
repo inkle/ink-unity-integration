@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE1006
+
+using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Text;
@@ -90,7 +92,9 @@ namespace Ink.Runtime
 
 			var currObj = callstack.currentElement.currentPointer.Resolve();
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
 			string stepType = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 			var controlCommandStep = currObj as ControlCommand;
 			if( controlCommandStep )
 				stepType = controlCommandStep.commandType.ToString() + " CC";
@@ -213,9 +217,21 @@ namespace Ink.Runtime
 			}
 		}
 
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
 		Stopwatch _continueWatch = new Stopwatch();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
 		Stopwatch _stepWatch = new Stopwatch();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
 		Stopwatch _snapWatch = new Stopwatch();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning restore IDE0044 // Add readonly modifier
 
 		double _continueTotal;
 		double _snapTotal;
@@ -223,7 +239,9 @@ namespace Ink.Runtime
 
 		string[] _currStepStack;
 		StepDetails _currStepDetails;
+#pragma warning disable IDE0044 // Add readonly modifier
 		ProfileNode _rootNode;
+#pragma warning restore IDE0044 // Add readonly modifier
 		int _numContinues;
 
 		struct StepDetails {
@@ -231,9 +249,15 @@ namespace Ink.Runtime
 			public Runtime.Object obj;
 			public double time;
 		}
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
 		List<StepDetails> _stepDetails = new List<StepDetails>();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning restore IDE0044 // Add readonly modifier
 
+#pragma warning disable IDE0044 // Add readonly modifier
 		static double _millisecsPerTick = 1000.0 / Stopwatch.Frequency;
+#pragma warning restore IDE0044 // Add readonly modifier
 	}
 
 
@@ -309,7 +333,9 @@ namespace Ink.Runtime
 			var nodeKey = stack[stackIdx];
 			if( _nodes == null ) _nodes = new Dictionary<string, ProfileNode>();
 
+#pragma warning disable IDE0018 // Inline variable declaration
 			ProfileNode node;
+#pragma warning restore IDE0018 // Inline variable declaration
 			if( !_nodes.TryGetValue(nodeKey, out node) ) {
 				node = new ProfileNode(nodeKey);
 				_nodes[nodeKey] = node;

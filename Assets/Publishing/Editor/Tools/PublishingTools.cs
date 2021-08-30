@@ -103,7 +103,9 @@ public static class PublishingTools {
 		// AssetDatabase.DisallowAutoRefresh();
 		// #endif
 		var assetsInkPath = Path.Combine(Application.dataPath, "Ink");
+#pragma warning disable IDE0090 // Use 'new(...)'
 		List<KeyValuePair<DirectoryInfo, DirectoryInfo>> rootPaths = new List<KeyValuePair<DirectoryInfo, DirectoryInfo>>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 		// Copy the plugin into assets, make a package
 		var integrationDirs = Directory.GetDirectories(IntegrationPath);
 		foreach(var dir in integrationDirs) {

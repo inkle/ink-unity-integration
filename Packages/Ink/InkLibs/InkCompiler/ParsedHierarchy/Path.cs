@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE1006
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -64,7 +66,9 @@ namespace Ink.Parsed
         public Path(Identifier ambiguousName)
         {
             _baseTargetLevel = null;
+#pragma warning disable IDE0028 // Simplify collection initialization
             components = new List<Identifier> ();
+#pragma warning restore IDE0028 // Simplify collection initialization
             components.Add (ambiguousName);
         }
 
@@ -186,7 +190,9 @@ namespace Ink.Parsed
             return null;
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         FlowLevel? _baseTargetLevel;
+#pragma warning restore IDE0044 // Add readonly modifier
 	}
 }
 

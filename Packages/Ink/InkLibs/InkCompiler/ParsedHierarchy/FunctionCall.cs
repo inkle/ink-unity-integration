@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#pragma warning disable IDE1006
+
+using System.Collections.Generic;
 
 namespace Ink.Parsed
 {
@@ -21,7 +23,9 @@ namespace Ink.Parsed
 
         public FunctionCall (Identifier functionName, List<Expression> arguments)
         {
+#pragma warning disable IDE0017 // Simplify object initialization
             _proxyDivert = new Parsed.Divert(new Path(functionName), arguments);
+#pragma warning restore IDE0017 // Simplify object initialization
             _proxyDivert.isFunctionCall = true;
             AddContent (_proxyDivert);
         }
@@ -234,7 +238,9 @@ namespace Ink.Parsed
             return string.Format ("{0}({1})", name, strArgs);
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         Parsed.Divert _proxyDivert;
+#pragma warning restore IDE0044 // Add readonly modifier
         Parsed.DivertTarget _divertTargetToCount;
         Parsed.VariableReference _variableReferenceToCount;
     }

@@ -1,3 +1,5 @@
+#pragma warning disable IDE1006
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -217,7 +219,9 @@ namespace Ink.Runtime
             if (rootToken == null)
                 throw new System.Exception ("Root node for ink not found. Are you sure it's a valid .ink.json file?");
 
+#pragma warning disable IDE0018 // Inline variable declaration
             object listDefsObj;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (rootObject.TryGetValue ("listDefs", out listDefsObj)) {
                 _listDefinitions = Json.JTokenToListDefinitions (listDefsObj);
             }
@@ -504,7 +508,9 @@ namespace Ink.Runtime
                     _state.variablesState.batchObservingVariableChanges = false;
 
                 _asyncContinueActive = false;
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
                 if(onDidContinue != null) onDidContinue();
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
             }
 
             _recursiveContinueCount--;
@@ -721,7 +727,9 @@ namespace Ink.Runtime
 
         public Runtime.Container KnotContainerWithName (string name)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
             INamedContent namedContainer;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (mainContentContainer.namedContent.TryGetValue (name, out namedContainer))
                 return namedContainer as Container;
             else
@@ -960,7 +968,11 @@ namespace Ink.Runtime
             }
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
         List<Container> _prevContainers = new List<Container>();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning restore IDE0044 // Add readonly modifier
         void VisitChangedContainersDueToDivert()
         {
             var previousPointer = state.previousPointer;
@@ -1053,7 +1065,9 @@ namespace Ink.Runtime
                 return null;
             }
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var choice = new Choice ();
+#pragma warning restore IDE0017 // Simplify object initialization
             choice.targetPath = choicePoint.pathOnChoice;
             choice.sourcePath = choicePoint.path.ToString ();
             choice.isInvisibleDefault = choicePoint.isInvisibleDefault;
@@ -1079,10 +1093,14 @@ namespace Ink.Runtime
         {
             bool truthy = false;
             if (obj is Value) {
+#pragma warning disable IDE0020 // Use pattern matching
                 var val = (Value)obj;
+#pragma warning restore IDE0020 // Use pattern matching
 
                 if (val is DivertTargetValue) {
+#pragma warning disable IDE0020 // Use pattern matching
                     var divTarget = (DivertTargetValue)val;
+#pragma warning restore IDE0020 // Use pattern matching
                     Error ("Shouldn't use a divert target (to " + divTarget.targetPath + ") as a conditional value. Did you intend a function call 'likeThis()' or a read count check 'likeThis'? (no arrows)");
                     return false;
                 }
@@ -1107,7 +1125,9 @@ namespace Ink.Runtime
             // Divert
             if (contentObj is Divert) {
                 
+#pragma warning disable IDE0020 // Use pattern matching
                 Divert currentDivert = (Divert)contentObj;
+#pragma warning restore IDE0020 // Use pattern matching
 
                 if (currentDivert.isConditional) {
                     var conditionValue = state.PopEvaluationStack ();
@@ -1171,7 +1191,9 @@ namespace Ink.Runtime
 
             // Start/end an expression evaluation? Or print out the result?
             else if( contentObj is ControlCommand ) {
+#pragma warning disable IDE0020 // Use pattern matching
                 var evalCommand = (ControlCommand) contentObj;
+#pragma warning restore IDE0020 // Use pattern matching
 
                 switch (evalCommand.commandType) {
 
@@ -1238,7 +1260,9 @@ namespace Ink.Runtime
                     }
                     else if (state.callStack.currentElement.type != popType || !state.callStack.canPop) {
 
+#pragma warning disable IDE0028 // Simplify collection initialization
                         var names = new Dictionary<PushPopType, string> ();
+#pragma warning restore IDE0028 // Simplify collection initialization
                         names [PushPopType.Function] = "function return statement (~ return)";
                         names [PushPopType.Tunnel] = "tunnel onwards statement (->->)";
 
@@ -1443,7 +1467,9 @@ namespace Ink.Runtime
 
                     ListDefinition foundListDef;
                     if (listDefinitions.TryListGetDefinition (listNameVal.value, out foundListDef)) {
+#pragma warning disable IDE0018 // Inline variable declaration
                         InkListItem foundItem;
+#pragma warning restore IDE0018 // Inline variable declaration
                         if (foundListDef.TryGetItemWithValue (intVal.value, out foundItem)) {
                             generatedListValue = new ListValue (foundItem, intVal.value);
                         }
@@ -1480,7 +1506,9 @@ namespace Ink.Runtime
                         
                         var list = listVal.value;
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                         InkList newList = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
                         // List was empty: return empty list
                         if (list.Count == 0) {
@@ -1504,7 +1532,9 @@ namespace Ink.Runtime
                             var randomItem = listEnumerator.Current;
 
                             // Origin list is simply the origin of the one element
+#pragma warning disable IDE0028 // Simplify collection initialization
                             newList = new InkList (randomItem.Key.originName, this);
+#pragma warning restore IDE0028 // Simplify collection initialization
                             newList.Add (randomItem.Key, randomItem.Value);
 
                             state.previousRandom = nextRandom;
@@ -1524,7 +1554,9 @@ namespace Ink.Runtime
 
             // Variable assignment
             else if( contentObj is VariableAssignment ) {
+#pragma warning disable IDE0020 // Use pattern matching
                 var varAss = (VariableAssignment) contentObj;
+#pragma warning restore IDE0020 // Use pattern matching
                 var assignedVal = state.PopEvaluationStack();
 
                 // When in temporary evaluation, don't create new variables purely within
@@ -1538,8 +1570,12 @@ namespace Ink.Runtime
 
             // Variable reference
             else if( contentObj is VariableReference ) {
+#pragma warning disable IDE0020 // Use pattern matching
                 var varRef = (VariableReference)contentObj;
+#pragma warning restore IDE0020 // Use pattern matching
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 Runtime.Object foundValue = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
 
                 // Explicit read count value
@@ -1568,7 +1604,9 @@ namespace Ink.Runtime
 
             // Native function call
             else if (contentObj is NativeFunctionCall) {
+#pragma warning disable IDE0020 // Use pattern matching
                 var func = (NativeFunctionCall)contentObj;
+#pragma warning restore IDE0020 // Use pattern matching
                 var funcParams = state.PopEvaluationStack (func.numberOfParameters);
                 var result = func.Call (funcParams);
                 state.PushEvaluationStack (result);
@@ -1618,7 +1656,9 @@ namespace Ink.Runtime
         public void ChoosePathString (string path, bool resetCallstack = true, params object [] arguments)
         {
             IfAsyncWeCant ("call ChoosePathString right now");
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
             if(onChoosePathString != null) onChoosePathString(path, arguments);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
             if (resetCallstack) {
                 ResetCallstack ();
             } else {
@@ -1668,7 +1708,9 @@ namespace Ink.Runtime
             // can create multiple leading edges for the story, each of
             // which has its own context.
             var choiceToChoose = choices [choiceIdx];
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
             if(onMakeChoice != null) onMakeChoice(choiceToChoose);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
             state.callStack.currentThread = choiceToChoose.threadAtGeneration;
 
             ChoosePath (choiceToChoose.targetPath);
@@ -1710,7 +1752,9 @@ namespace Ink.Runtime
         /// <param name="arguments">The arguments that the ink function takes, if any. Note that we don't (can't) do any validation on the number of arguments right now, so make sure you get it right!</param>
         public object EvaluateFunction (string functionName, out string textOutput, params object [] arguments)
         {
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
             if(onEvaluateFunction != null) onEvaluateFunction(functionName, arguments);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
             IfAsyncWeCant ("evaluate a function");
 
 			if(functionName == null) {
@@ -1744,7 +1788,9 @@ namespace Ink.Runtime
 
             // Finish evaluation, and see whether anything was produced
             var result = state.CompleteFunctionEvaluationFromGame ();
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
             if(onCompleteEvaluateFunction != null) onCompleteEvaluateFunction(functionName, arguments, textOutput, result);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
             return result;
         }
 
@@ -1792,7 +1838,9 @@ namespace Ink.Runtime
 
         public void CallExternalFunction(string funcName, int numberOfArguments)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
             ExternalFunctionDef funcDef;
+#pragma warning restore IDE0018 // Inline variable declaration
             Container fallbackFunctionContainer = null;
 
             var foundExternal = _externals.TryGetValue (funcName, out funcDef);
@@ -1839,7 +1887,9 @@ namespace Ink.Runtime
             object funcResult = funcDef.function (arguments.ToArray());
 
             // Convert return value (if any) to the a type that the ink engine can use
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             Runtime.Object returnObj = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
             if (funcResult != null) {
                 returnObj = Value.Create (funcResult);
                 Assert (returnObj != null, "Could not create ink value from returned object of type " + funcResult.GetType());
@@ -1888,25 +1938,37 @@ namespace Ink.Runtime
             if (value == null)
                 return null;
 
+#pragma warning disable IDE0038 // Use pattern matching
             if (value is T)
+#pragma warning restore IDE0038 // Use pattern matching
                 return (T) value;
 
+#pragma warning disable IDE0038 // Use pattern matching
             if (value is float && typeof(T) == typeof(int)) {
+#pragma warning restore IDE0038 // Use pattern matching
                 int intVal = (int)Math.Round ((float)value);
                 return intVal;
             }
 
+#pragma warning disable IDE0038 // Use pattern matching
             if (value is int && typeof(T) == typeof(float)) {
+#pragma warning restore IDE0038 // Use pattern matching
                 float floatVal = (float)(int)value;
                 return floatVal;
             }
 
+#pragma warning disable IDE0038 // Use pattern matching
             if (value is int && typeof(T) == typeof(bool)) {
+#pragma warning restore IDE0038 // Use pattern matching
                 int intVal = (int)value;
+#pragma warning disable IDE0075 // Simplify conditional expression
                 return intVal == 0 ? false : true;
+#pragma warning restore IDE0075 // Simplify conditional expression
             }
 
+#pragma warning disable IDE0038 // Use pattern matching
             if (value is bool && typeof(T) == typeof(int)) {
+#pragma warning restore IDE0038 // Use pattern matching
                 bool boolVal = (bool)value;
                 return boolVal ? 1 : 0;
             }
@@ -2364,7 +2426,11 @@ namespace Ink.Runtime
             if (_variableObservers == null)
                 return;
             
+#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             VariableObserver observers = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+#pragma warning restore IDE0018 // Inline variable declaration
             if (_variableObservers.TryGetValue (variableName, out observers)) {
 
                 if (!(newValueObj is Value)) {
@@ -2405,7 +2471,9 @@ namespace Ink.Runtime
             var flowContainer = ContentAtPath (path).container;
             while(true) {
                 var firstContent = flowContainer.content [0];
+#pragma warning disable IDE0038 // Use pattern matching
                 if (firstContent is Container)
+#pragma warning restore IDE0038 // Use pattern matching
                     flowContainer = (Container)firstContent;
                 else break;
             }
@@ -2439,7 +2507,9 @@ namespace Ink.Runtime
             return sb.ToString ();
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         string BuildStringOfContainer (Container container)
+#pragma warning restore IDE0051 // Remove unused private members
         {
         	var sb = new StringBuilder ();
 
@@ -2627,7 +2697,9 @@ namespace Ink.Runtime
         // then exits the flow.
         public void Error(string message, bool useEndLineNumber = false)
         {
+#pragma warning disable IDE0017 // Simplify object initialization
             var e = new StoryException (message);
+#pragma warning restore IDE0017 // Simplify object initialization
             e.useEndLineNumber = useEndLineNumber;
             throw e;
         }
@@ -2713,7 +2785,9 @@ namespace Ink.Runtime
             }
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         int currentLineNumber 
+#pragma warning restore IDE0051 // Remove unused private members
         {
             get {
                 var dm = currentDebugMetadata;
@@ -2734,14 +2808,20 @@ namespace Ink.Runtime
             }
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         Container _mainContentContainer;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
         ListDefinitionsOrigin _listDefinitions;
+#pragma warning restore IDE0044 // Add readonly modifier
 
         struct ExternalFunctionDef {
             public ExternalFunction function;
             public bool lookaheadSafe;
         }
+#pragma warning disable IDE0044 // Add readonly modifier
         Dictionary<string, ExternalFunctionDef> _externals;
+#pragma warning restore IDE0044 // Add readonly modifier
         Dictionary<string, VariableObserver> _variableObservers;
         bool _hasValidatedExternals;
 

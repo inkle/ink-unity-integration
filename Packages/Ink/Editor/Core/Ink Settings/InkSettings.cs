@@ -1,3 +1,5 @@
+#pragma warning disable IDE1006
+
 using UnityEngine;
 using UnityEditor;
 using Debug = UnityEngine.Debug;
@@ -58,7 +60,9 @@ namespace Ink.UnityIntegration {
         #endif
 
         public class AssetSaver : UnityEditor.AssetModificationProcessor {
+#pragma warning disable IDE0051 // Remove unused private members
             static string[] OnWillSaveAssets(string[] paths) {
+#pragma warning restore IDE0051 // Remove unused private members
                 InkSettings.instance.Save(true);
                 return paths;
             }
@@ -97,7 +101,9 @@ namespace Ink.UnityIntegration {
 		#endif
         
 		// Deletes the persistent version of this asset that we used to use prior to 0.9.71
+#pragma warning disable IDE0051 // Remove unused private members
 		void OnEnable () {
+#pragma warning restore IDE0051 // Remove unused private members
 			if(!Application.isPlaying && EditorUtility.IsPersistent(this)) {
 				var path = AssetDatabase.GetAssetPath(this);
 				if(!string.IsNullOrEmpty(path)) {

@@ -20,7 +20,9 @@ namespace Ink.Runtime
         // one single range.
         public DebugMetadata Merge(DebugMetadata dm)
         {
+#pragma warning disable IDE0017 // Simplify object initialization
             var newDebugMetadata = new DebugMetadata();
+#pragma warning restore IDE0017 // Simplify object initialization
 
             // These are not supposed to be differ between 'this' and 'dm'.
             newDebugMetadata.fileName = fileName;

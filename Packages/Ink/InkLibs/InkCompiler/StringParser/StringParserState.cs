@@ -1,3 +1,4 @@
+#pragma warning disable IDE1006
 
 namespace Ink
 {
@@ -163,7 +164,9 @@ namespace Ink
 			}
 		}
 
+#pragma warning disable IDE0044 // Add readonly modifier
         private Element[] _stack;
+#pragma warning restore IDE0044 // Add readonly modifier
         private int _numElements;
 	}
 }

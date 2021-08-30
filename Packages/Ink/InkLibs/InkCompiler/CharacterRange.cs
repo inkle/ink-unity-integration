@@ -1,3 +1,5 @@
+#pragma warning disable IDE1006
+
 using System.Collections.Generic;
 using System.Linq;
 
@@ -46,9 +48,19 @@ namespace Ink
             _excludes = excludes == null ? new HashSet<char>() : new HashSet<char> (excludes);
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         char _start;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
         char _end;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
         ICollection<char> _excludes;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
         CharacterSet _correspondingCharSet = new CharacterSet();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning restore IDE0044 // Add readonly modifier
     }    
 }

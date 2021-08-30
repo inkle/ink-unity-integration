@@ -14,7 +14,9 @@ namespace Ink
                 var lastObjIdx = mixedTextAndLogicResults.Count - 1;
                 var lastObj = mixedTextAndLogicResults[lastObjIdx];
                 if (lastObj is Text) {
+#pragma warning disable IDE0020 // Use pattern matching
                     var text = (Text)lastObj;
+#pragma warning restore IDE0020 // Use pattern matching
                     text.text = text.text.TrimEnd (' ', '\t');
 
                     if (terminateWithSpace)
@@ -182,7 +184,9 @@ namespace Ink
             }
 
             // When the ParseUntil pauses, check these rules in case they evaluate successfully
+#pragma warning disable IDE0039 // Use local function
             ParseRule nonTextRule = () => OneOf (ParseDivertArrow, ParseThreadArrow, EndOfLine, Glue);
+#pragma warning restore IDE0039 // Use local function
 
             CharacterSet endChars = null;
             if (parsingStringExpression) {

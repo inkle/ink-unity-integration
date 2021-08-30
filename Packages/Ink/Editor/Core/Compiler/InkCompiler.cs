@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#pragma warning disable IDE1006
+
+using UnityEngine;
 using UnityEditor;
 using System;
 using System.Collections.Generic;
@@ -67,7 +69,9 @@ namespace Ink.UnityIntegration {
 		
         
         public class AssetSaver : UnityEditor.AssetModificationProcessor {
+#pragma warning disable IDE0051 // Remove unused private members
             static string[] OnWillSaveAssets(string[] paths) {
+#pragma warning restore IDE0051 // Remove unused private members
                 InkCompiler.instance.Save(true);
                 return paths;
             }
@@ -93,14 +97,22 @@ namespace Ink.UnityIntegration {
 		// Track if we've currently locked compilation of Unity C# Scripts
 		public static bool hasLockedUnityCompilation = false;
         
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
         private static List<Action> onCompleteActions = new List<Action>();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning restore IDE0044 // Add readonly modifier
 
 		
 		// If InkSettings' delayInPlayMode option is true, dirty files are added here when they're changed in play mode
 		// This ensures they're remembered when you exit play mode and can be compiled
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public List<string> pendingCompilationStack = new List<string>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 		// The state of files currently being compiled.
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 
 
 		[Serializable]
@@ -122,8 +134,12 @@ namespace Ink.UnityIntegration {
 			public string compiledJson;
 			public string inkAbsoluteFilePath;
 			public string jsonAbsoluteFilePath;
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public List<InkCompilerLog> logOutput = new List<InkCompilerLog>();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public List<string> unhandledErrorOutput = new List<string>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			public DateTime startTime;
 			public DateTime endTime;
 
@@ -139,7 +155,9 @@ namespace Ink.UnityIntegration {
 
 		// This always runs after the InkEditorUtils constructor
 		[InitializeOnLoadMethod]
+#pragma warning disable IDE0051 // Remove unused private members
 		static void OnProjectLoadedInEditor() {
+#pragma warning restore IDE0051 // Remove unused private members
 			#if UNITY_2017_1_OR_NEWER
 			EditorApplication.playModeStateChanged += OnPlayModeChange;
 			#else
@@ -297,10 +315,14 @@ namespace Ink.UnityIntegration {
             
 			InkLibrary.Validate();
             if(onComplete != null) onCompleteActions.Add(onComplete);
+#pragma warning disable IDE0090 // Use 'new(...)'
 			StringBuilder filesCompiledLog = new StringBuilder("Files compiled:");
+#pragma warning restore IDE0090 // Use 'new(...)'
 			foreach (var inkFile in inkFiles) filesCompiledLog.AppendLine().Append(inkFile.filePath);
 			
+#pragma warning disable IDE0090 // Use 'new(...)'
 			StringBuilder outputLog = new StringBuilder ();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			outputLog.Append ("Ink compilation started at ");
 			outputLog.AppendLine (DateTime.Now.ToLongTimeString ());
 			outputLog.Append (filesCompiledLog.ToString());
@@ -339,7 +361,9 @@ namespace Ink.UnityIntegration {
 			string inputPath = InkEditorUtils.CombinePaths(inkFile.absoluteFolderPath, Path.GetFileName(inkFile.filePath));
 			Debug.Assert(inkFile.absoluteFilePath == inputPath);
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 			CompilationStackItem pendingFile = new CompilationStackItem
+#pragma warning restore IDE0090 // Use 'new(...)'
 			{
 				inkFile = InkLibrary.GetInkFileWithAbsolutePath(inputPath),
 				inkAbsoluteFilePath = inputPath,
@@ -404,7 +428,9 @@ namespace Ink.UnityIntegration {
 				countAllVisits = true,
 				fileHandler = new UnityInkFileHandler(Path.GetDirectoryName(item.inkAbsoluteFilePath)),
 				errorHandler = (string message, ErrorType type) => {
+#pragma warning disable IDE0018 // Inline variable declaration
 					InkCompilerLog log;
+#pragma warning restore IDE0018 // Inline variable declaration
 					if(InkCompilerLog.TryParse(message, out log)) {
 						if(string.IsNullOrEmpty(log.fileName)) log.fileName = Path.GetFileName(item.inkAbsoluteFilePath);
 						item.logOutput.Add(log);
@@ -443,11 +469,15 @@ namespace Ink.UnityIntegration {
 			}
             // Clone and clear the list. This is a surefire way to ensure the list is cleared in case of unhandled errors in this code.
             // A Try-catch would be better but I'm debugging blind as I write this and the nuclear option will definitely work!
+#pragma warning disable IDE0090 // Use 'new(...)'
             List<CompilationStackItem> compilationStack = new List<CompilationStackItem>(instance.compilationStack);
+#pragma warning restore IDE0090 // Use 'new(...)'
 			ClearCompilationStack();
 
 			bool errorsFound = false;
+#pragma warning disable IDE0090 // Use 'new(...)'
 			StringBuilder filesCompiledLog = new StringBuilder("Files compiled:");
+#pragma warning restore IDE0090 // Use 'new(...)'
 
             // Create and import compiled files
 			AssetDatabase.StartAssetEditing();
@@ -470,7 +500,9 @@ namespace Ink.UnityIntegration {
                     filesCompiledLog.Append(string.Format(" ({0}s)", compilingFile.timeTaken));
                     if(compilingFile.unhandledErrorOutput.Count > 0) {
                         filesCompiledLog.Append(" (With unhandled error)");
+#pragma warning disable IDE0090 // Use 'new(...)'
                         StringBuilder errorLog = new StringBuilder ();
+#pragma warning restore IDE0090 // Use 'new(...)'
                         errorLog.Append ("Unhandled error(s) occurred compiling Ink file ");
                         errorLog.Append ("'");
                         errorLog.Append (compilingFile.inkFile.filePath);
@@ -511,11 +543,15 @@ namespace Ink.UnityIntegration {
 
 			foreach (var compilingFile in compilationStack) {
 				if (OnCompileInk != null) {
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
 					OnCompileInk (compilingFile.inkFile);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
 				}
 			}
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 			StringBuilder outputLog = new StringBuilder ();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			if(errorsFound) {
 				outputLog.Append ("Ink compilation completed with errors at ");
 				outputLog.AppendLine (DateTime.Now.ToLongTimeString ());
@@ -565,7 +601,9 @@ namespace Ink.UnityIntegration {
 			}
 
             foreach(var onCompleteAction in onCompleteActions) {
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
                 if(onCompleteAction != null) onCompleteAction();
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
             }
             onCompleteActions.Clear();
 		}
@@ -601,7 +639,9 @@ namespace Ink.UnityIntegration {
 
 
 		public static List<InkFile> GetUniqueMasterInkFilesToCompile (List<string> importedInkAssets) {
+#pragma warning disable IDE0090 // Use 'new(...)'
 			List<InkFile> masterInkFiles = new List<InkFile>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			foreach (var importedAssetPath in importedInkAssets) {
                 foreach(var masterInkFile in GetMasterFilesIncludingInkAssetPath(importedAssetPath)) {
 					if (!masterInkFiles.Contains(masterInkFile) && (InkSettings.instance.compileAutomatically || masterInkFile.compileAutomatically)) {
@@ -675,7 +715,9 @@ namespace Ink.UnityIntegration {
 			return count;
 		}
 		public static List<InkCompiler.CompilationStackItem> FilesInCompilingStackInState (InkCompiler.CompilationStackItem.State state) {
+#pragma warning disable IDE0090 // Use 'new(...)'
 			List<InkCompiler.CompilationStackItem> items = new List<InkCompiler.CompilationStackItem>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			foreach(var x in instance.compilationStack) {
 				if(x.state == state) 
 					items.Add(x);

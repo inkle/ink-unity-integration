@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE1006
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.CompilerServices;
@@ -60,7 +62,9 @@ namespace Ink.Parsed
                 var obj = topLevelContent [i];
                 if (obj is IncludedFile) {
 
+#pragma warning disable IDE0020 // Use pattern matching
                     var file = (IncludedFile)obj;
+#pragma warning restore IDE0020 // Use pattern matching
 
                     // Remove the IncludedFile itself
                     topLevelContent.RemoveAt (i);
@@ -77,7 +81,9 @@ namespace Ink.Parsed
                         if (subStory.content != null) {
 
                             foreach (var subStoryObj in subStory.content) {
+#pragma warning disable IDE0038 // Use pattern matching
                                 if (subStoryObj is FlowBase) {
+#pragma warning restore IDE0038 // Use pattern matching
                                     flowsFromOtherFiles.Add ((FlowBase)subStoryObj);
                                 } else {
                                     nonFlowContent.Add (subStoryObj);
@@ -125,7 +131,11 @@ namespace Ink.Parsed
             foreach (var constDecl in FindAll<ConstantDeclaration> ()) {
 
                 // Check for duplicate definitions
+#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 Parsed.Expression existingDefinition = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+#pragma warning restore IDE0018 // Inline variable declaration
                 if (constants.TryGetValue (constDecl.constantName, out existingDefinition)) {
                     if (!existingDefinition.Equals (constDecl.expression)) {
                         var errorMsg = string.Format ("CONST '{0}' has been redefined with a different value. Multiple definitions of the same CONST are valid so long as they contain the same value. Initial definition was on {1}.", constDecl.constantName, existingDefinition.debugMetadata);
@@ -174,7 +184,9 @@ namespace Ink.Parsed
                         varDecl.expression.GenerateIntoContainer (variableInitialisation);
                     }
 
+#pragma warning disable IDE0017 // Simplify object initialization
                     var runtimeVarAss = new Runtime.VariableAssignment (varName, isNewDeclaration:true);
+#pragma warning restore IDE0017 // Simplify object initialization
                     runtimeVarAss.isGlobal = true;
                     variableInitialisation.AddContent (runtimeVarAss);
                 }
@@ -223,7 +235,9 @@ namespace Ink.Parsed
 
         public ListDefinition ResolveList (string listName)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
             ListDefinition list;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (!_listDefs.TryGetValue (listName, out list))
                 return null;
             return list;
@@ -231,7 +245,9 @@ namespace Ink.Parsed
 
         public ListElementDefinition ResolveListItem (string listName, string itemName, Parsed.Object source = null)
         {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             ListDefinition listDef = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
             // Search a specific list if we know its name (i.e. the form listName.itemName)
             if (listName != null) {
@@ -386,7 +402,9 @@ namespace Ink.Parsed
 
         public static bool IsReservedKeyword (string name)
         {
+#pragma warning disable IDE0066 // Convert switch statement to expression
             switch (name) {
+#pragma warning restore IDE0066 // Convert switch statement to expression
             case "true":
             case "false":
             case "not":
@@ -462,7 +480,11 @@ namespace Ink.Parsed
             if (symbolType <= SymbolType.Var) return;
 
             // Global variable collision
+#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             VariableAssignment varDecl = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+#pragma warning restore IDE0018 // Inline variable declaration
             if (variableDeclarations.TryGetValue(identifier?.name, out varDecl) ) {
                 if (varDecl != obj && varDecl.isGlobalDeclaration && varDecl.listDefinition == null) {
                     NameConflictError (obj, identifier?.name, varDecl, typeNameToPrint);
@@ -500,7 +522,11 @@ namespace Ink.Parsed
         bool _hadError;
         bool _hadWarning;
 
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
         HashSet<Runtime.Container> _dontFlattenContainers = new HashSet<Runtime.Container>();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning restore IDE0044 // Add readonly modifier
 
         Dictionary<string, Parsed.ListDefinition> _listDefs;
 	}

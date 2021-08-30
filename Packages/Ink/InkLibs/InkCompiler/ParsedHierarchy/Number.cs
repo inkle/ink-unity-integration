@@ -16,18 +16,26 @@ namespace Ink.Parsed
 
         public override void GenerateIntoContainer (Runtime.Container container)
 		{
+#pragma warning disable IDE0038 // Use pattern matching
             if (value is int) {
+#pragma warning restore IDE0038 // Use pattern matching
                 container.AddContent (new Runtime.IntValue ((int)value));
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (value is float) {
+#pragma warning restore IDE0038 // Use pattern matching
                 container.AddContent (new Runtime.FloatValue ((float)value));
+#pragma warning disable IDE0038 // Use pattern matching
             } else if(value is bool) {
+#pragma warning restore IDE0038 // Use pattern matching
                 container.AddContent (new Runtime.BoolValue ((bool)value));
             }
 		}
 
         public override string ToString ()
         {
+#pragma warning disable IDE0038 // Use pattern matching
             if (value is float) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return ((float)value).ToString(System.Globalization.CultureInfo.InvariantCulture);
             } else {
                 return value.ToString();

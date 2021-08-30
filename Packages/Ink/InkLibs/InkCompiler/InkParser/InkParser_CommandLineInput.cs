@@ -13,7 +13,9 @@ namespace Ink
         //  - Lookup debug source for runtime path
         public CommandLineInput CommandLineUserInput()
         {
+#pragma warning disable IDE0090 // Use 'new(...)'
             CommandLineInput result = new CommandLineInput ();
+#pragma warning restore IDE0090 // Use 'new(...)'
 
             Whitespace ();
 
@@ -60,7 +62,9 @@ namespace Ink
 
             Expect (String (")"), "closing parenthesis");
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var inputStruct = new CommandLineInput ();
+#pragma warning restore IDE0017 // Simplify object initialization
             inputStruct.debugSource = characterOffset;
             return inputStruct;
         }
@@ -77,7 +81,9 @@ namespace Ink
 
             var pathStr = Expect (RuntimePath, "path") as string;
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var inputStruct = new CommandLineInput ();
+#pragma warning restore IDE0017 // Simplify object initialization
             inputStruct.debugPathLookup = pathStr;
             return inputStruct;
         }
@@ -85,7 +91,9 @@ namespace Ink
         string RuntimePath ()
         {
             if (_runtimePathCharacterSet == null) {
+#pragma warning disable IDE0028 // Simplify collection initialization
                 _runtimePathCharacterSet = new CharacterSet (identifierCharSet);
+#pragma warning restore IDE0028 // Simplify collection initialization
                 _runtimePathCharacterSet.Add ('-'); // for c-0, g-0 etc
                 _runtimePathCharacterSet.Add ('.');
 
@@ -109,7 +117,9 @@ namespace Ink
                 return null;
             }
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var inputStruct = new CommandLineInput ();
+#pragma warning restore IDE0017 // Simplify object initialization
             inputStruct.choiceInput = number;
             return inputStruct;
         }
@@ -118,7 +128,9 @@ namespace Ink
         {
             var statement = OneOf (SingleDivert, TempDeclarationOrAssignment, Expression);
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var inputStruct = new CommandLineInput ();
+#pragma warning restore IDE0017 // Simplify object initialization
             inputStruct.userImmediateModeStatement = statement;
             return inputStruct;
         }

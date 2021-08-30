@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE1006
+
+using System;
 using System.Collections.Generic;
 using Ink.Runtime;
 using UnityEngine;
@@ -77,7 +79,11 @@ namespace Ink.UnityIntegration.Debugging {
                 return DateTime.FromFileTime(jdt.value);
             }
             public static implicit operator JsonDateTime(DateTime dt) {
+#pragma warning disable IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0017 // Simplify object initialization
                 JsonDateTime jdt = new JsonDateTime();
+#pragma warning restore IDE0017 // Simplify object initialization
+#pragma warning restore IDE0090 // Use 'new(...)'
                 jdt.value = dt.ToFileTime();
                 return jdt;
             }

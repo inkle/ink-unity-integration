@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿#pragma warning disable IDE1006
+
+using System.ComponentModel;
 using System.Collections.Generic;
 
 namespace Ink.Runtime
@@ -38,25 +40,43 @@ namespace Ink.Runtime
         {
             // Implicitly lose precision from any doubles we get passed in
             if (val is double) {
+#pragma warning disable IDE0020 // Use pattern matching
                 double doub = (double)val;
+#pragma warning restore IDE0020 // Use pattern matching
                 val = (float)doub;
             }
 
+#pragma warning disable IDE0038 // Use pattern matching
             if( val is bool ) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new BoolValue((bool)val);
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (val is int) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new IntValue ((int)val);
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (val is long) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new IntValue ((int)(long)val);
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (val is float) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new FloatValue ((float)val);
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (val is double) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new FloatValue ((float)(double)val);
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (val is string) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new StringValue ((string)val);
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (val is Path) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new DivertTargetValue ((Path)val);
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (val is InkList) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new ListValue ((InkList)val);
             }
 
@@ -152,7 +172,9 @@ namespace Ink.Runtime
             }
 
             if (newType == ValueType.Bool) {
+#pragma warning disable IDE0075 // Simplify conditional expression
                 return new BoolValue (this.value == 0 ? false : true);
+#pragma warning restore IDE0075 // Simplify conditional expression
             }
 
             if (newType == ValueType.Float) {
@@ -185,7 +207,9 @@ namespace Ink.Runtime
             }
 
             if (newType == ValueType.Bool) {
+#pragma warning disable IDE0075 // Simplify conditional expression
                 return new BoolValue (this.value == 0.0f ? false : true);
+#pragma warning restore IDE0075 // Simplify conditional expression
             }
 
             if (newType == ValueType.Int) {
@@ -236,7 +260,9 @@ namespace Ink.Runtime
 
             if (newType == ValueType.Int) {
 
+#pragma warning disable IDE0018 // Inline variable declaration
                 int parsedInt;
+#pragma warning restore IDE0018 // Inline variable declaration
                 if (int.TryParse (value, out parsedInt)) {
                     return new IntValue (parsedInt);
                 } else {
@@ -245,7 +271,9 @@ namespace Ink.Runtime
             }
 
             if (newType == ValueType.Float) {
+#pragma warning disable IDE0018 // Inline variable declaration
                 float parsedFloat;
+#pragma warning restore IDE0018 // Inline variable declaration
                 if (float.TryParse (value, System.Globalization.NumberStyles.Float ,System.Globalization.CultureInfo.InvariantCulture, out parsedFloat)) {
                     return new FloatValue (parsedFloat);
                 } else {

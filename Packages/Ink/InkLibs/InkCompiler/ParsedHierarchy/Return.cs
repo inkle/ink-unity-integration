@@ -1,4 +1,6 @@
-﻿namespace Ink.Parsed
+﻿#pragma warning disable IDE1006
+
+namespace Ink.Parsed
 {
     public class Return : Parsed.Object
     {

@@ -26,7 +26,9 @@ namespace Ink
 
 			Expect(EndOfLine, "end of line after knot name definition", recoveryRule: SkipToNextLine);
 
+#pragma warning disable IDE0039 // Use local function
 			ParseRule innerKnotStatements = () => StatementsAtLevel (StatementLevel.Knot);
+#pragma warning restore IDE0039 // Use local function
 
             var content = Expect (innerKnotStatements, "at least one line within the knot", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 
@@ -90,7 +92,9 @@ namespace Ink
 
 			Expect(EndOfLine, "end of line after stitch name", recoveryRule: SkipToNextLine);
 
+#pragma warning disable IDE0039 // Use local function
 			ParseRule innerStitchStatements = () => StatementsAtLevel (StatementLevel.Stitch);
+#pragma warning restore IDE0039 // Use local function
 
             var content = Expect(innerStitchStatements, "at least one line within the stitch", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 
@@ -136,7 +140,9 @@ namespace Ink
             // Jump ahead to the next knot or the end of the file
             ParseUntil (KnotDeclaration, new CharacterSet ("="), null);
 
+#pragma warning disable IDE0028 // Simplify collection initialization
             var recoveredFlowContent = new List<Parsed.Object>();
+#pragma warning restore IDE0028 // Simplify collection initialization
 			recoveredFlowContent.Add( new Parsed.Text("<ERROR IN FLOW>" ) );
 			return recoveredFlowContent;
 		}
@@ -225,7 +231,9 @@ namespace Ink
 
             Whitespace ();
 
+#pragma warning disable IDE0019 // Use pattern matching
             var parameterNames = Expect (BracketedKnotDeclArguments, "declaration of arguments for EXTERNAL, even if empty, i.e. 'EXTERNAL "+funcIdentifier+"()'") as List<FlowBase.Argument>;
+#pragma warning restore IDE0019 // Use pattern matching
             if (parameterNames == null)
                 parameterNames = new List<FlowBase.Argument> ();
 

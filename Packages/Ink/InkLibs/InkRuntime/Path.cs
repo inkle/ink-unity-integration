@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE1006
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
@@ -8,7 +10,9 @@ namespace Ink.Runtime
 {
     public class Path : IEquatable<Path>
 	{
+#pragma warning disable IDE0044 // Add readonly modifier
         static string parentId = "^";
+#pragma warning restore IDE0044 // Add readonly modifier
 
         // Immutable Component
         public class Component : IEquatable<Component>
@@ -161,7 +165,9 @@ namespace Ink.Runtime
 
         public static Path self {
             get {
+#pragma warning disable IDE0017 // Simplify object initialization
                 var path = new Path ();
+#pragma warning restore IDE0017 // Simplify object initialization
                 path.isRelative = true;
                 return path;
             }
@@ -169,7 +175,9 @@ namespace Ink.Runtime
 
 		public Path PathByAppendingPath(Path pathToAppend)
 		{
+#pragma warning disable IDE0090 // Use 'new(...)'
             Path p = new Path ();
+#pragma warning restore IDE0090 // Use 'new(...)'
 
             int upwardMoves = 0;
             for (int i = 0; i < pathToAppend._components.Count; ++i) {
@@ -193,7 +201,9 @@ namespace Ink.Runtime
 
         public Path PathByAppendingComponent (Component c)
         {
+#pragma warning disable IDE0090 // Use 'new(...)'
             Path p = new Path ();
+#pragma warning restore IDE0090 // Use 'new(...)'
             p._components.AddRange (_components);
             p._components.Add (c);
             return p;
@@ -230,7 +240,9 @@ namespace Ink.Runtime
 
                 var componentStrings = _componentsString.Split('.');
                 foreach (var str in componentStrings) {
+#pragma warning disable IDE0018 // Inline variable declaration
                     int index;
+#pragma warning restore IDE0018 // Inline variable declaration
                     if (int.TryParse (str , out index)) {
                         _components.Add (new Component (index));
                     } else {
@@ -271,7 +283,9 @@ namespace Ink.Runtime
             return this.ToString ().GetHashCode ();
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
 		List<Component> _components;
+#pragma warning restore IDE0044 // Add readonly modifier
 	}
 }
 

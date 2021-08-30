@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#pragma warning disable IDE1006
+
+using System.Collections.Generic;
 
 namespace Ink.Parsed
 {
@@ -87,7 +89,9 @@ namespace Ink.Parsed
             foreach (var weavePoint in namedWeavePoints) {
 
                 // Check for weave point naming collisions
+#pragma warning disable IDE0018 // Inline variable declaration
                 IWeavePoint existingWeavePoint;
+#pragma warning restore IDE0018 // Inline variable declaration
                 if (_namedWeavePoints.TryGetValue (weavePoint.name, out existingWeavePoint)) {
                     var typeName = existingWeavePoint is Gather ? "gather" : "choice";
                     var existingObj = (Parsed.Object)existingWeavePoint;
@@ -111,7 +115,9 @@ namespace Ink.Parsed
 
                 // Choice or Gather
                 if (obj is IWeavePoint) {
+#pragma warning disable IDE0020 // Use pattern matching
                     var weavePoint = (IWeavePoint)obj;
+#pragma warning restore IDE0020 // Use pattern matching
                     var weaveIndentIdx = weavePoint.indentationDepth - 1;
 
                     // Inner level indentation - recurse
@@ -120,7 +126,9 @@ namespace Ink.Parsed
                         // Step through content until indent jumps out again
                         int innerWeaveStartIdx = contentIdx;
                         while (contentIdx < content.Count) {
+#pragma warning disable IDE0019 // Use pattern matching
                             var innerWeaveObj = content [contentIdx] as IWeavePoint;
+#pragma warning restore IDE0019 // Use pattern matching
                             if (innerWeaveObj != null) {
                                 var innerIndentIdx = innerWeaveObj.indentationDepth - 1;
                                 if (innerIndentIdx <= baseIndentIndex) {
@@ -155,7 +163,9 @@ namespace Ink.Parsed
         public int DetermineBaseIndentationFromContent(List<Parsed.Object> contentList)
         {
             foreach (var obj in contentList) {
+#pragma warning disable IDE0038 // Use pattern matching
                 if (obj is IWeavePoint) {
+#pragma warning restore IDE0038 // Use pattern matching
                     return ((IWeavePoint)obj).indentationDepth - 1;
                 }
             }
@@ -178,7 +188,9 @@ namespace Ink.Parsed
             foreach(var obj in content) {
 
                 // Choice or Gather
+#pragma warning disable IDE0038 // Use pattern matching
                 if (obj is IWeavePoint) {
+#pragma warning restore IDE0038 // Use pattern matching
                     AddRuntimeForWeavePoint ((IWeavePoint)obj);
                 } 
 
@@ -187,7 +199,9 @@ namespace Ink.Parsed
 
                     // Nested weave
                     if (obj is Weave) {
+#pragma warning disable IDE0020 // Use pattern matching
                         var weave = (Weave)obj;
+#pragma warning restore IDE0020 // Use pattern matching
                         AddRuntimeForNestedWeave (weave);
                         gatherPointsToResolve.AddRange (weave.gatherPointsToResolve);
                     }
@@ -247,13 +261,17 @@ namespace Ink.Parsed
                 // since they'll be handled by the auto-enter code below
                 // that only jumps into the gather if (current runtime choices == 0)
                 if (looseEnd is Gather) {
+#pragma warning disable IDE0020 // Use pattern matching
                     var prevGather = (Gather)looseEnd;
+#pragma warning restore IDE0020 // Use pattern matching
                     if (prevGather.indentationDepth == gather.indentationDepth) {
                         continue;
                     }
                 }
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 Runtime.Divert divert = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
                 if (looseEnd is Parsed.Divert) {
                     divert = (Runtime.Divert) looseEnd.runtimeObject;
@@ -277,12 +295,16 @@ namespace Ink.Parsed
         void AddRuntimeForWeavePoint(IWeavePoint weavePoint)
         {
             // Current level Gather
+#pragma warning disable IDE0038 // Use pattern matching
             if (weavePoint is Gather) {
+#pragma warning restore IDE0038 // Use pattern matching
                 AddRuntimeForGather ((Gather)weavePoint);
             } 
 
             // Current level choice
+#pragma warning disable IDE0038 // Use pattern matching
             else if (weavePoint is Choice) {
+#pragma warning restore IDE0038 // Use pattern matching
 
                 // Gathers that contain choices are no longer loose ends
                 // (same as when weave points get nested content)
@@ -478,7 +500,11 @@ namespace Ink.Parsed
             if (_namedWeavePoints == null)
                 return null;
 
+#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             IWeavePoint weavePointResult = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+#pragma warning restore IDE0018 // Inline variable declaration
             if (_namedWeavePoints.TryGetValue (name, out weavePointResult))
                 return weavePointResult;
 
