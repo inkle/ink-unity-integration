@@ -16,7 +16,9 @@ public class BasicInkExample : MonoBehaviour {
 	// Creates a new Story object with the compiled story which we can then play!
 	void StartStory () {
 		story = new Story (inkJSONAsset.text);
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
         if(OnCreateStory != null) OnCreateStory(story);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
 		RefreshView();
 	}
 	

@@ -198,7 +198,9 @@ namespace Ink.UnityIntegration {
 			public static void CreateAndSave () {
 				_Instance = new InkPlayerWindowState();
 				Save(_Instance);
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
 				if(OnCreateOrLoad != null) OnCreateOrLoad();
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
 			}
 			
 			public static void Save () {
@@ -215,7 +217,9 @@ namespace Ink.UnityIntegration {
 				string data = EditorPrefs.GetString(settingsEditorPrefsKey);
 				try {
 					_Instance = JsonUtility.FromJson<InkPlayerWindowState>(data);
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
 					if(_Instance != null) if(OnCreateOrLoad != null) OnCreateOrLoad();
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
 				} catch {
 					Debug.LogError("Save Data was corrupt and could not be parsed. New data created. Old data was:\n"+data);
 					CreateAndSave();
@@ -797,7 +801,9 @@ namespace Ink.UnityIntegration {
 			_story.onChoosePathString += OnChoosePathString;
 			_story.state.onDidLoadState += OnLoadState;
 
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
             if(OnDidSetStory != null) OnDidSetStory(story);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
 			
 			// Recalculate function ink variables
 			foreach(var input in InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs) {
@@ -2571,7 +2577,9 @@ namespace Ink.UnityIntegration {
 				return _undoHistoryIndex;
 			} set {
 				_undoHistoryIndex = Mathf.Clamp(value, 0, undoHistory.Count-1);
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
 				if(OnChangeHistoryIndex != null) OnChangeHistoryIndex(undoHistory[undoHistoryIndex]);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
 			}
 		}
 		
@@ -2624,13 +2632,17 @@ namespace Ink.UnityIntegration {
 			undoHistory.Add (state);
 			_undoHistoryIndex++;
 			
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
 			if(OnChangeUndoHistory != null) OnChangeUndoHistory();
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
 		}
 		
 		public virtual void Clear () {
 			undoHistory.Clear();
 			_undoHistoryIndex = -1;
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
 			if(OnChangeUndoHistory != null) OnChangeUndoHistory();
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
 		}
 		
 		public virtual T Undo () {
@@ -2639,7 +2651,9 @@ namespace Ink.UnityIntegration {
 					return default(T);
 			} else {
 				undoHistoryIndex--;
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
 				if(OnUndo != null) OnUndo(undoHistory[undoHistoryIndex]);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
 			}
 			return undoHistory[undoHistoryIndex];
 		}
@@ -2650,7 +2664,9 @@ namespace Ink.UnityIntegration {
 					return default(T);
 			} else {
 				undoHistoryIndex++;
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
 				if(OnRedo != null) OnRedo(undoHistory[undoHistoryIndex]);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
 			}
 			return undoHistory[undoHistoryIndex];
 		}

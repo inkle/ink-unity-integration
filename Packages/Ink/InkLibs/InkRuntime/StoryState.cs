@@ -55,7 +55,9 @@ namespace Ink.Runtime
         {
             var jObject = SimpleJson.TextToDictionary (json);
             LoadJsonObj(jObject);
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
             if(onDidLoadState != null) onDidLoadState();
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
         }
 
         /// <summary>

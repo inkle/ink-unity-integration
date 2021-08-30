@@ -513,7 +513,9 @@ namespace Ink.UnityIntegration {
 
 			foreach (var compilingFile in compilationStack) {
 				if (OnCompileInk != null) {
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
 					OnCompileInk (compilingFile.inkFile);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
 				}
 			}
 
@@ -567,7 +569,9 @@ namespace Ink.UnityIntegration {
 			}
 
             foreach(var onCompleteAction in onCompleteActions) {
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
                 if(onCompleteAction != null) onCompleteAction();
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
             }
             onCompleteActions.Clear();
 		}

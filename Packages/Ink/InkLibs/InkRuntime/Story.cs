@@ -506,7 +506,9 @@ namespace Ink.Runtime
                     _state.variablesState.batchObservingVariableChanges = false;
 
                 _asyncContinueActive = false;
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
                 if(onDidContinue != null) onDidContinue();
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
             }
 
             _recursiveContinueCount--;
@@ -1620,7 +1622,9 @@ namespace Ink.Runtime
         public void ChoosePathString (string path, bool resetCallstack = true, params object [] arguments)
         {
             IfAsyncWeCant ("call ChoosePathString right now");
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
             if(onChoosePathString != null) onChoosePathString(path, arguments);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
             if (resetCallstack) {
                 ResetCallstack ();
             } else {
@@ -1670,7 +1674,9 @@ namespace Ink.Runtime
             // can create multiple leading edges for the story, each of
             // which has its own context.
             var choiceToChoose = choices [choiceIdx];
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
             if(onMakeChoice != null) onMakeChoice(choiceToChoose);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
             state.callStack.currentThread = choiceToChoose.threadAtGeneration;
 
             ChoosePath (choiceToChoose.targetPath);
@@ -1712,7 +1718,9 @@ namespace Ink.Runtime
         /// <param name="arguments">The arguments that the ink function takes, if any. Note that we don't (can't) do any validation on the number of arguments right now, so make sure you get it right!</param>
         public object EvaluateFunction (string functionName, out string textOutput, params object [] arguments)
         {
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
             if(onEvaluateFunction != null) onEvaluateFunction(functionName, arguments);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
             IfAsyncWeCant ("evaluate a function");
 
 			if(functionName == null) {
@@ -1746,7 +1754,9 @@ namespace Ink.Runtime
 
             // Finish evaluation, and see whether anything was produced
             var result = state.CompleteFunctionEvaluationFromGame ();
+#pragma warning disable IDE1005 // Delegate invocation can be simplified.
             if(onCompleteEvaluateFunction != null) onCompleteEvaluateFunction(functionName, arguments, textOutput, result);
+#pragma warning restore IDE1005 // Delegate invocation can be simplified.
             return result;
         }
 
