@@ -10,7 +10,9 @@ namespace Ink.UnityIntegration {
 
 		private DefaultAssetInspector inspector;
 
+#pragma warning disable IDE0051 // Remove unused private members
 		private void OnEnable () {
+#pragma warning restore IDE0051 // Remove unused private members
 			inspector = FindObjectInspector ();
 			if(inspector != null) {
 				inspector.editor = this;
@@ -20,7 +22,9 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
+#pragma warning disable IDE0051 // Remove unused private members
 		private void OnDisable () {
+#pragma warning restore IDE0051 // Remove unused private members
 			if(inspector != null)
 				inspector.OnDisable();
 		}

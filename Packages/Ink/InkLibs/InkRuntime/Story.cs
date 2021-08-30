@@ -2489,7 +2489,9 @@ namespace Ink.Runtime
             return sb.ToString ();
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         string BuildStringOfContainer (Container container)
+#pragma warning restore IDE0051 // Remove unused private members
         {
         	var sb = new StringBuilder ();
 
@@ -2765,7 +2767,9 @@ namespace Ink.Runtime
             }
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         int currentLineNumber 
+#pragma warning restore IDE0051 // Remove unused private members
         {
             get {
                 var dm = currentDebugMetadata;

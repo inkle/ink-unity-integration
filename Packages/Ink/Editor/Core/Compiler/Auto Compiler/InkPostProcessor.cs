@@ -18,7 +18,9 @@ namespace Ink.UnityIntegration {
 #pragma warning restore IDE0044 // Add readonly modifier
 		public static bool disabled = false;
 		// Recompiles any ink files as a result of an ink file (re)import
+#pragma warning disable IDE0051 // Remove unused private members
 		private static void OnPostprocessAllAssets (string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths) {
+#pragma warning restore IDE0051 // Remove unused private members
 			if(disabled) return;
 			if(deletedAssets.Length > 0) {
 				OnDeleteAssets(deletedAssets);

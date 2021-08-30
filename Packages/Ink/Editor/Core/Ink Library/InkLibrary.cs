@@ -89,7 +89,9 @@ namespace Ink.UnityIntegration {
         #endif
         
         public class AssetSaver : UnityEditor.AssetModificationProcessor {
+#pragma warning disable IDE0051 // Remove unused private members
             static string[] OnWillSaveAssets(string[] paths) {
+#pragma warning restore IDE0051 // Remove unused private members
                 instance.Save(true);
                 return paths;
             }
@@ -120,12 +122,16 @@ namespace Ink.UnityIntegration {
             return inkLibrary.GetEnumerator();
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
 		void OnValidate () {
+#pragma warning restore IDE0051 // Remove unused private members
             BuildLookupDictionary();
             Validate();
         }
 		// After recompile, the data associated with the object is fetched (or whatever happens to it) by this point. 
+#pragma warning disable IDE0051 // Remove unused private members
 		void OnEnable () {
+#pragma warning restore IDE0051 // Remove unused private members
 			// Deletes the persistent version of this asset that we used to use prior to 0.9.71
 			if(!Application.isPlaying && EditorUtility.IsPersistent(this)) {
 				var path = AssetDatabase.GetAssetPath(this);

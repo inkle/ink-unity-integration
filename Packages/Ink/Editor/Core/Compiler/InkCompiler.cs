@@ -69,7 +69,9 @@ namespace Ink.UnityIntegration {
 		
         
         public class AssetSaver : UnityEditor.AssetModificationProcessor {
+#pragma warning disable IDE0051 // Remove unused private members
             static string[] OnWillSaveAssets(string[] paths) {
+#pragma warning restore IDE0051 // Remove unused private members
                 InkCompiler.instance.Save(true);
                 return paths;
             }
@@ -153,7 +155,9 @@ namespace Ink.UnityIntegration {
 
 		// This always runs after the InkEditorUtils constructor
 		[InitializeOnLoadMethod]
+#pragma warning disable IDE0051 // Remove unused private members
 		static void OnProjectLoadedInEditor() {
+#pragma warning restore IDE0051 // Remove unused private members
 			#if UNITY_2017_1_OR_NEWER
 			EditorApplication.playModeStateChanged += OnPlayModeChange;
 			#else

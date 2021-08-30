@@ -350,7 +350,9 @@ namespace Ink.Runtime
             _defaultGlobalVariables = new Dictionary<string, Object> (_globalVariables);
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         void RetainListOriginsForAssignment (Runtime.Object oldValue, Runtime.Object newValue)
+#pragma warning restore IDE0051 // Remove unused private members
         {
             var oldList = oldValue as ListValue;
             var newList = newValue as ListValue;

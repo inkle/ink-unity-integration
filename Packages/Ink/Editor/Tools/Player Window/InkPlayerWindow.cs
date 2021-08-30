@@ -552,7 +552,9 @@ namespace Ink.UnityIntegration {
         // var jsonStr = story.ToJson ();
         // https://docs.microsoft.com/en-us/dotnet/api/system.io.path.gettemppath
         // Directory.temporaryFolder
+#pragma warning disable IDE0051 // Remove unused private members
 		void OnEnable () {
+#pragma warning restore IDE0051 // Remove unused private members
 			if(isOpen) return;
 			isOpen = true;
 
@@ -577,20 +579,28 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
+#pragma warning disable IDE0051 // Remove unused private members
 		void OnDisable () {
+#pragma warning restore IDE0051 // Remove unused private members
 			EditorApplication.update -= Update;
 		}
 
+#pragma warning disable IDE0051 // Remove unused private members
 		private void OnBecameVisible() {
+#pragma warning restore IDE0051 // Remove unused private members
 			if(doingAutoscroll) {
 				InkPlayerWindowState.Instance.storyPanelState.scrollPosition = new Vector2(InkPlayerWindowState.Instance.storyPanelState.scrollPosition.x, autoscrollTarget);
 				doingAutoscroll = false;
 			}
 		}
 	
+#pragma warning disable IDE0051 // Remove unused private members
 		private void OnBecameInvisible() {}
+#pragma warning restore IDE0051 // Remove unused private members
 
+#pragma warning disable IDE0051 // Remove unused private members
 		void OnDestroy () {
+#pragma warning restore IDE0051 // Remove unused private members
 			isOpen = false;
 		}
 
@@ -1006,7 +1016,9 @@ namespace Ink.UnityIntegration {
 				ContinueStory();
 			// }
 		}
+#pragma warning disable IDE0051 // Remove unused private members
         void OnGUI () {
+#pragma warning restore IDE0051 // Remove unused private members
 			HandleDragAndDrop();
 			if(searchTextFieldStyle == null) searchTextFieldStyle = GUI.skin.FindStyle("ToolbarSeachTextField");
 			if(searchCancelButtonStyle == null) searchCancelButtonStyle = GUI.skin.FindStyle("ToolbarSeachCancelButton");
@@ -2617,7 +2629,9 @@ namespace Ink.UnityIntegration {
 		//     }
 		//     EditorGUILayout.EndVertical();
 		// }
+#pragma warning disable IDE0051 // Remove unused private members
 		static void EditorGUIInkListField (Rect rect, GUIContent content, InkList inkList, string variableName) {
+#pragma warning restore IDE0051 // Remove unused private members
 			EditorGUI.PrefixLabel(rect, content);
 			if(inkList.Any()) {
 				if(GUILayout.Button("Log Contents")) {

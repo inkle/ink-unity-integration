@@ -7,7 +7,9 @@ using Ink.Runtime;
 public class BasicInkExample : MonoBehaviour {
     public static event Action<Story> OnCreateStory;
 	
+#pragma warning disable IDE0051 // Remove unused private members
     void Awake () {
+#pragma warning restore IDE0051 // Remove unused private members
 		// Remove the default message
 		RemoveChildren();
 		StartStory();

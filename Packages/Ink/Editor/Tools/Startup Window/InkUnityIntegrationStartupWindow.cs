@@ -41,7 +41,9 @@ namespace Ink.UnityIntegration {
             EditorPrefs.SetInt(editorPrefsKeyForVersionSeen, announcementVersion);
         }
         
+#pragma warning disable IDE0051 // Remove unused private members
 		void OnGUI ()
+#pragma warning restore IDE0051 // Remove unused private members
 		{
 			EditorGUILayout.BeginVertical();
 			var areaSize = new Vector2(90,90);
