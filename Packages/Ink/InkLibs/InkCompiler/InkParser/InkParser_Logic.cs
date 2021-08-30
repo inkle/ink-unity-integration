@@ -113,7 +113,9 @@ namespace Ink
                         Error ("Constant strings cannot contain any logic.");
                 }
 
+#pragma warning disable IDE0017 // Simplify object initialization
                 var result = new VariableAssignment (varName, expr);
+#pragma warning restore IDE0017 // Simplify object initialization
                 result.isGlobalDeclaration = true;
                 return result;
             }

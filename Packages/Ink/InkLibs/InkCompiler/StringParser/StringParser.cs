@@ -642,7 +642,9 @@ namespace Ink
                 return null;
             }
 
+#pragma warning disable IDE0018 // Inline variable declaration
 			int parsedInt;
+#pragma warning restore IDE0018 // Inline variable declaration
 			if (int.TryParse (parsedString, out parsedInt)) {
 				return negative ? -parsedInt : parsedInt;
 			}

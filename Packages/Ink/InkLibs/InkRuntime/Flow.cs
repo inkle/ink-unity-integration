@@ -23,7 +23,9 @@ namespace Ink.Runtime
 			this.currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
 
             // choiceThreads is optional
+#pragma warning disable IDE0018 // Inline variable declaration
             object jChoiceThreadsObj;
+#pragma warning restore IDE0018 // Inline variable declaration
             jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);
             LoadFlowChoiceThreads((Dictionary<string, object>)jChoiceThreadsObj, story);
         }

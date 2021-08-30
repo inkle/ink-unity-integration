@@ -65,7 +65,9 @@ namespace Ink.Runtime
         public object this[string variableName]
         {
             get {
+#pragma warning disable IDE0018 // Inline variable declaration
                 Runtime.Object varContents;
+#pragma warning restore IDE0018 // Inline variable declaration
 
                 if (patch != null && patch.TryGetGlobal(variableName, out varContents))
                     return (varContents as Runtime.Value).valueObject;
@@ -137,7 +139,9 @@ namespace Ink.Runtime
             _globalVariables.Clear();
 
             foreach (var varVal in _defaultGlobalVariables) {
+#pragma warning disable IDE0018 // Inline variable declaration
                 object loadedToken;
+#pragma warning restore IDE0018 // Inline variable declaration
                 if( jToken.TryGetValue(varVal.Key, out loadedToken) ) {
                     _globalVariables[varVal.Key] = Json.JTokenToRuntimeObject(loadedToken);
                 } else {
@@ -168,7 +172,9 @@ namespace Ink.Runtime
 
                 if(dontSaveDefaultValues) {
                     // Don't write out values that are the same as the default global values
+#pragma warning disable IDE0018 // Inline variable declaration
                     Runtime.Object defaultVal;
+#pragma warning restore IDE0018 // Inline variable declaration
                     if (_defaultGlobalVariables.TryGetValue(name, out defaultVal))
                     {
                         if (RuntimeObjectsEqual(val, defaultVal))
@@ -222,7 +228,9 @@ namespace Ink.Runtime
 
         public Runtime.Object TryGetDefaultVariableValue (string name)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
             Runtime.Object val = null;
+#pragma warning restore IDE0018 // Inline variable declaration
             _defaultGlobalVariables.TryGetValue (name, out val);
             return val;
         }
@@ -344,7 +352,9 @@ namespace Ink.Runtime
 
         public void SetGlobal(string variableName, Runtime.Object value)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
             Runtime.Object oldValue = null;
+#pragma warning restore IDE0018 // Inline variable declaration
             if( patch == null || !patch.TryGetGlobal(variableName, out oldValue) )
                 _globalVariables.TryGetValue (variableName, out oldValue);
 

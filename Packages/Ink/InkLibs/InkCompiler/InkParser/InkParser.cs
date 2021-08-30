@@ -96,7 +96,9 @@ namespace Ink
 
         protected Runtime.DebugMetadata CreateDebugMetadata(StringParserState.Element stateAtStart, StringParserState.Element stateAtEnd)
         {
+#pragma warning disable IDE0017 // Simplify object initialization
             var md = new Runtime.DebugMetadata ();
+#pragma warning restore IDE0017 // Simplify object initialization
             md.startLineNumber = stateAtStart.lineIndex + 1;
             md.endLineNumber = stateAtEnd.lineIndex + 1;
             md.startCharacterNumber = stateAtStart.characterInLineIndex + 1;

@@ -134,7 +134,9 @@ namespace Ink.Runtime
         {
             SetInitialOriginName (singleOriginListName);
 
+#pragma warning disable IDE0018 // Inline variable declaration
             ListDefinition def;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (originStory.listDefinitions.TryListGetDefinition (singleOriginListName, out def))
                 origins = new List<ListDefinition> { def };
             else
@@ -176,7 +178,9 @@ namespace Ink.Runtime
             
             foreach (var origin in origins) {
                 if (origin.name == item.originName) {
+#pragma warning disable IDE0018 // Inline variable declaration
                     int intVal;
+#pragma warning restore IDE0018 // Inline variable declaration
                     if (origin.TryGetValueForItem (item, out intVal)) {
                         this [item] = intVal;
                         return;

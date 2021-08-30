@@ -20,7 +20,9 @@ namespace Ink.Parsed
 
         public override Runtime.Object GenerateRuntimeObject ()
         {
+#pragma warning disable IDE0017 // Simplify object initialization
             var container = new Runtime.Container ();
+#pragma warning restore IDE0017 // Simplify object initialization
             container.name = name;
 
             if (this.story.countAllVisits) {

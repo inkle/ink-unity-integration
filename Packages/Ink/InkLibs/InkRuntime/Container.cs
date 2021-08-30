@@ -221,7 +221,9 @@ namespace Ink.Runtime
             }
 
             else {
+#pragma warning disable IDE0018 // Inline variable declaration
                 INamedContent foundContent = null;
+#pragma warning restore IDE0018 // Inline variable declaration
                 if (namedContent.TryGetValue (component.name, out foundContent)) {
                     return (Runtime.Object)foundContent;
                 } else {
@@ -235,7 +237,9 @@ namespace Ink.Runtime
             if (partialPathLength == -1)
                 partialPathLength = path.length;
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var result = new SearchResult ();
+#pragma warning restore IDE0017 // Simplify object initialization
             result.approximate = false;
 
             Container currentContainer = this;

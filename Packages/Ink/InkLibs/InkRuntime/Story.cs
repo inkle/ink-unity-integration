@@ -219,7 +219,9 @@ namespace Ink.Runtime
             if (rootToken == null)
                 throw new System.Exception ("Root node for ink not found. Are you sure it's a valid .ink.json file?");
 
+#pragma warning disable IDE0018 // Inline variable declaration
             object listDefsObj;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (rootObject.TryGetValue ("listDefs", out listDefsObj)) {
                 _listDefinitions = Json.JTokenToListDefinitions (listDefsObj);
             }
@@ -725,7 +727,9 @@ namespace Ink.Runtime
 
         public Runtime.Container KnotContainerWithName (string name)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
             INamedContent namedContainer;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (mainContentContainer.namedContent.TryGetValue (name, out namedContainer))
                 return namedContainer as Container;
             else
@@ -1061,7 +1065,9 @@ namespace Ink.Runtime
                 return null;
             }
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var choice = new Choice ();
+#pragma warning restore IDE0017 // Simplify object initialization
             choice.targetPath = choicePoint.pathOnChoice;
             choice.sourcePath = choicePoint.path.ToString ();
             choice.isInvisibleDefault = choicePoint.isInvisibleDefault;
@@ -1451,7 +1457,9 @@ namespace Ink.Runtime
 
                     ListDefinition foundListDef;
                     if (listDefinitions.TryListGetDefinition (listNameVal.value, out foundListDef)) {
+#pragma warning disable IDE0018 // Inline variable declaration
                         InkListItem foundItem;
+#pragma warning restore IDE0018 // Inline variable declaration
                         if (foundListDef.TryGetItemWithValue (intVal.value, out foundItem)) {
                             generatedListValue = new ListValue (foundItem, intVal.value);
                         }
@@ -1808,7 +1816,9 @@ namespace Ink.Runtime
 
         public void CallExternalFunction(string funcName, int numberOfArguments)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
             ExternalFunctionDef funcDef;
+#pragma warning restore IDE0018 // Inline variable declaration
             Container fallbackFunctionContainer = null;
 
             var foundExternal = _externals.TryGetValue (funcName, out funcDef);
@@ -2390,7 +2400,9 @@ namespace Ink.Runtime
             if (_variableObservers == null)
                 return;
             
+#pragma warning disable IDE0018 // Inline variable declaration
             VariableObserver observers = null;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (_variableObservers.TryGetValue (variableName, out observers)) {
 
                 if (!(newValueObj is Value)) {
@@ -2655,7 +2667,9 @@ namespace Ink.Runtime
         // then exits the flow.
         public void Error(string message, bool useEndLineNumber = false)
         {
+#pragma warning disable IDE0017 // Simplify object initialization
             var e = new StoryException (message);
+#pragma warning restore IDE0017 // Simplify object initialization
             e.useEndLineNumber = useEndLineNumber;
             throw e;
         }

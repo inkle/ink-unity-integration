@@ -377,7 +377,9 @@ namespace Ink.Runtime
             if (token is Dictionary<string, object>) {
 
                 var obj = (Dictionary < string, object> )token;
+#pragma warning disable IDE0018 // Inline variable declaration
                 object propValue;
+#pragma warning restore IDE0018 // Inline variable declaration
 
                 // Divert target value to path
                 if (obj.TryGetValue ("^->", out propValue))
@@ -416,7 +418,9 @@ namespace Ink.Runtime
                     divPushType = PushPopType.Function;
                 }
                 if (isDivert) {
+#pragma warning disable IDE0017 // Simplify object initialization
                     var divert = new Divert ();
+#pragma warning restore IDE0017 // Simplify object initialization
                     divert.pushesToStack = pushesToStack;
                     divert.stackPushType = divPushType;
                     divert.isExternal = external;
@@ -440,7 +444,9 @@ namespace Ink.Runtime
                     
                 // Choice
                 if (obj.TryGetValue ("*", out propValue)) {
+#pragma warning disable IDE0017 // Simplify object initialization
                     var choice = new ChoicePoint ();
+#pragma warning restore IDE0017 // Simplify object initialization
                     choice.pathStringOnChoice = propValue.ToString();
 
                     if (obj.TryGetValue ("flg", out propValue))
@@ -453,7 +459,9 @@ namespace Ink.Runtime
                 if (obj.TryGetValue ("VAR?", out propValue)) {
                     return new VariableReference (propValue.ToString ());
                 } else if (obj.TryGetValue ("CNT?", out propValue)) {
+#pragma warning disable IDE0017 // Simplify object initialization
                     var readCountVarRef = new VariableReference ();
+#pragma warning restore IDE0017 // Simplify object initialization
                     readCountVarRef.pathStringForCount = propValue.ToString ();
                     return readCountVarRef;
                 }
@@ -471,7 +479,9 @@ namespace Ink.Runtime
                 if (isVarAss) {
                     var varName = propValue.ToString ();
                     var isNewDecl = !obj.TryGetValue("re", out propValue);
+#pragma warning disable IDE0017 // Simplify object initialization
                     var varAss = new VariableAssignment (varName, isNewDecl);
+#pragma warning restore IDE0017 // Simplify object initialization
                     varAss.isGlobal = isGlobalVar;
                     return varAss;
                 }
@@ -562,7 +572,9 @@ namespace Ink.Runtime
 
         static Container JArrayToContainer(List<object> jArray)
         {
+#pragma warning disable IDE0017 // Simplify object initialization
             var container = new Container ();
+#pragma warning restore IDE0017 // Simplify object initialization
             container.content = JArrayToRuntimeObjList (jArray, skipLast:true);
 
             // Final object in the array is always a combination of
@@ -596,7 +608,9 @@ namespace Ink.Runtime
 
         static Choice JObjectToChoice(Dictionary<string, object> jObj)
         {
+#pragma warning disable IDE0017 // Simplify object initialization
             var choice = new Choice();
+#pragma warning restore IDE0017 // Simplify object initialization
             choice.text = jObj ["text"].ToString();
             choice.index = (int)jObj ["index"];
             choice.sourcePath = jObj ["originalChoicePath"].ToString();

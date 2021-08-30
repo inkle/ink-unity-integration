@@ -51,7 +51,9 @@ namespace Ink.Parsed
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
             Expression constantValue = null;
+#pragma warning restore IDE0018 // Inline variable declaration
 
             // If it's a constant reference, just generate the literal expression value
             // It's okay to access the constants at code generation time, since the

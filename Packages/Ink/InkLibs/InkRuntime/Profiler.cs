@@ -331,7 +331,9 @@ namespace Ink.Runtime
 			var nodeKey = stack[stackIdx];
 			if( _nodes == null ) _nodes = new Dictionary<string, ProfileNode>();
 
+#pragma warning disable IDE0018 // Inline variable declaration
 			ProfileNode node;
+#pragma warning restore IDE0018 // Inline variable declaration
 			if( !_nodes.TryGetValue(nodeKey, out node) ) {
 				node = new ProfileNode(nodeKey);
 				_nodes[nodeKey] = node;

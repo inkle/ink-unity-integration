@@ -123,7 +123,9 @@ namespace Ink.Parsed
             //  ]
             //
 
+#pragma warning disable IDE0017 // Simplify object initialization
             _runtimeChoice = new Runtime.ChoicePoint (onceOnly);
+#pragma warning restore IDE0017 // Simplify object initialization
             _runtimeChoice.isInvisibleDefault = this.isInvisibleDefault;
 
             if (startContent || choiceOnlyContent || condition) {
@@ -156,7 +158,9 @@ namespace Ink.Parsed
                 _startContentRuntimeContainer.name = "s";
 
                 // Effectively, the "return" statement - return to the point specified by $r
+#pragma warning disable IDE0017 // Simplify object initialization
                 var varDivert = new Runtime.Divert ();
+#pragma warning restore IDE0017 // Simplify object initialization
                 varDivert.variableDivertName = "$r";
                 _startContentRuntimeContainer.AddContent (varDivert);
 
@@ -164,7 +168,9 @@ namespace Ink.Parsed
                 _outerContainer.AddToNamedContentOnly (_startContentRuntimeContainer);
 
                 // This is the label to return to
+#pragma warning disable IDE0017 // Simplify object initialization
                 _r1Label = new Runtime.Container ();
+#pragma warning restore IDE0017 // Simplify object initialization
                 _r1Label.name = "$r1";
                 _outerContainer.AddContent (_r1Label);
 
@@ -218,7 +224,9 @@ namespace Ink.Parsed
                 _innerContentContainer.AddContent (_divertToStartContentInner);
 
                 // Define label to return to
+#pragma warning disable IDE0017 // Simplify object initialization
                 _r2Label = new Runtime.Container ();
+#pragma warning restore IDE0017 // Simplify object initialization
                 _r2Label.name = "$r2";
                 _innerContentContainer.AddContent (_r2Label);
             }

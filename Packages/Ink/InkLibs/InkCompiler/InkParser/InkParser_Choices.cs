@@ -107,7 +107,9 @@ namespace Ink
             // the flow away permanently.
             innerContent.AddContent (new Text ("\n"));
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var choice = new Choice (startContent, optionOnlyContent, innerContent);
+#pragma warning restore IDE0017 // Simplify object initialization
             choice.identifier = optionalName;
             choice.indentationDepth = bullets.Count;
             choice.hasWeaveStyleInlineBrackets = hasWeaveStyleInlineBrackets;

@@ -87,7 +87,9 @@ namespace Ink
 
             // Single -> (used for default choices)
             if (diverts.Count == 0 && arrowsAndDiverts.Count == 1) {
+#pragma warning disable IDE0017 // Simplify object initialization
                 var gatherDivert = new Divert ((Parsed.Object)null);
+#pragma warning restore IDE0017 // Simplify object initialization
                 gatherDivert.isEmpty = true;
                 diverts.Add (gatherDivert);
 

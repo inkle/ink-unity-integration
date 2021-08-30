@@ -80,7 +80,9 @@ namespace Ink.UnityIntegration.Debugging {
             }
             public static implicit operator JsonDateTime(DateTime dt) {
 #pragma warning disable IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0017 // Simplify object initialization
                 JsonDateTime jdt = new JsonDateTime();
+#pragma warning restore IDE0017 // Simplify object initialization
 #pragma warning restore IDE0090 // Use 'new(...)'
                 jdt.value = dt.ToFileTime();
                 return jdt;

@@ -129,7 +129,9 @@ namespace Ink.Parsed
             foreach (var constDecl in FindAll<ConstantDeclaration> ()) {
 
                 // Check for duplicate definitions
+#pragma warning disable IDE0018 // Inline variable declaration
                 Parsed.Expression existingDefinition = null;
+#pragma warning restore IDE0018 // Inline variable declaration
                 if (constants.TryGetValue (constDecl.constantName, out existingDefinition)) {
                     if (!existingDefinition.Equals (constDecl.expression)) {
                         var errorMsg = string.Format ("CONST '{0}' has been redefined with a different value. Multiple definitions of the same CONST are valid so long as they contain the same value. Initial definition was on {1}.", constDecl.constantName, existingDefinition.debugMetadata);
@@ -178,7 +180,9 @@ namespace Ink.Parsed
                         varDecl.expression.GenerateIntoContainer (variableInitialisation);
                     }
 
+#pragma warning disable IDE0017 // Simplify object initialization
                     var runtimeVarAss = new Runtime.VariableAssignment (varName, isNewDeclaration:true);
+#pragma warning restore IDE0017 // Simplify object initialization
                     runtimeVarAss.isGlobal = true;
                     variableInitialisation.AddContent (runtimeVarAss);
                 }
@@ -227,7 +231,9 @@ namespace Ink.Parsed
 
         public ListDefinition ResolveList (string listName)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
             ListDefinition list;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (!_listDefs.TryGetValue (listName, out list))
                 return null;
             return list;
@@ -466,7 +472,9 @@ namespace Ink.Parsed
             if (symbolType <= SymbolType.Var) return;
 
             // Global variable collision
+#pragma warning disable IDE0018 // Inline variable declaration
             VariableAssignment varDecl = null;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (variableDeclarations.TryGetValue(identifier?.name, out varDecl) ) {
                 if (varDecl != obj && varDecl.isGlobalDeclaration && varDecl.listDefinition == null) {
                     NameConflictError (obj, identifier?.name, varDecl, typeNameToPrint);

@@ -230,7 +230,9 @@ namespace Ink.UnityIntegration {
 		}
 
 		public static bool CheckStoryStateIsValid (string storyJSON, string storyStateJSON) {
+#pragma warning disable IDE0018 // Inline variable declaration
 			Story story;
+#pragma warning restore IDE0018 // Inline variable declaration
 			if(CheckStoryIsValid(storyJSON, out story)) {
 				try {
 					story.state.LoadJson(storyStateJSON);

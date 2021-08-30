@@ -69,7 +69,9 @@ namespace Ink
                 // Empty true branch - didn't get parsed, but should insert one for semantic correctness,
                 // and to make sure that any evaluation stack values get tidied up correctly.
                 else if (alternatives.Count == 1 && alternatives [0].isElse && initialQueryExpression) {
+#pragma warning disable IDE0017 // Simplify object initialization
                     var emptyTrueBranch = new ConditionalSingleBranch (null);
+#pragma warning restore IDE0017 // Simplify object initialization
                     emptyTrueBranch.isTrueBranch = true;
                     alternatives.Insert (0, emptyTrueBranch);
                 }
@@ -185,12 +187,16 @@ namespace Ink
                 Error ("Expected one or two alternatives separated by '|' in inline conditional");
             } else {
                 
+#pragma warning disable IDE0017 // Simplify object initialization
                 var trueBranch = new ConditionalSingleBranch (listOfLists[0]);
+#pragma warning restore IDE0017 // Simplify object initialization
                 trueBranch.isTrueBranch = true;
                 result.Add (trueBranch);
 
                 if (listOfLists.Count > 1) {
+#pragma warning disable IDE0017 // Simplify object initialization
                     var elseBranch = new ConditionalSingleBranch (listOfLists[1]);
+#pragma warning restore IDE0017 // Simplify object initialization
                     elseBranch.isElse = true;
                     result.Add (elseBranch);
                 }
@@ -249,7 +255,9 @@ namespace Ink
             // }
             MultilineWhitespace ();
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var branch = new ConditionalSingleBranch (content);
+#pragma warning restore IDE0017 // Simplify object initialization
             branch.ownExpression = expr;
             branch.isElse = isElse;
             return branch;

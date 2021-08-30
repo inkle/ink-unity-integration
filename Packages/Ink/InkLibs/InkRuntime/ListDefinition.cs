@@ -24,7 +24,9 @@ namespace Ink.Runtime
 
         public int ValueForItem (InkListItem item)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
             int intVal;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (_itemNameToValues.TryGetValue (item.itemName, out intVal))
                 return intVal;
             else

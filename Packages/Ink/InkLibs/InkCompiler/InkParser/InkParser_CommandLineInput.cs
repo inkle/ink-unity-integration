@@ -62,7 +62,9 @@ namespace Ink
 
             Expect (String (")"), "closing parenthesis");
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var inputStruct = new CommandLineInput ();
+#pragma warning restore IDE0017 // Simplify object initialization
             inputStruct.debugSource = characterOffset;
             return inputStruct;
         }
@@ -79,7 +81,9 @@ namespace Ink
 
             var pathStr = Expect (RuntimePath, "path") as string;
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var inputStruct = new CommandLineInput ();
+#pragma warning restore IDE0017 // Simplify object initialization
             inputStruct.debugPathLookup = pathStr;
             return inputStruct;
         }
@@ -111,7 +115,9 @@ namespace Ink
                 return null;
             }
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var inputStruct = new CommandLineInput ();
+#pragma warning restore IDE0017 // Simplify object initialization
             inputStruct.choiceInput = number;
             return inputStruct;
         }
@@ -120,7 +126,9 @@ namespace Ink
         {
             var statement = OneOf (SingleDivert, TempDeclarationOrAssignment, Expression);
 
+#pragma warning disable IDE0017 // Simplify object initialization
             var inputStruct = new CommandLineInput ();
+#pragma warning restore IDE0017 // Simplify object initialization
             inputStruct.userImmediateModeStatement = statement;
             return inputStruct;
         }

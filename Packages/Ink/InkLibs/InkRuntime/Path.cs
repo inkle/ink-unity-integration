@@ -165,7 +165,9 @@ namespace Ink.Runtime
 
         public static Path self {
             get {
+#pragma warning disable IDE0017 // Simplify object initialization
                 var path = new Path ();
+#pragma warning restore IDE0017 // Simplify object initialization
                 path.isRelative = true;
                 return path;
             }
@@ -238,7 +240,9 @@ namespace Ink.Runtime
 
                 var componentStrings = _componentsString.Split('.');
                 foreach (var str in componentStrings) {
+#pragma warning disable IDE0018 // Inline variable declaration
                     int index;
+#pragma warning restore IDE0018 // Inline variable declaration
                     if (int.TryParse (str , out index)) {
                         _components.Add (new Component (index));
                     } else {

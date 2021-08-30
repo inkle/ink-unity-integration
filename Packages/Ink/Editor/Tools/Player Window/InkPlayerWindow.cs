@@ -138,7 +138,9 @@ namespace Ink.UnityIntegration {
 			} 
 			public static InkPlayerParams ForAttachedStories {
 				get {
+#pragma warning disable IDE0017 // Simplify object initialization
 					var inkPlayerParams = new InkPlayerParams();
+#pragma warning restore IDE0017 // Simplify object initialization
 					inkPlayerParams.disablePlayControls = true;
 					inkPlayerParams.disableUndoHistory = true;
 					inkPlayerParams.disableChoices = true;
@@ -805,7 +807,9 @@ namespace Ink.UnityIntegration {
 		}
 
 		static void PlayInternal () {
+#pragma warning disable IDE0017 // Simplify object initialization
 			story = new Story(storyJSON);
+#pragma warning restore IDE0017 // Simplify object initialization
 			story.allowExternalFunctionFallbacks = true;
 		}
 
@@ -1906,7 +1910,9 @@ namespace Ink.UnityIntegration {
 				var hadError = false;
                 try {
                     // We might optimise this by caching story.ToJson() - we could use this in other places too.
+#pragma warning disable IDE0017 // Simplify object initialization
                     var tmpStory = new Story(story.ToJson());
+#pragma warning restore IDE0017 // Simplify object initialization
 			        tmpStory.allowExternalFunctionFallbacks = true;
                     var state = story.state.ToJson();
                     tmpStory.state.LoadJson(state);
@@ -1977,7 +1983,9 @@ namespace Ink.UnityIntegration {
 			EditorGUI.BeginDisabledGroup(!functionIsValid);
 			if (GUILayout.Button(new GUIContent("Execute", "Runs the function"))) {
 				AddToHistory(InkHistoryContentItem.CreateForDebugNote("Execute function '"+InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName+"'"));
+#pragma warning disable IDE0018 // Inline variable declaration
 				string outputContent = null;
+#pragma warning restore IDE0018 // Inline variable declaration
 				object[] allInput = new object[InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs.Count];
 				for (int i = 0; i < InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs.Count; i++) {
 					var input = InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs[i];
@@ -2045,7 +2053,9 @@ namespace Ink.UnityIntegration {
 		}
 
 		void BuildFunctionInputList () {
+#pragma warning disable IDE0017 // Simplify object initialization
 			functionInputList = new ReorderableList(InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs, typeof(FunctionPanelState.FunctionParams.FunctionInput), true, true, true, true);
+#pragma warning restore IDE0017 // Simplify object initialization
 			functionInputList.drawHeaderCallback = (Rect rect) => {
 				EditorGUI.LabelField(rect, "Inputs");
 			};

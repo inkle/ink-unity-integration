@@ -147,7 +147,9 @@ namespace Ink
             foreach (var outputObj in _runtimeStory.state.outputStream) {
                 var textContent = outputObj as Runtime.StringValue;
                 if (textContent != null) {
+#pragma warning disable IDE0017 // Simplify object initialization
                     var range = new DebugSourceRange ();
+#pragma warning restore IDE0017 // Simplify object initialization
                     range.length = textContent.value.Length;
                     range.debugMetadata = textContent.debugMetadata;
                     range.text = textContent.value;

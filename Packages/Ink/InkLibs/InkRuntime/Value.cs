@@ -254,7 +254,9 @@ namespace Ink.Runtime
 
             if (newType == ValueType.Int) {
 
+#pragma warning disable IDE0018 // Inline variable declaration
                 int parsedInt;
+#pragma warning restore IDE0018 // Inline variable declaration
                 if (int.TryParse (value, out parsedInt)) {
                     return new IntValue (parsedInt);
                 } else {
@@ -263,7 +265,9 @@ namespace Ink.Runtime
             }
 
             if (newType == ValueType.Float) {
+#pragma warning disable IDE0018 // Inline variable declaration
                 float parsedFloat;
+#pragma warning restore IDE0018 // Inline variable declaration
                 if (float.TryParse (value, System.Globalization.NumberStyles.Float ,System.Globalization.CultureInfo.InvariantCulture, out parsedFloat)) {
                     return new FloatValue (parsedFloat);
                 } else {

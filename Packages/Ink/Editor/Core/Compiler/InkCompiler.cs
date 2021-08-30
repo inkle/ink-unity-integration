@@ -424,7 +424,9 @@ namespace Ink.UnityIntegration {
 				countAllVisits = true,
 				fileHandler = new UnityInkFileHandler(Path.GetDirectoryName(item.inkAbsoluteFilePath)),
 				errorHandler = (string message, ErrorType type) => {
+#pragma warning disable IDE0018 // Inline variable declaration
 					InkCompilerLog log;
+#pragma warning restore IDE0018 // Inline variable declaration
 					if(InkCompilerLog.TryParse(message, out log)) {
 						if(string.IsNullOrEmpty(log.fileName)) log.fileName = Path.GetFileName(item.inkAbsoluteFilePath);
 						item.logOutput.Add(log);

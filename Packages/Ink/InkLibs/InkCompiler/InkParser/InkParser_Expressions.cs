@@ -62,7 +62,9 @@ namespace Ink
                 var result = new IncDecExpression (varIdentifier, assignedExpression, isIncrement);
                 return result;
             } else {
+#pragma warning disable IDE0017 // Simplify object initialization
                 var result = new VariableAssignment (varIdentifier, assignedExpression);
+#pragma warning restore IDE0017 // Simplify object initialization
                 result.isNewTemporaryDeclaration = isNewDeclaration;
                 return result;
             }

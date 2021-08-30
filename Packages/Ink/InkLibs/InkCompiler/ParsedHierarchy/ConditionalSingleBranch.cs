@@ -85,7 +85,9 @@ namespace Ink.Parsed
             if ( duplicatesStackValue )
                 container.AddContent (Runtime.ControlCommand.Duplicate ());
 
+#pragma warning disable IDE0017 // Simplify object initialization
             _conditionalDivert = new Runtime.Divert ();
+#pragma warning restore IDE0017 // Simplify object initialization
 
             // else clause is unconditional catch-all, otherwise the divert is conditional
             _conditionalDivert.isConditional = !isElse;

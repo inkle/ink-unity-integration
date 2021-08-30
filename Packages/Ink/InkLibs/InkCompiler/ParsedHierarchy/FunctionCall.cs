@@ -23,7 +23,9 @@ namespace Ink.Parsed
 
         public FunctionCall (Identifier functionName, List<Expression> arguments)
         {
+#pragma warning disable IDE0017 // Simplify object initialization
             _proxyDivert = new Parsed.Divert(new Path(functionName), arguments);
+#pragma warning restore IDE0017 // Simplify object initialization
             _proxyDivert.isFunctionCall = true;
             AddContent (_proxyDivert);
         }

@@ -106,7 +106,9 @@ namespace Ink.UnityIntegration {
 
 		void CreateIncludeList () {
 			List<DefaultAsset> includeTextAssets = inkFile.includes;
+#pragma warning disable IDE0017 // Simplify object initialization
 			includesFileList = new ReorderableList(includeTextAssets, typeof(DefaultAsset), false, false, false, false);
+#pragma warning restore IDE0017 // Simplify object initialization
 			includesFileList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "Included Files");
 			};
@@ -151,7 +153,9 @@ namespace Ink.UnityIntegration {
 
 		void CreateMastersList () {
 			List<DefaultAsset> mastersTextAssets = inkFile.masterInkAssets;
+#pragma warning disable IDE0017 // Simplify object initialization
 			mastersFileList = new ReorderableList(mastersTextAssets, typeof(DefaultAsset), false, false, false, false);
+#pragma warning restore IDE0017 // Simplify object initialization
 			mastersFileList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "Master Files");
 			};
@@ -212,7 +216,9 @@ namespace Ink.UnityIntegration {
 		}
 
 		void CreateErrorList () {
+#pragma warning disable IDE0017 // Simplify object initialization
 			errorList = new ReorderableList(inkFile.errors, typeof(string), false, false, false, false);
+#pragma warning restore IDE0017 // Simplify object initialization
 			errorList.elementHeight = 18;
 			errorList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, new GUIContent(InkBrowserIcons.errorIcon), new GUIContent("Errors"));
@@ -235,7 +241,9 @@ namespace Ink.UnityIntegration {
 		}
 
 		void CreateWarningList () {
+#pragma warning disable IDE0017 // Simplify object initialization
 			warningList = new ReorderableList(inkFile.warnings, typeof(string), false, false, false, false);
+#pragma warning restore IDE0017 // Simplify object initialization
 			warningList.elementHeight = 18;
 			warningList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, new GUIContent(InkBrowserIcons.warningIcon), new GUIContent("Warnings"));
@@ -258,7 +266,9 @@ namespace Ink.UnityIntegration {
 		}
 
 		void CreateTodoList () {
+#pragma warning disable IDE0017 // Simplify object initialization
 			todosList = new ReorderableList(inkFile.todos, typeof(string), false, false, false, false);
+#pragma warning restore IDE0017 // Simplify object initialization
 			todosList.elementHeight = 18;
 			todosList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "To do");

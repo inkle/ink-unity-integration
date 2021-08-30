@@ -136,7 +136,9 @@ namespace Ink.Runtime
 
             if (paramCount == 2 || paramCount == 1) {
 
+#pragma warning disable IDE0018 // Inline variable declaration
                 object opForTypeObj = null;
+#pragma warning restore IDE0018 // Inline variable declaration
                 if (!_operationFuncs.TryGetValue (valType, out opForTypeObj)) {
                     throw new StoryException ("Cannot perform operation '"+this.name+"' on "+valType);
                 }
@@ -221,7 +223,9 @@ namespace Ink.Runtime
                     }
                 }
                 if (itemOrigin != null) {
+#pragma warning disable IDE0018 // Inline variable declaration
                     InkListItem incrementedItem;
+#pragma warning restore IDE0018 // Inline variable declaration
                     if (itemOrigin.TryGetItemWithValue (targetInt, out incrementedItem))
                         resultRawList.Add (incrementedItem, targetInt);
                 }
@@ -266,7 +270,9 @@ namespace Ink.Runtime
                         int intVal = (int)val.valueObject;
                         var list = specialCaseList.value.originOfMaxItem;
 
+#pragma warning disable IDE0018 // Inline variable declaration
                         InkListItem item;
+#pragma warning restore IDE0018 // Inline variable declaration
                         if (list.TryGetItemWithValue (intVal, out item)) {
                             var castedValue = new ListValue (item, intVal);
                             parametersOut.Add (castedValue);
@@ -445,7 +451,9 @@ namespace Ink.Runtime
 
         static void AddOpToNativeFunc(string name, int args, ValueType valType, object op)
         {
+#pragma warning disable IDE0018 // Inline variable declaration
             NativeFunctionCall nativeFunc = null;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (!_nativeFunctions.TryGetValue (name, out nativeFunc)) {
                 nativeFunc = new NativeFunctionCall (name, args);
                 _nativeFunctions [name] = nativeFunc;

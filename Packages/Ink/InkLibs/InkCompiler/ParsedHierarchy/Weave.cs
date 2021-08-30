@@ -89,7 +89,9 @@ namespace Ink.Parsed
             foreach (var weavePoint in namedWeavePoints) {
 
                 // Check for weave point naming collisions
+#pragma warning disable IDE0018 // Inline variable declaration
                 IWeavePoint existingWeavePoint;
+#pragma warning restore IDE0018 // Inline variable declaration
                 if (_namedWeavePoints.TryGetValue (weavePoint.name, out existingWeavePoint)) {
                     var typeName = existingWeavePoint is Gather ? "gather" : "choice";
                     var existingObj = (Parsed.Object)existingWeavePoint;
@@ -488,7 +490,9 @@ namespace Ink.Parsed
             if (_namedWeavePoints == null)
                 return null;
 
+#pragma warning disable IDE0018 // Inline variable declaration
             IWeavePoint weavePointResult = null;
+#pragma warning restore IDE0018 // Inline variable declaration
             if (_namedWeavePoints.TryGetValue (name, out weavePointResult))
                 return weavePointResult;
 

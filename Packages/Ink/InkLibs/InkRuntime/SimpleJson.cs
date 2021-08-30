@@ -237,12 +237,16 @@ namespace Ink.Runtime
                 string numStr = _text.Substring (startOffset, _offset - startOffset);
 
                 if (isFloat) {
+#pragma warning disable IDE0018 // Inline variable declaration
                     float f;
+#pragma warning restore IDE0018 // Inline variable declaration
                     if (float.TryParse (numStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out f)) {
                         return f;
                     }
                 } else {
+#pragma warning disable IDE0018 // Inline variable declaration
                     int i;
+#pragma warning restore IDE0018 // Inline variable declaration
                     if (int.TryParse (numStr, out i)) {
                         return i;
                     }
