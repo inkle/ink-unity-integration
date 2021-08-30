@@ -1245,7 +1245,9 @@ namespace Ink.UnityIntegration {
                 if(GetShouldAutoScrollOnStoryChange())
 				    ScrollToBottom();
 			}
+#pragma warning disable IDE0062 // Make local function 'static'
             void DrawVisibilityOptions () {
+#pragma warning restore IDE0062 // Make local function 'static'
                 var lw = EditorGUIUtility.labelWidth;
                 var visibilityOptionsGUIContent = EditorGUIUtility.IconContent("d_ViewToolOrbit");
                 visibilityOptionsGUIContent.tooltip = "Visiblity Options";
