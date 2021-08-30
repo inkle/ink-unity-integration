@@ -140,7 +140,9 @@ namespace Ink
             // Jump ahead to the next knot or the end of the file
             ParseUntil (KnotDeclaration, new CharacterSet ("="), null);
 
+#pragma warning disable IDE0028 // Simplify collection initialization
             var recoveredFlowContent = new List<Parsed.Object>();
+#pragma warning restore IDE0028 // Simplify collection initialization
 			recoveredFlowContent.Add( new Parsed.Text("<ERROR IN FLOW>" ) );
 			return recoveredFlowContent;
 		}

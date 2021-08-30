@@ -91,7 +91,9 @@ namespace Ink
         string RuntimePath ()
         {
             if (_runtimePathCharacterSet == null) {
+#pragma warning disable IDE0028 // Simplify collection initialization
                 _runtimePathCharacterSet = new CharacterSet (identifierCharSet);
+#pragma warning restore IDE0028 // Simplify collection initialization
                 _runtimePathCharacterSet.Add ('-'); // for c-0, g-0 etc
                 _runtimePathCharacterSet.Add ('.');
 

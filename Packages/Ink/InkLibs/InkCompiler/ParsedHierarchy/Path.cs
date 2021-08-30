@@ -66,7 +66,9 @@ namespace Ink.Parsed
         public Path(Identifier ambiguousName)
         {
             _baseTargetLevel = null;
+#pragma warning disable IDE0028 // Simplify collection initialization
             components = new List<Identifier> ();
+#pragma warning restore IDE0028 // Simplify collection initialization
             components.Add (ambiguousName);
         }
 

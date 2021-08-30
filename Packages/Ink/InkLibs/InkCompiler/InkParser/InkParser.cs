@@ -60,7 +60,9 @@ namespace Ink
             T firstElement = Parse (mainRule);
             if (firstElement == null) return null;
 
+#pragma warning disable IDE0028 // Simplify collection initialization
             var allElements = new List<T> ();
+#pragma warning restore IDE0028 // Simplify collection initialization
             allElements.Add (firstElement);
 
             do {

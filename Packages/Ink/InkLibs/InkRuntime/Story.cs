@@ -1252,7 +1252,9 @@ namespace Ink.Runtime
                     }
                     else if (state.callStack.currentElement.type != popType || !state.callStack.canPop) {
 
+#pragma warning disable IDE0028 // Simplify collection initialization
                         var names = new Dictionary<PushPopType, string> ();
+#pragma warning restore IDE0028 // Simplify collection initialization
                         names [PushPopType.Function] = "function return statement (~ return)";
                         names [PushPopType.Tunnel] = "tunnel onwards statement (->->)";
 
@@ -1522,7 +1524,9 @@ namespace Ink.Runtime
                             var randomItem = listEnumerator.Current;
 
                             // Origin list is simply the origin of the one element
+#pragma warning disable IDE0028 // Simplify collection initialization
                             newList = new InkList (randomItem.Key.originName, this);
+#pragma warning restore IDE0028 // Simplify collection initialization
                             newList.Add (randomItem.Key, randomItem.Value);
 
                             state.previousRandom = nextRandom;

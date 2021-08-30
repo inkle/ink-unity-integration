@@ -240,7 +240,9 @@ namespace Ink.UnityIntegration {
 		public List<InkFile> inkFilesInIncludeHierarchy {
 			get {
 #pragma warning disable IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0028 // Simplify collection initialization
 				List<InkFile> _inkFilesInIncludeHierarchy = new List<InkFile>();
+#pragma warning restore IDE0028 // Simplify collection initialization
 #pragma warning restore IDE0090 // Use 'new(...)'
 				_inkFilesInIncludeHierarchy.Add(this);
 				foreach(var child in includesInkFiles) {

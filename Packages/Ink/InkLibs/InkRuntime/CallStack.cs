@@ -224,7 +224,9 @@ namespace Ink.Runtime
 
         public void Reset() 
         {
+#pragma warning disable IDE0028 // Simplify collection initialization
             _threads = new List<Thread>();
+#pragma warning restore IDE0028 // Simplify collection initialization
             _threads.Add(new Thread());
 
             _threads[0].callstack.Add(new Element(PushPopType.Tunnel, _startOfRoot));

@@ -413,7 +413,9 @@ namespace Ink.Runtime
             if(flowName == null) throw new System.Exception("Must pass a non-null string to Story.SwitchFlow");
             
             if( _namedFlows == null ) {
+#pragma warning disable IDE0028 // Simplify collection initialization
                 _namedFlows = new Dictionary<string, Flow>();
+#pragma warning restore IDE0028 // Simplify collection initialization
                 _namedFlows[kDefaultFlowName] = _currentFlow;
             }
 

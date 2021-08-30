@@ -295,7 +295,9 @@ namespace Ink
             parsingStringExpression = false;
 
             if (textAndLogic == null) {
+#pragma warning disable IDE0028 // Simplify collection initialization
                 textAndLogic = new List<Ink.Parsed.Object> ();
+#pragma warning restore IDE0028 // Simplify collection initialization
                 textAndLogic.Add (new Parsed.Text (""));
             }
 

@@ -45,7 +45,9 @@ namespace Ink
                         List<Parsed.Object> soleContent = StatementsAtLevel (StatementLevel.InnerBlock);
                         if (soleContent != null) {
                             var soleBranch = new ConditionalSingleBranch (soleContent);
+#pragma warning disable IDE0028 // Simplify collection initialization
                             alternatives = new List<ConditionalSingleBranch> ();
+#pragma warning restore IDE0028 // Simplify collection initialization
                             alternatives.Add (soleBranch);
 
                             // Also allow a final "- else:" clause
@@ -242,7 +244,9 @@ namespace Ink
                 Error ("expected content for the conditional branch following '-'");
 
                 // Recover
+#pragma warning disable IDE0028 // Simplify collection initialization
                 content = new List<Ink.Parsed.Object> ();
+#pragma warning restore IDE0028 // Simplify collection initialization
                 content.Add (new Text (""));
             }
 
