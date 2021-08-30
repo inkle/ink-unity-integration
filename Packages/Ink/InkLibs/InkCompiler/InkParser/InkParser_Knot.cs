@@ -26,7 +26,9 @@ namespace Ink
 
 			Expect(EndOfLine, "end of line after knot name definition", recoveryRule: SkipToNextLine);
 
+#pragma warning disable IDE0039 // Use local function
 			ParseRule innerKnotStatements = () => StatementsAtLevel (StatementLevel.Knot);
+#pragma warning restore IDE0039 // Use local function
 
             var content = Expect (innerKnotStatements, "at least one line within the knot", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 
@@ -90,7 +92,9 @@ namespace Ink
 
 			Expect(EndOfLine, "end of line after stitch name", recoveryRule: SkipToNextLine);
 
+#pragma warning disable IDE0039 // Use local function
 			ParseRule innerStitchStatements = () => StatementsAtLevel (StatementLevel.Stitch);
+#pragma warning restore IDE0039 // Use local function
 
             var content = Expect(innerStitchStatements, "at least one line within the stitch", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 

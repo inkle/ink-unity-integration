@@ -182,7 +182,9 @@ namespace Ink
             }
 
             // When the ParseUntil pauses, check these rules in case they evaluate successfully
+#pragma warning disable IDE0039 // Use local function
             ParseRule nonTextRule = () => OneOf (ParseDivertArrow, ParseThreadArrow, EndOfLine, Glue);
+#pragma warning restore IDE0039 // Use local function
 
             CharacterSet endChars = null;
             if (parsingStringExpression) {

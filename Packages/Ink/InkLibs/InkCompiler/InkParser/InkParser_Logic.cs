@@ -27,7 +27,9 @@ namespace Ink
             // ~ f()         -- expr
             // We don't treat variable decl/assign as an expression since we don't want an assignment
             // to have a return value, or to be used in compound expressions.
+#pragma warning disable IDE0039 // Use local function
             ParseRule afterTilda = () => OneOf (ReturnStatement, TempDeclarationOrAssignment, Expression);
+#pragma warning restore IDE0039 // Use local function
 
             var result = Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine) as Parsed.Object;
 

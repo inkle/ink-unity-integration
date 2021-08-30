@@ -281,7 +281,9 @@ namespace Ink.Runtime
          
         public void BuildStringOfHierarchy(StringBuilder sb, int indentation, Runtime.Object pointedObj)
         {
+#pragma warning disable IDE0039 // Use local function
             Action appendIndentation = () => { 
+#pragma warning restore IDE0039 // Use local function
                 const int spacesPerIndent = 4;
                 for(int i=0; i<spacesPerIndent*indentation;++i) { 
                     sb.Append(" "); 
