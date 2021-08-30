@@ -170,7 +170,9 @@ namespace Ink.Runtime
             }
 
             if (newType == ValueType.Bool) {
+#pragma warning disable IDE0075 // Simplify conditional expression
                 return new BoolValue (this.value == 0 ? false : true);
+#pragma warning restore IDE0075 // Simplify conditional expression
             }
 
             if (newType == ValueType.Float) {
@@ -203,7 +205,9 @@ namespace Ink.Runtime
             }
 
             if (newType == ValueType.Bool) {
+#pragma warning disable IDE0075 // Simplify conditional expression
                 return new BoolValue (this.value == 0.0f ? false : true);
+#pragma warning restore IDE0075 // Simplify conditional expression
             }
 
             if (newType == ValueType.Int) {

@@ -2546,7 +2546,9 @@ namespace Ink.UnityIntegration {
 		static bool EditorGUILayoutInkListField (GUIContent guiContent, InkList inkList, string expandedVariableKey = null) {
 			var anythingChanged = false;
             // if(inkList.Any()) {
+#pragma warning disable IDE0075 // Simplify conditional expression
 				var show = expandedVariableKey == null ? true : InkPlayerWindowState.Instance.variablesPanelState.expandedVariables.Contains(expandedVariableKey);
+#pragma warning restore IDE0075 // Simplify conditional expression
 				var c = new GUIContent(guiContent);
 				c.text += " (InkList with "+inkList.Count+" entries)";
 				EditorGUILayout.BeginVertical();

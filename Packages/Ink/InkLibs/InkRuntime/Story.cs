@@ -1943,7 +1943,9 @@ namespace Ink.Runtime
             if (value is int && typeof(T) == typeof(bool)) {
 #pragma warning restore IDE0038 // Use pattern matching
                 int intVal = (int)value;
+#pragma warning disable IDE0075 // Simplify conditional expression
                 return intVal == 0 ? false : true;
+#pragma warning restore IDE0075 // Simplify conditional expression
             }
 
 #pragma warning disable IDE0038 // Use pattern matching
