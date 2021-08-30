@@ -62,7 +62,9 @@ namespace Ink.Parsed
                 var obj = topLevelContent [i];
                 if (obj is IncludedFile) {
 
+#pragma warning disable IDE0020 // Use pattern matching
                     var file = (IncludedFile)obj;
+#pragma warning restore IDE0020 // Use pattern matching
 
                     // Remove the IncludedFile itself
                     topLevelContent.RemoveAt (i);

@@ -1093,10 +1093,14 @@ namespace Ink.Runtime
         {
             bool truthy = false;
             if (obj is Value) {
+#pragma warning disable IDE0020 // Use pattern matching
                 var val = (Value)obj;
+#pragma warning restore IDE0020 // Use pattern matching
 
                 if (val is DivertTargetValue) {
+#pragma warning disable IDE0020 // Use pattern matching
                     var divTarget = (DivertTargetValue)val;
+#pragma warning restore IDE0020 // Use pattern matching
                     Error ("Shouldn't use a divert target (to " + divTarget.targetPath + ") as a conditional value. Did you intend a function call 'likeThis()' or a read count check 'likeThis'? (no arrows)");
                     return false;
                 }
@@ -1121,7 +1125,9 @@ namespace Ink.Runtime
             // Divert
             if (contentObj is Divert) {
                 
+#pragma warning disable IDE0020 // Use pattern matching
                 Divert currentDivert = (Divert)contentObj;
+#pragma warning restore IDE0020 // Use pattern matching
 
                 if (currentDivert.isConditional) {
                     var conditionValue = state.PopEvaluationStack ();
@@ -1185,7 +1191,9 @@ namespace Ink.Runtime
 
             // Start/end an expression evaluation? Or print out the result?
             else if( contentObj is ControlCommand ) {
+#pragma warning disable IDE0020 // Use pattern matching
                 var evalCommand = (ControlCommand) contentObj;
+#pragma warning restore IDE0020 // Use pattern matching
 
                 switch (evalCommand.commandType) {
 
@@ -1546,7 +1554,9 @@ namespace Ink.Runtime
 
             // Variable assignment
             else if( contentObj is VariableAssignment ) {
+#pragma warning disable IDE0020 // Use pattern matching
                 var varAss = (VariableAssignment) contentObj;
+#pragma warning restore IDE0020 // Use pattern matching
                 var assignedVal = state.PopEvaluationStack();
 
                 // When in temporary evaluation, don't create new variables purely within
@@ -1560,7 +1570,9 @@ namespace Ink.Runtime
 
             // Variable reference
             else if( contentObj is VariableReference ) {
+#pragma warning disable IDE0020 // Use pattern matching
                 var varRef = (VariableReference)contentObj;
+#pragma warning restore IDE0020 // Use pattern matching
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
                 Runtime.Object foundValue = null;
 #pragma warning restore IDE0059 // Unnecessary assignment of a value
@@ -1592,7 +1604,9 @@ namespace Ink.Runtime
 
             // Native function call
             else if (contentObj is NativeFunctionCall) {
+#pragma warning disable IDE0020 // Use pattern matching
                 var func = (NativeFunctionCall)contentObj;
+#pragma warning restore IDE0020 // Use pattern matching
                 var funcParams = state.PopEvaluationStack (func.numberOfParameters);
                 var result = func.Call (funcParams);
                 state.PushEvaluationStack (result);

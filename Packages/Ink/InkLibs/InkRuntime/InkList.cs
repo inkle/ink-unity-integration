@@ -78,7 +78,9 @@ namespace Ink.Runtime
         public override bool Equals (object obj)
         {
             if (obj is InkListItem) {
+#pragma warning disable IDE0020 // Use pattern matching
                 var otherItem = (InkListItem)obj;
+#pragma warning restore IDE0020 // Use pattern matching
                 return otherItem.itemName   == itemName 
                     && otherItem.originName == originName;
             }

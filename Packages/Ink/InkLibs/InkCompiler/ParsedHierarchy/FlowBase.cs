@@ -216,7 +216,9 @@ namespace Ink.Parsed
                 // Inner knots and stitches
                 if (obj is FlowBase) {
 
+#pragma warning disable IDE0020 // Use pattern matching
                     var childFlow = (FlowBase)obj;
+#pragma warning restore IDE0020 // Use pattern matching
 
                     var childFlowRuntime = childFlow.runtimeObject;
 

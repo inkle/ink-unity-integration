@@ -311,7 +311,9 @@ namespace Ink.Runtime
 
                 if (obj is Container) {
 
+#pragma warning disable IDE0020 // Use pattern matching
                     var container = (Container)obj;
+#pragma warning restore IDE0020 // Use pattern matching
 
                     container.BuildStringOfHierarchy (sb, indentation, pointedObj);
 

@@ -109,7 +109,9 @@ namespace Ink
            // Variable assignment: create in Parsed.Story as well as the Runtime.Story
            // so that we don't get an error message during reference resolution
            if (parsedObj is Parsed.VariableAssignment) {
+#pragma warning disable IDE0020 // Use pattern matching
                var varAssign = (Parsed.VariableAssignment)parsedObj;
+#pragma warning restore IDE0020 // Use pattern matching
                if (varAssign.isNewTemporaryDeclaration) {
                    _parsedStory.TryAddNewVariableDeclaration (varAssign);
                }

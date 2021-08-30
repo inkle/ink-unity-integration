@@ -14,7 +14,9 @@ namespace Ink
                 var lastObjIdx = mixedTextAndLogicResults.Count - 1;
                 var lastObj = mixedTextAndLogicResults[lastObjIdx];
                 if (lastObj is Text) {
+#pragma warning disable IDE0020 // Use pattern matching
                     var text = (Text)lastObj;
+#pragma warning restore IDE0020 // Use pattern matching
                     text.text = text.text.TrimEnd (' ', '\t');
 
                     if (terminateWithSpace)

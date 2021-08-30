@@ -335,7 +335,9 @@ namespace Ink.Runtime
             }
             
             if (token is string) {
+#pragma warning disable IDE0020 // Use pattern matching
                 string str = (string)token;
+#pragma warning restore IDE0020 // Use pattern matching
 
                 // String value
                 char firstChar = str[0];
@@ -376,7 +378,9 @@ namespace Ink.Runtime
 
             if (token is Dictionary<string, object>) {
 
+#pragma warning disable IDE0020 // Use pattern matching
                 var obj = (Dictionary < string, object> )token;
+#pragma warning restore IDE0020 // Use pattern matching
 #pragma warning disable IDE0018 // Inline variable declaration
                 object propValue;
 #pragma warning restore IDE0018 // Inline variable declaration

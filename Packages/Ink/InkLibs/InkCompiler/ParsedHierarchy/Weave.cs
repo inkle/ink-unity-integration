@@ -115,7 +115,9 @@ namespace Ink.Parsed
 
                 // Choice or Gather
                 if (obj is IWeavePoint) {
+#pragma warning disable IDE0020 // Use pattern matching
                     var weavePoint = (IWeavePoint)obj;
+#pragma warning restore IDE0020 // Use pattern matching
                     var weaveIndentIdx = weavePoint.indentationDepth - 1;
 
                     // Inner level indentation - recurse
@@ -197,7 +199,9 @@ namespace Ink.Parsed
 
                     // Nested weave
                     if (obj is Weave) {
+#pragma warning disable IDE0020 // Use pattern matching
                         var weave = (Weave)obj;
+#pragma warning restore IDE0020 // Use pattern matching
                         AddRuntimeForNestedWeave (weave);
                         gatherPointsToResolve.AddRange (weave.gatherPointsToResolve);
                     }
@@ -257,7 +261,9 @@ namespace Ink.Parsed
                 // since they'll be handled by the auto-enter code below
                 // that only jumps into the gather if (current runtime choices == 0)
                 if (looseEnd is Gather) {
+#pragma warning disable IDE0020 // Use pattern matching
                     var prevGather = (Gather)looseEnd;
+#pragma warning restore IDE0020 // Use pattern matching
                     if (prevGather.indentationDepth == gather.indentationDepth) {
                         continue;
                     }

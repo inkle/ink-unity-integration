@@ -40,7 +40,9 @@ namespace Ink.Runtime
         {
             // Implicitly lose precision from any doubles we get passed in
             if (val is double) {
+#pragma warning disable IDE0020 // Use pattern matching
                 double doub = (double)val;
+#pragma warning restore IDE0020 // Use pattern matching
                 val = (float)doub;
             }
 
