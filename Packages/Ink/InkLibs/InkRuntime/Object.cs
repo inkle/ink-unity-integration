@@ -84,7 +84,9 @@ namespace Ink.Runtime
 
                         while (container) {
 
+#pragma warning disable IDE0019 // Use pattern matching
                             var namedChild = child as INamedContent;
+#pragma warning restore IDE0019 // Use pattern matching
                             if (namedChild != null && namedChild.hasValidName) {
                                 comps.Push (new Path.Component (namedChild.name));
                             } else {

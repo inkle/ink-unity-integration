@@ -173,7 +173,9 @@ namespace Ink
                 // Real content
                 else {
 
+#pragma warning disable IDE0019 // Use pattern matching
                     var content = contentOrPipe as List<Parsed.Object>;
+#pragma warning restore IDE0019 // Use pattern matching
                     if (content == null) {
                         Error ("Expected content, but got " + contentOrPipe + " (this is an ink compiler bug!)");
                     } else {

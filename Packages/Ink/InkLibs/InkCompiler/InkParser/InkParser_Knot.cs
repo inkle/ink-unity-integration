@@ -225,7 +225,9 @@ namespace Ink
 
             Whitespace ();
 
+#pragma warning disable IDE0019 // Use pattern matching
             var parameterNames = Expect (BracketedKnotDeclArguments, "declaration of arguments for EXTERNAL, even if empty, i.e. 'EXTERNAL "+funcIdentifier+"()'") as List<FlowBase.Argument>;
+#pragma warning restore IDE0019 // Use pattern matching
             if (parameterNames == null)
                 parameterNames = new List<FlowBase.Argument> ();
 

@@ -120,7 +120,9 @@ namespace Ink.Parsed
                     break;
 
                 if (!hasWeavePoint) {
+#pragma warning disable IDE0019 // Use pattern matching
                     var weavePointAncestor = ancestor as IWeavePoint;
+#pragma warning restore IDE0019 // Use pattern matching
                     if (weavePointAncestor != null && weavePointAncestor.identifier != null) {
                         pathComponents.Add (weavePointAncestor.identifier);
                         hasWeavePoint = true;
@@ -231,7 +233,9 @@ namespace Ink.Parsed
         public delegate bool FindQueryFunc<T>(T obj);
         public T Find<T>(FindQueryFunc<T> queryFunc = null) where T : class
         {
+#pragma warning disable IDE0019 // Use pattern matching
             var tObj = this as T;
+#pragma warning restore IDE0019 // Use pattern matching
             if (tObj != null && (queryFunc == null || queryFunc (tObj) == true)) {
                 return tObj;
             }
@@ -260,7 +264,9 @@ namespace Ink.Parsed
 
         void FindAll<T>(FindQueryFunc<T> queryFunc, List<T> foundSoFar) where T : class
         {
+#pragma warning disable IDE0019 // Use pattern matching
             var tObj = this as T;
+#pragma warning restore IDE0019 // Use pattern matching
             if (tObj != null && (queryFunc == null || queryFunc (tObj) == true)) {
                 foundSoFar.Add (tObj);
             }

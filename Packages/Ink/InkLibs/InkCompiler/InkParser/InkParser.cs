@@ -118,7 +118,9 @@ namespace Ink
             }
 
             // A list of objects that doesn't already have metadata?
+#pragma warning disable IDE0019 // Use pattern matching
             var parsedListObjs = result as List<Parsed.Object>;
+#pragma warning restore IDE0019 // Use pattern matching
             if (parsedListObjs != null) {
                 foreach (var parsedListObj in parsedListObjs) {
                     if (!parsedListObj.hasOwnDebugMetadata) {
@@ -127,7 +129,9 @@ namespace Ink
                 }
             }
 
+#pragma warning disable IDE0019 // Use pattern matching
             var id = result as Parsed.Identifier;
+#pragma warning restore IDE0019 // Use pattern matching
             if (id != null) {
                 id.debugMetadata = CreateDebugMetadata(stateAtStart, stateAtEnd);
             }

@@ -587,7 +587,9 @@ namespace Ink.Runtime
             //  - named content
             //  - a "#f" key with the countFlags
             // (if either exists at all, otherwise null)
+#pragma warning disable IDE0019 // Use pattern matching
             var terminatingObj = jArray [jArray.Count - 1] as Dictionary<string, object>;
+#pragma warning restore IDE0019 // Use pattern matching
             if (terminatingObj != null) {
 
                 var namedOnlyContent = new Dictionary<string, Runtime.Object> (terminatingObj.Count);

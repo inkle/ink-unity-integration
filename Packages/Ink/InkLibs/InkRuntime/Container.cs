@@ -35,7 +35,9 @@ namespace Ink.Runtime
                 }
 
                 foreach (var c in content) {
+#pragma warning disable IDE0019 // Use pattern matching
                     var named = c as INamedContent;
+#pragma warning restore IDE0019 // Use pattern matching
                     if (named != null && named.hasValidName) {
                         namedOnlyContentDict.Remove (named.name);
                     }
@@ -58,7 +60,9 @@ namespace Ink.Runtime
                     return;
                 
                 foreach (var kvPair in value) {
+#pragma warning disable IDE0019 // Use pattern matching
                     var named = kvPair.Value as INamedContent;
+#pragma warning restore IDE0019 // Use pattern matching
                     if( named != null )
                         AddToNamedContentOnly (named);
                 }
@@ -176,7 +180,9 @@ namespace Ink.Runtime
             
 		public void TryAddNamedContent(Runtime.Object contentObj)
 		{
+#pragma warning disable IDE0019 // Use pattern matching
 			var namedContentObj = contentObj as INamedContent;
+#pragma warning restore IDE0019 // Use pattern matching
 			if (namedContentObj != null && namedContentObj.hasValidName) {
 				AddToNamedContentOnly (namedContentObj);
 			}

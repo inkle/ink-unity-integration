@@ -270,7 +270,9 @@ namespace Ink
         {
             int ruleId = BeginRule ();
 
+#pragma warning disable IDE0019 // Use pattern matching
             var result = rule () as T;
+#pragma warning restore IDE0019 // Use pattern matching
             if (result == null) {
                 FailRule (ruleId);
                 return null;
@@ -358,7 +360,9 @@ namespace Ink
 			}
 
 			if (flatten) {
+#pragma warning disable IDE0019 // Use pattern matching
 				var resultCollection = result as System.Collections.ICollection;
+#pragma warning restore IDE0019 // Use pattern matching
 				if (resultCollection != null) {
 					foreach (object obj in resultCollection) {
 						Debug.Assert (obj is T);

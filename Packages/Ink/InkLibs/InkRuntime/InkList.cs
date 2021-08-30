@@ -538,7 +538,9 @@ namespace Ink.Runtime
         /// </summary>
         public override bool Equals (object other)
         {
+#pragma warning disable IDE0019 // Use pattern matching
             var otherRawList = other as InkList;
+#pragma warning restore IDE0019 // Use pattern matching
             if (otherRawList == null) return false;
             if (otherRawList.Count != Count) return false;
 

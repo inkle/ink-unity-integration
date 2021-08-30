@@ -124,7 +124,9 @@ namespace Ink.Parsed
                         // Step through content until indent jumps out again
                         int innerWeaveStartIdx = contentIdx;
                         while (contentIdx < content.Count) {
+#pragma warning disable IDE0019 // Use pattern matching
                             var innerWeaveObj = content [contentIdx] as IWeavePoint;
+#pragma warning restore IDE0019 // Use pattern matching
                             if (innerWeaveObj != null) {
                                 var innerIndentIdx = innerWeaveObj.indentationDepth - 1;
                                 if (innerIndentIdx <= baseIndentIndex) {
