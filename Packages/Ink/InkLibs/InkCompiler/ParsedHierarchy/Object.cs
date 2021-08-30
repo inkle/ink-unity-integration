@@ -342,7 +342,9 @@ namespace Ink.Parsed
         // if( myObj != null ) ...
         public static implicit operator bool (Object obj)
         {
+#pragma warning disable IDE0041 // Use 'is null' check
             var isNull = object.ReferenceEquals (obj, null);
+#pragma warning restore IDE0041 // Use 'is null' check
             return !isNull;
         }
 
