@@ -79,7 +79,9 @@ namespace Ink.Parsed
                         if (subStory.content != null) {
 
                             foreach (var subStoryObj in subStory.content) {
+#pragma warning disable IDE0038 // Use pattern matching
                                 if (subStoryObj is FlowBase) {
+#pragma warning restore IDE0038 // Use pattern matching
                                     flowsFromOtherFiles.Add ((FlowBase)subStoryObj);
                                 } else {
                                     nonFlowContent.Add (subStoryObj);

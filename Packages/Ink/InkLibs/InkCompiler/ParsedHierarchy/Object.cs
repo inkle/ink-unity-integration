@@ -288,7 +288,9 @@ namespace Ink.Parsed
         {
             var ancestor = this.parent;
             while (ancestor) {
+#pragma warning disable IDE0038 // Use pattern matching
                 if (ancestor is FlowBase) {
+#pragma warning restore IDE0038 // Use pattern matching
                     return (FlowBase)ancestor;
                 }
                 ancestor = ancestor.parent;

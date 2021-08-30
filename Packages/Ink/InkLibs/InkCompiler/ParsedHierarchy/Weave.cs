@@ -157,7 +157,9 @@ namespace Ink.Parsed
         public int DetermineBaseIndentationFromContent(List<Parsed.Object> contentList)
         {
             foreach (var obj in contentList) {
+#pragma warning disable IDE0038 // Use pattern matching
                 if (obj is IWeavePoint) {
+#pragma warning restore IDE0038 // Use pattern matching
                     return ((IWeavePoint)obj).indentationDepth - 1;
                 }
             }
@@ -180,7 +182,9 @@ namespace Ink.Parsed
             foreach(var obj in content) {
 
                 // Choice or Gather
+#pragma warning disable IDE0038 // Use pattern matching
                 if (obj is IWeavePoint) {
+#pragma warning restore IDE0038 // Use pattern matching
                     AddRuntimeForWeavePoint ((IWeavePoint)obj);
                 } 
 
@@ -279,12 +283,16 @@ namespace Ink.Parsed
         void AddRuntimeForWeavePoint(IWeavePoint weavePoint)
         {
             // Current level Gather
+#pragma warning disable IDE0038 // Use pattern matching
             if (weavePoint is Gather) {
+#pragma warning restore IDE0038 // Use pattern matching
                 AddRuntimeForGather ((Gather)weavePoint);
             } 
 
             // Current level choice
+#pragma warning disable IDE0038 // Use pattern matching
             else if (weavePoint is Choice) {
+#pragma warning restore IDE0038 // Use pattern matching
 
                 // Gathers that contain choices are no longer loose ends
                 // (same as when weave points get nested content)

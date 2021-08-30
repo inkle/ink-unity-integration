@@ -208,7 +208,9 @@ namespace Ink
             if (postfixOp != null) {
                 bool isInc = postfixOp == "++";
 
+#pragma warning disable IDE0038 // Use pattern matching
                 if (!(expr is VariableReference)) {
+#pragma warning restore IDE0038 // Use pattern matching
                     Error ("can only increment and decrement variables, but saw '" + expr + "'");
 
                     // Drop down and succeed without the increment after reporting error

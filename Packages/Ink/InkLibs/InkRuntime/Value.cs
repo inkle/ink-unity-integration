@@ -44,21 +44,37 @@ namespace Ink.Runtime
                 val = (float)doub;
             }
 
+#pragma warning disable IDE0038 // Use pattern matching
             if( val is bool ) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new BoolValue((bool)val);
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (val is int) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new IntValue ((int)val);
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (val is long) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new IntValue ((int)(long)val);
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (val is float) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new FloatValue ((float)val);
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (val is double) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new FloatValue ((float)(double)val);
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (val is string) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new StringValue ((string)val);
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (val is Path) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new DivertTargetValue ((Path)val);
+#pragma warning disable IDE0038 // Use pattern matching
             } else if (val is InkList) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return new ListValue ((InkList)val);
             }
 

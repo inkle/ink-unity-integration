@@ -1904,25 +1904,35 @@ namespace Ink.Runtime
             if (value == null)
                 return null;
 
+#pragma warning disable IDE0038 // Use pattern matching
             if (value is T)
+#pragma warning restore IDE0038 // Use pattern matching
                 return (T) value;
 
+#pragma warning disable IDE0038 // Use pattern matching
             if (value is float && typeof(T) == typeof(int)) {
+#pragma warning restore IDE0038 // Use pattern matching
                 int intVal = (int)Math.Round ((float)value);
                 return intVal;
             }
 
+#pragma warning disable IDE0038 // Use pattern matching
             if (value is int && typeof(T) == typeof(float)) {
+#pragma warning restore IDE0038 // Use pattern matching
                 float floatVal = (float)(int)value;
                 return floatVal;
             }
 
+#pragma warning disable IDE0038 // Use pattern matching
             if (value is int && typeof(T) == typeof(bool)) {
+#pragma warning restore IDE0038 // Use pattern matching
                 int intVal = (int)value;
                 return intVal == 0 ? false : true;
             }
 
+#pragma warning disable IDE0038 // Use pattern matching
             if (value is bool && typeof(T) == typeof(int)) {
+#pragma warning restore IDE0038 // Use pattern matching
                 bool boolVal = (bool)value;
                 return boolVal ? 1 : 0;
             }
@@ -2421,7 +2431,9 @@ namespace Ink.Runtime
             var flowContainer = ContentAtPath (path).container;
             while(true) {
                 var firstContent = flowContainer.content [0];
+#pragma warning disable IDE0038 // Use pattern matching
                 if (firstContent is Container)
+#pragma warning restore IDE0038 // Use pattern matching
                     flowContainer = (Container)firstContent;
                 else break;
             }

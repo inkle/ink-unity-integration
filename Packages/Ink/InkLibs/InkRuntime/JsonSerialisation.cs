@@ -503,7 +503,9 @@ namespace Ink.Runtime
             }
 
             // Array is always a Runtime.Container
+#pragma warning disable IDE0038 // Use pattern matching
             if (token is List<object>) {
+#pragma warning restore IDE0038 // Use pattern matching
                 return JArrayToContainer((List<object>)token);
             }
 

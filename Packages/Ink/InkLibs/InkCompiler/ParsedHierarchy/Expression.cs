@@ -138,19 +138,29 @@ namespace Ink.Parsed
             if( innerNumber ) {
 
                 if( op == "-" ) {
+#pragma warning disable IDE0038 // Use pattern matching
                     if( innerNumber.value is int ) {
+#pragma warning restore IDE0038 // Use pattern matching
                         return new Number( -((int)innerNumber.value) );
+#pragma warning disable IDE0038 // Use pattern matching
                     } else if( innerNumber.value is float ) {
+#pragma warning restore IDE0038 // Use pattern matching
                         return new Number( -((float)innerNumber.value) );
                     }
                 }
 
                 else if( op == "!" || op == "not" ) {
+#pragma warning disable IDE0038 // Use pattern matching
                     if( innerNumber.value is int ) {
+#pragma warning restore IDE0038 // Use pattern matching
                         return new Number( (int)innerNumber.value == 0 );
+#pragma warning disable IDE0038 // Use pattern matching
                     } else if( innerNumber.value is float ) {
+#pragma warning restore IDE0038 // Use pattern matching
                         return new Number( (float)innerNumber.value == 0.0f );
+#pragma warning disable IDE0038 // Use pattern matching
                     } else if( innerNumber.value is bool ) {
+#pragma warning restore IDE0038 // Use pattern matching
                         return new Number( !(bool)innerNumber.value );
                     }
                 }

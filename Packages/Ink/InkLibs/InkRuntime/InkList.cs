@@ -490,22 +490,30 @@ namespace Ink.Runtime
             int minValue = 0;
             int maxValue = int.MaxValue;
 
+#pragma warning disable IDE0038 // Use pattern matching
             if (minBound is int)
+#pragma warning restore IDE0038 // Use pattern matching
             {
                 minValue = (int)minBound;
             }
 
             else
             {
+#pragma warning disable IDE0038 // Use pattern matching
                 if( minBound is InkList && ((InkList)minBound).Count > 0 )
+#pragma warning restore IDE0038 // Use pattern matching
                     minValue = ((InkList)minBound).minItem.Value;
             }
 
+#pragma warning disable IDE0038 // Use pattern matching
             if (maxBound is int)
+#pragma warning restore IDE0038 // Use pattern matching
                 maxValue = (int)maxBound;
             else 
             {
+#pragma warning disable IDE0038 // Use pattern matching
                 if (minBound is InkList && ((InkList)minBound).Count > 0)
+#pragma warning restore IDE0038 // Use pattern matching
                     maxValue = ((InkList)maxBound).maxItem.Value;
             }
 

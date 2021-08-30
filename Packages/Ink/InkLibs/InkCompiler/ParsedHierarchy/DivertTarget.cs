@@ -68,7 +68,9 @@ namespace Ink.Parsed
                 else if (usageParent is MultipleConditionExpression) {
                     badUsage = true;
                     foundUsage = true;
+#pragma warning disable IDE0038 // Use pattern matching
                 } else if (usageParent is Choice && ((Choice)usageParent).condition == usageContext) {
+#pragma warning restore IDE0038 // Use pattern matching
                     badUsage = true;
                     foundUsage = true;
                 } else if (usageParent is Conditional || usageParent is ConditionalSingleBranch) {

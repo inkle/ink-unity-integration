@@ -2017,15 +2017,25 @@ namespace Ink.UnityIntegration {
 				GUILayout.BeginVertical(GUI.skin.box);
 				if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue == null) {
 					EditorGUILayout.LabelField("Output (Null)");
+#pragma warning disable IDE0038 // Use pattern matching
 				} else if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue is string) {
+#pragma warning restore IDE0038 // Use pattern matching
 					EditorGUILayout.TextField("Output (String)", (string)InkPlayerWindowState.Instance.functionPanelState.functionReturnValue);
+#pragma warning disable IDE0038 // Use pattern matching
 				} else if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue is float) {
+#pragma warning restore IDE0038 // Use pattern matching
 					EditorGUILayout.FloatField("Output (Float)", (float)InkPlayerWindowState.Instance.functionPanelState.functionReturnValue);
+#pragma warning disable IDE0038 // Use pattern matching
 				} else if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue is int) {
+#pragma warning restore IDE0038 // Use pattern matching
 					EditorGUILayout.IntField("Output (Int)", (int)InkPlayerWindowState.Instance.functionPanelState.functionReturnValue);
+#pragma warning disable IDE0038 // Use pattern matching
 				} else if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue is bool) {
+#pragma warning restore IDE0038 // Use pattern matching
 					EditorGUILayout.Toggle("Output (Bool)", (bool)InkPlayerWindowState.Instance.functionPanelState.functionReturnValue);
+#pragma warning disable IDE0038 // Use pattern matching
 				} else if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue is InkList) {
+#pragma warning restore IDE0038 // Use pattern matching
 					EditorGUILayoutInkListField(new GUIContent("Output (InkList)"), (InkList)InkPlayerWindowState.Instance.functionPanelState.functionReturnValue);
 				} else {
 					EditorGUILayout.LabelField("Function returned unexpected type "+InkPlayerWindowState.Instance.functionPanelState.functionReturnValue.GetType().Name+".");
@@ -2221,29 +2231,41 @@ namespace Ink.UnityIntegration {
 			var lastVariableValue = variableValue;
             var anythingChanged = false;
             EditorGUILayout.BeginHorizontal();
+#pragma warning disable IDE0038 // Use pattern matching
 			if(variableValue is string) {
+#pragma warning restore IDE0038 // Use pattern matching
 				EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.DelayedTextField(guiContent, (string)variableValue);
                 anythingChanged = lastVariableValue != variableValue;
 				EditorGUI.EndDisabledGroup();
+#pragma warning disable IDE0038 // Use pattern matching
 			} else if(variableValue is float) {
+#pragma warning restore IDE0038 // Use pattern matching
 				EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.FloatField(guiContent, (float)variableValue);
                 anythingChanged = lastVariableValue != variableValue;
 				EditorGUI.EndDisabledGroup();
+#pragma warning disable IDE0038 // Use pattern matching
 			} else if(variableValue is int) {
+#pragma warning restore IDE0038 // Use pattern matching
 				EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.IntField(guiContent, (int)variableValue);
                 anythingChanged = lastVariableValue != variableValue;
 				EditorGUI.EndDisabledGroup();
+#pragma warning disable IDE0038 // Use pattern matching
 			} else if(variableValue is bool) {
+#pragma warning restore IDE0038 // Use pattern matching
 				EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.Toggle(guiContent, (bool)variableValue);
                 anythingChanged = lastVariableValue != variableValue;
 				EditorGUI.EndDisabledGroup();
+#pragma warning disable IDE0038 // Use pattern matching
 			} else if(variableValue is InkList) {
+#pragma warning restore IDE0038 // Use pattern matching
 				anythingChanged = EditorGUILayoutInkListField(guiContent, (InkList)variableValue, variableName+expandedIDModifier);
+#pragma warning disable IDE0038 // Use pattern matching
 			} else if(variableValue is Ink.Runtime.Path) {
+#pragma warning restore IDE0038 // Use pattern matching
 				var c = new GUIContent(((Ink.Runtime.Path)variableValue).ToString()+" (Ink.Runtime.Path)");
 				EditorGUILayout.LabelField(guiContent, c);
 			} else if(variableValue == null) {
@@ -2256,13 +2278,21 @@ namespace Ink.UnityIntegration {
 		}
 
 		object DrawVariable (Rect rect, GUIContent variable, object variableValue) {
+#pragma warning disable IDE0038 // Use pattern matching
 			if(variableValue is string) {
+#pragma warning restore IDE0038 // Use pattern matching
 				variableValue = EditorGUI.TextField(rect, variable, (string)variableValue);
+#pragma warning disable IDE0038 // Use pattern matching
 			} else if(variableValue is float) {
+#pragma warning restore IDE0038 // Use pattern matching
 				variableValue = EditorGUI.FloatField(rect, variable, (float)variableValue);
+#pragma warning disable IDE0038 // Use pattern matching
 			} else if(variableValue is int) {
+#pragma warning restore IDE0038 // Use pattern matching
 				variableValue = EditorGUI.IntField(rect, variable, (int)variableValue);
+#pragma warning disable IDE0038 // Use pattern matching
 			} else if(variableValue is InkList) {
+#pragma warning restore IDE0038 // Use pattern matching
 				var c = new GUIContent(variable);
 				var inkList = (InkList)variableValue;
 				c.text += " (InkList)";
@@ -2277,7 +2307,9 @@ namespace Ink.UnityIntegration {
 					c.text += " Empty";
 				}
 				EditorGUI.LabelField(rect, c);
+#pragma warning disable IDE0038 // Use pattern matching
 			} else if(variableValue is Ink.Runtime.Path) {
+#pragma warning restore IDE0038 // Use pattern matching
 				var c = new GUIContent(((Ink.Runtime.Path)variableValue).ToString()+" (Ink.Runtime.Path)");
 				EditorGUI.LabelField(rect, c);
 			} else if(variableValue == null) {
@@ -2600,7 +2632,9 @@ namespace Ink.UnityIntegration {
 			public DateTime dateTime;
 			public ObservedVariableState (object state) {
 				// Make sure to clone any object ref types! (just InkList at time of writing)
+#pragma warning disable IDE0038 // Use pattern matching
 				if(state is InkList) state = new InkList((InkList)state);
+#pragma warning restore IDE0038 // Use pattern matching
 				this.state = state;
 				dateTime = DateTime.Now;
 			}
