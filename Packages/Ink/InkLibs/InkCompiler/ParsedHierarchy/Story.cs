@@ -402,7 +402,9 @@ namespace Ink.Parsed
 
         public static bool IsReservedKeyword (string name)
         {
+#pragma warning disable IDE0066 // Convert switch statement to expression
             switch (name) {
+#pragma warning restore IDE0066 // Convert switch statement to expression
             case "true":
             case "false":
             case "not":
