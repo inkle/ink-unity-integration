@@ -2786,7 +2786,9 @@ namespace Ink.UnityIntegration {
 		public virtual T Undo () {
 			if(!canUndo) {
 				if(undoHistory.Count > 0)
+#pragma warning disable IDE0034 // Simplify 'default' expression
 					return default(T);
+#pragma warning restore IDE0034 // Simplify 'default' expression
 			} else {
 				undoHistoryIndex--;
 #pragma warning disable IDE1005 // Delegate invocation can be simplified.
@@ -2799,7 +2801,9 @@ namespace Ink.UnityIntegration {
 		public virtual T Redo () {
 			if(!canRedo) {
 				if(undoHistory.Count > 0)
+#pragma warning disable IDE0034 // Simplify 'default' expression
 					return default(T);
+#pragma warning restore IDE0034 // Simplify 'default' expression
 			} else {
 				undoHistoryIndex++;
 #pragma warning disable IDE1005 // Delegate invocation can be simplified.

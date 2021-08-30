@@ -147,7 +147,9 @@ namespace Ink.UnityIntegration {
 					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(jsonAsset));
 					return File.GetLastWriteTime(fullJSONFilePath);
 				} else {
+#pragma warning disable IDE0034 // Simplify 'default' expression
 					return default(DateTime);
+#pragma warning restore IDE0034 // Simplify 'default' expression
 				}
 			}
 		}
