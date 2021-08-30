@@ -349,7 +349,9 @@ namespace Ink.UnityIntegration {
 	                        if (endOfCommentIdx == -1)
 	                            endOfCommentIdx = inkStr.Length;
 	                        else if (inkStr [endOfCommentIdx - 1] == '\r')
+#pragma warning disable IDE0054 // Use '--' operator
 	                            endOfCommentIdx = endOfCommentIdx - 1;
+#pragma warning restore IDE0054 // Use '--' operator
 	                    } 
 	                    // Block comments
 	                    else if (commentStarter == "/*") {
