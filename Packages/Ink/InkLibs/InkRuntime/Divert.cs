@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿#pragma warning disable IDE1006
+
+using System.Text;
 
 namespace Ink.Runtime
 {

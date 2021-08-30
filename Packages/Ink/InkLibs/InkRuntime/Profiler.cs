@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE1006
+
+using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Text;

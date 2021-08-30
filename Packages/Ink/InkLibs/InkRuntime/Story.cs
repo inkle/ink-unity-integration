@@ -1,3 +1,5 @@
+#pragma warning disable IDE1006
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

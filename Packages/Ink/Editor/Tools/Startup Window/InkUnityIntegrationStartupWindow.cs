@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿#pragma warning disable IDE1006
+
+using UnityEditor;
 using UnityEngine;
 
 namespace Ink.UnityIntegration {

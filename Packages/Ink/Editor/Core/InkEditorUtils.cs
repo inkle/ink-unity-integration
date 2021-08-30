@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#pragma warning disable IDE1006
+
+using UnityEngine;
 using UnityEditor;
 using System;
 using System.Collections.Generic;

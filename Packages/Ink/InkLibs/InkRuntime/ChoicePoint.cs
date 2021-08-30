@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿#pragma warning disable IDE1006
+
+using System.ComponentModel;
 
 namespace Ink.Runtime
 {

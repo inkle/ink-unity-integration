@@ -1,4 +1,6 @@
-﻿namespace Ink.Runtime
+﻿#pragma warning disable IDE1006
+
+namespace Ink.Runtime
 {
     public class VariableReference : Runtime.Object
     {

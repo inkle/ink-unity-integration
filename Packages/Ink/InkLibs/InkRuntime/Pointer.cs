@@ -1,4 +1,6 @@
-﻿using Ink.Runtime;
+﻿#pragma warning disable IDE1006
+
+using Ink.Runtime;
 
 namespace Ink.Runtime
 {

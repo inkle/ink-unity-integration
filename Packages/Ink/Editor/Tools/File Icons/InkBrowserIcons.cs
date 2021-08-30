@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿#pragma warning disable IDE1006
+
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
