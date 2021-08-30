@@ -53,6 +53,8 @@ namespace Ink.UnityIntegration
 				return false;
 			}
 		}
+#pragma warning disable IDE0044 // Add readonly modifier
 		private static Regex _errorRegex = new Regex(@"(?<errorType>ERROR|WARNING|TODO):(?:\s(?:'(?<filename>[^']*)'\s)?line (?<lineNo>\d+):)?(?<message>.*)");
+#pragma warning restore IDE0044 // Add readonly modifier
 	}
 }

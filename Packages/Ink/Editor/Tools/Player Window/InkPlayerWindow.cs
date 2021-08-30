@@ -179,7 +179,9 @@ namespace Ink.UnityIntegration {
 
 		[System.Serializable]
 		public class InkPlayerWindowState {
+#pragma warning disable IDE0044 // Add readonly modifier
 			static string settingsEditorPrefsKey = typeof(InkPlayerWindowState).Name +" Settings";
+#pragma warning restore IDE0044 // Add readonly modifier
 			public static event Action OnCreateOrLoad;
 			static InkPlayerWindowState _Instance;
 			public static InkPlayerWindowState Instance {
@@ -306,7 +308,9 @@ namespace Ink.UnityIntegration {
 			}
 		}
 		
+#pragma warning disable IDE0044 // Add readonly modifier
 		private static UndoHistory<InkPlayerHistoryItem> storyStateHistory = new UndoHistory<InkPlayerHistoryItem>();
+#pragma warning restore IDE0044 // Add readonly modifier
 		private static List<InkHistoryContentItem> storyHistory = new List<InkHistoryContentItem>();
 
 		
@@ -482,7 +486,9 @@ namespace Ink.UnityIntegration {
 		static bool doingAutoscroll;
 		static float autoscrollTarget;
 		static float autoscrollVelocity;
+#pragma warning disable IDE0044 // Add readonly modifier
 		static float autoscrollSmoothTime = 0.225f;
+#pragma warning restore IDE0044 // Add readonly modifier
 
 
 
@@ -1271,7 +1277,9 @@ namespace Ink.UnityIntegration {
 			return false;
 		}
 		
+#pragma warning disable IDE0044 // Add readonly modifier
 		static List<InkHistoryContentItem> visibleHistory = new List<InkHistoryContentItem>();
+#pragma warning restore IDE0044 // Add readonly modifier
 		static void RefreshVisibleHistory () {
 			visibleHistory.Clear();
 			bool doingSearch = !string.IsNullOrWhiteSpace(InkPlayerWindowState.Instance.storyPanelState.searchString);
@@ -2077,7 +2085,9 @@ namespace Ink.UnityIntegration {
 			GUILayout.EndVertical();
 		}
 
+#pragma warning disable IDE0044 // Add readonly modifier
         static List<string> visibleVariables = new List<string>();
+#pragma warning restore IDE0044 // Add readonly modifier
 		static void RefreshVisibleVariables () {
 			visibleVariables.Clear();
             if(story == null) return;

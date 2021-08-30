@@ -44,7 +44,9 @@ namespace Ink
             return tags.Cast<Parsed.Tag>().ToList();
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         CharacterSet _endOfTagCharSet = new CharacterSet ("#\n\r\\");
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }
 

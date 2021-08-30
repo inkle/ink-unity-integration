@@ -10,7 +10,9 @@ namespace Ink.Runtime
 {
     public class Path : IEquatable<Path>
 	{
+#pragma warning disable IDE0044 // Add readonly modifier
         static string parentId = "^";
+#pragma warning restore IDE0044 // Add readonly modifier
 
         // Immutable Component
         public class Component : IEquatable<Component>
@@ -273,7 +275,9 @@ namespace Ink.Runtime
             return this.ToString ().GetHashCode ();
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
 		List<Component> _components;
+#pragma warning restore IDE0044 // Add readonly modifier
 	}
 }
 

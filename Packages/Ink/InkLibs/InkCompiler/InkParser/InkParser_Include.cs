@@ -69,8 +69,12 @@ namespace Ink
             _rootParser._openFilenames.Remove (fullFilename);
         }
                    
+#pragma warning disable IDE0044 // Add readonly modifier
         InkParser _rootParser;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
         HashSet<string> _openFilenames;
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }
 

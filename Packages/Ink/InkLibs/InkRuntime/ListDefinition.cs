@@ -67,11 +67,15 @@ namespace Ink.Runtime
             _itemNameToValues = items;
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         string _name;
+#pragma warning restore IDE0044 // Add readonly modifier
 
         // The main representation should be simple item names rather than a RawListItem,
         // since we mainly want to access items based on their simple name, since that's
         // how they'll be most commonly requested from ink.
+#pragma warning disable IDE0044 // Add readonly modifier
         Dictionary<string, int> _itemNameToValues;
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }

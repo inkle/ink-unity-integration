@@ -406,14 +406,18 @@ namespace Ink.Runtime
             return _callStack.currentElementIndex;
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         Dictionary<string, Runtime.Object> _globalVariables;
+#pragma warning restore IDE0044 // Add readonly modifier
 
         Dictionary<string, Runtime.Object> _defaultGlobalVariables;
 
         // Used for accessing temporary variables
         CallStack _callStack;
         HashSet<string> _changedVariablesForBatchObs;
+#pragma warning disable IDE0044 // Add readonly modifier
         ListDefinitionsOrigin _listDefsOrigin;
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }
 

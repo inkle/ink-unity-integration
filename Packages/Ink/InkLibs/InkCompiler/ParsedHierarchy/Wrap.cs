@@ -13,7 +13,9 @@ namespace Ink.Parsed
             return _objToWrap;
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         T _objToWrap;
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 
     // Shorthand for writing Parsed.Wrap<Runtime.Glue> and Parsed.Wrap<Runtime.Tag>

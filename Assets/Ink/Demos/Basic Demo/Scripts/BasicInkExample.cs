@@ -98,15 +98,23 @@ public class BasicInkExample : MonoBehaviour {
 	}
 
 	[SerializeField]
+#pragma warning disable IDE0044 // Add readonly modifier
 	private TextAsset inkJSONAsset = null;
+#pragma warning restore IDE0044 // Add readonly modifier
 	public Story story;
 
 	[SerializeField]
+#pragma warning disable IDE0044 // Add readonly modifier
 	private Canvas canvas = null;
+#pragma warning restore IDE0044 // Add readonly modifier
 
 	// UI Prefabs
 	[SerializeField]
+#pragma warning disable IDE0044 // Add readonly modifier
 	private Text textPrefab = null;
+#pragma warning restore IDE0044 // Add readonly modifier
 	[SerializeField]
+#pragma warning disable IDE0044 // Add readonly modifier
 	private Button buttonPrefab = null;
+#pragma warning restore IDE0044 // Add readonly modifier
 }

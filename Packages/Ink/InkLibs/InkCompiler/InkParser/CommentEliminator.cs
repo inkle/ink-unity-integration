@@ -85,9 +85,15 @@ namespace Ink
             }
         }
           
+#pragma warning disable IDE0044 // Add readonly modifier
         CharacterSet _commentOrNewlineStartCharacter = new CharacterSet ("/\r\n");
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
         CharacterSet _commentBlockEndCharacter = new CharacterSet("*");
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
         CharacterSet _newlineCharacters = new CharacterSet ("\n\r");
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }
 

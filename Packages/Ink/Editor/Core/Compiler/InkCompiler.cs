@@ -95,7 +95,9 @@ namespace Ink.UnityIntegration {
 		// Track if we've currently locked compilation of Unity C# Scripts
 		public static bool hasLockedUnityCompilation = false;
         
+#pragma warning disable IDE0044 // Add readonly modifier
         private static List<Action> onCompleteActions = new List<Action>();
+#pragma warning restore IDE0044 // Add readonly modifier
 
 		
 		// If InkSettings' delayInPlayMode option is true, dirty files are added here when they're changed in play mode

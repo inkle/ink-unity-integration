@@ -964,7 +964,9 @@ namespace Ink.Runtime
             }
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         List<Container> _prevContainers = new List<Container>();
+#pragma warning restore IDE0044 // Add readonly modifier
         void VisitChangedContainersDueToDivert()
         {
             var previousPointer = state.previousPointer;
@@ -2746,14 +2748,20 @@ namespace Ink.Runtime
             }
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         Container _mainContentContainer;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
         ListDefinitionsOrigin _listDefinitions;
+#pragma warning restore IDE0044 // Add readonly modifier
 
         struct ExternalFunctionDef {
             public ExternalFunction function;
             public bool lookaheadSafe;
         }
+#pragma warning disable IDE0044 // Add readonly modifier
         Dictionary<string, ExternalFunctionDef> _externals;
+#pragma warning restore IDE0044 // Add readonly modifier
         Dictionary<string, VariableObserver> _variableObservers;
         bool _hasValidatedExternals;
 

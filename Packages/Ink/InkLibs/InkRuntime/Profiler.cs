@@ -215,9 +215,15 @@ namespace Ink.Runtime
 			}
 		}
 
+#pragma warning disable IDE0044 // Add readonly modifier
 		Stopwatch _continueWatch = new Stopwatch();
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
 		Stopwatch _stepWatch = new Stopwatch();
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
 		Stopwatch _snapWatch = new Stopwatch();
+#pragma warning restore IDE0044 // Add readonly modifier
 
 		double _continueTotal;
 		double _snapTotal;
@@ -225,7 +231,9 @@ namespace Ink.Runtime
 
 		string[] _currStepStack;
 		StepDetails _currStepDetails;
+#pragma warning disable IDE0044 // Add readonly modifier
 		ProfileNode _rootNode;
+#pragma warning restore IDE0044 // Add readonly modifier
 		int _numContinues;
 
 		struct StepDetails {
@@ -233,9 +241,13 @@ namespace Ink.Runtime
 			public Runtime.Object obj;
 			public double time;
 		}
+#pragma warning disable IDE0044 // Add readonly modifier
 		List<StepDetails> _stepDetails = new List<StepDetails>();
+#pragma warning restore IDE0044 // Add readonly modifier
 
+#pragma warning disable IDE0044 // Add readonly modifier
 		static double _millisecsPerTick = 1000.0 / Stopwatch.Frequency;
+#pragma warning restore IDE0044 // Add readonly modifier
 	}
 
 

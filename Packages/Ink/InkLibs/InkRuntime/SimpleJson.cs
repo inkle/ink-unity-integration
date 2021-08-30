@@ -297,10 +297,14 @@ namespace Ink.Runtime
                 }
             }
 
+#pragma warning disable IDE0044 // Add readonly modifier
             string _text;
+#pragma warning restore IDE0044 // Add readonly modifier
             int _offset;
 
+#pragma warning disable IDE0044 // Add readonly modifier
             object _rootObject;
+#pragma warning restore IDE0044 // Add readonly modifier
         }
 
 
@@ -639,8 +643,12 @@ namespace Ink.Runtime
                 public int childCount;
             }
 
+#pragma warning disable IDE0044 // Add readonly modifier
             Stack<StateElement> _stateStack = new Stack<StateElement>();
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
             TextWriter _writer;
+#pragma warning restore IDE0044 // Add readonly modifier
         }
 
 

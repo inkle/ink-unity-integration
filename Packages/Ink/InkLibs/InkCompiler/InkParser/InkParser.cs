@@ -163,11 +163,17 @@ namespace Ink
             }
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         IFileHandler _fileHandler;
+#pragma warning restore IDE0044 // Add readonly modifier
 
+#pragma warning disable IDE0044 // Add readonly modifier
         Ink.ErrorHandler _externalErrorHandler;
+#pragma warning restore IDE0044 // Add readonly modifier
 
+#pragma warning disable IDE0044 // Add readonly modifier
         string _filename;
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }
 

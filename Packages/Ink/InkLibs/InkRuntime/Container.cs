@@ -21,7 +21,9 @@ namespace Ink.Runtime
                 AddContent (value);
             }
         }
+#pragma warning disable IDE0044 // Add readonly modifier
         List<Runtime.Object> _content;
+#pragma warning restore IDE0044 // Add readonly modifier
 
 		public Dictionary<string, INamedContent> namedContent { get; set; }
 

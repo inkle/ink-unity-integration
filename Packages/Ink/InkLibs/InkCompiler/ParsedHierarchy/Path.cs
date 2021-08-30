@@ -188,7 +188,9 @@ namespace Ink.Parsed
             return null;
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         FlowLevel? _baseTargetLevel;
+#pragma warning restore IDE0044 // Add readonly modifier
 	}
 }
 

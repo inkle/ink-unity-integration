@@ -681,7 +681,9 @@ namespace Ink
             }
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
 		private char[] _chars;
+#pragma warning restore IDE0044 // Add readonly modifier
 	}
 }
 

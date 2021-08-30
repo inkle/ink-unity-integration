@@ -498,7 +498,9 @@ namespace Ink.Runtime
         delegate object UnaryOp<T>(T val);
 
         NativeFunctionCall _prototype;
+#pragma warning disable IDE0044 // Add readonly modifier
         bool _isPrototype;
+#pragma warning restore IDE0044 // Add readonly modifier
 
         // Operations for each data type, for a single operation (e.g. "+")
         Dictionary<ValueType, object> _operationFuncs;

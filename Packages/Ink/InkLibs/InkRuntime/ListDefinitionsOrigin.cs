@@ -49,7 +49,11 @@ namespace Ink.Runtime
 			return val;
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         Dictionary<string, Runtime.ListDefinition> _lists;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
 		Dictionary<string, ListValue> _allUnambiguousListValueCache;
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }

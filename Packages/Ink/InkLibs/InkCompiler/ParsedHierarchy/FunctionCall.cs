@@ -236,7 +236,9 @@ namespace Ink.Parsed
             return string.Format ("{0}({1})", name, strArgs);
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         Parsed.Divert _proxyDivert;
+#pragma warning restore IDE0044 // Add readonly modifier
         Parsed.DivertTarget _divertTargetToCount;
         Parsed.VariableReference _variableReferenceToCount;
     }

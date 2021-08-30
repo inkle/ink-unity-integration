@@ -11,7 +11,9 @@ namespace Ink.UnityIntegration {
 		// Several assets moved at the same time can cause unity to call OnPostprocessAllAssets several times as a result of moving additional files, or simply due to minor time differences.
 		// This queue tells the compiler which files to recompile after moves have completed.
 		// Not a perfect solution - If Unity doesn't move all the files in the same attempt you can expect some error messages to appear on compile.
+#pragma warning disable IDE0044 // Add readonly modifier
 		private static List<string> queuedMovedAssets = new List<string>();
+#pragma warning restore IDE0044 // Add readonly modifier
 		public static bool disabled = false;
 		// Recompiles any ink files as a result of an ink file (re)import
 		private static void OnPostprocessAllAssets (string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths) {

@@ -713,7 +713,9 @@ namespace Ink.Runtime
             }
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         static string[] _controlCommandNames;
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }
 

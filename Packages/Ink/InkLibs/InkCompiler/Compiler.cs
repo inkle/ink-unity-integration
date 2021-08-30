@@ -194,18 +194,26 @@ namespace Ink
                 throw new System.Exception(message);
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         string _inputString;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
         Options _options;
+#pragma warning restore IDE0044 // Add readonly modifier
 
 
         InkParser _parser;
         Parsed.Story _parsedStory;
         Runtime.Story _runtimeStory;
 
+#pragma warning disable IDE0044 // Add readonly modifier
         PluginManager _pluginManager;
+#pragma warning restore IDE0044 // Add readonly modifier
 
         bool _hadParseError;
 
+#pragma warning disable IDE0044 // Add readonly modifier
         List<DebugSourceRange> _debugSourceRanges = new List<DebugSourceRange> ();
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }

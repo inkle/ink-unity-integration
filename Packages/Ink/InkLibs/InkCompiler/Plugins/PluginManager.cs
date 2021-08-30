@@ -34,7 +34,9 @@ namespace Ink
             }
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         List<IPlugin> _plugins;
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }
 

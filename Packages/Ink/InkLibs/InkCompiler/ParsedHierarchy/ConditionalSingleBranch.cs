@@ -153,7 +153,9 @@ namespace Ink.Parsed
         Runtime.Divert _conditionalDivert;
         Expression _ownExpression;
 
+#pragma warning disable IDE0044 // Add readonly modifier
         Weave _innerWeave;
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 }
 

@@ -48,9 +48,17 @@ namespace Ink
             _excludes = excludes == null ? new HashSet<char>() : new HashSet<char> (excludes);
         }
 
+#pragma warning disable IDE0044 // Add readonly modifier
         char _start;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
         char _end;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
         ICollection<char> _excludes;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 // Add readonly modifier
         CharacterSet _correspondingCharSet = new CharacterSet();
+#pragma warning restore IDE0044 // Add readonly modifier
     }    
 }
