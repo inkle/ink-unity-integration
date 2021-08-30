@@ -173,7 +173,9 @@ namespace Ink.Runtime
 
 		public Path PathByAppendingPath(Path pathToAppend)
 		{
+#pragma warning disable IDE0090 // Use 'new(...)'
             Path p = new Path ();
+#pragma warning restore IDE0090 // Use 'new(...)'
 
             int upwardMoves = 0;
             for (int i = 0; i < pathToAppend._components.Count; ++i) {
@@ -197,7 +199,9 @@ namespace Ink.Runtime
 
         public Path PathByAppendingComponent (Component c)
         {
+#pragma warning disable IDE0090 // Use 'new(...)'
             Path p = new Path ();
+#pragma warning restore IDE0090 // Use 'new(...)'
             p._components.AddRange (_components);
             p._components.Add (c);
             return p;

@@ -503,7 +503,9 @@ namespace Ink.Parsed
         bool _hadWarning;
 
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
         HashSet<Runtime.Container> _dontFlattenContainers = new HashSet<Runtime.Container>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
 
         Dictionary<string, Parsed.ListDefinition> _listDefs;

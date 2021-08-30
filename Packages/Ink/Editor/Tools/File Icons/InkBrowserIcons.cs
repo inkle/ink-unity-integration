@@ -138,7 +138,9 @@ namespace Ink.UnityIntegration {
 			if(inkFileIconLarge != null)
 				GUI.DrawTexture(rect, inkFileIconLarge);
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 			Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
+#pragma warning restore IDE0090 // Use 'new(...)'
 			if(inkFile == null) {
 				if(unknownFileIcon != null) {
 					GUI.DrawTexture(miniRect, unknownFileIcon);
@@ -169,7 +171,9 @@ namespace Ink.UnityIntegration {
 				if(!InkSettings.instance.compileAutomatically && !inkFile.compileAutomatically && inkFile.isMaster)
 					GUI.DrawTexture(new Rect(rect.x, rect.y + rect.size.y * 0.5f, rect.size.x * 0.5f, rect.size.y * 0.5f), manualIcon);
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
+#pragma warning restore IDE0090 // Use 'new(...)'
 				if(inkFile.hasErrors && errorIcon != null) {
 					GUI.DrawTexture(miniRect, errorIcon);
 				} else if(inkFile.hasWarnings && warningIcon != null) {

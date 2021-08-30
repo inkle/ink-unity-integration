@@ -287,7 +287,9 @@ namespace Ink.Runtime
         /// </summary>
         public KeyValuePair<InkListItem, int> maxItem {
             get {
+#pragma warning disable IDE0090 // Use 'new(...)'
                 KeyValuePair<InkListItem, int> max = new KeyValuePair<InkListItem, int>();
+#pragma warning restore IDE0090 // Use 'new(...)'
                 foreach (var kv in this) {
                     if (max.Key.isNull || kv.Value > max.Value)
                         max = kv;

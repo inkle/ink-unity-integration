@@ -13,7 +13,9 @@ namespace Ink
         //  - Lookup debug source for runtime path
         public CommandLineInput CommandLineUserInput()
         {
+#pragma warning disable IDE0090 // Use 'new(...)'
             CommandLineInput result = new CommandLineInput ();
+#pragma warning restore IDE0090 // Use 'new(...)'
 
             Whitespace ();
 

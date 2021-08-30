@@ -216,13 +216,19 @@ namespace Ink.Runtime
 		}
 
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
 		Stopwatch _continueWatch = new Stopwatch();
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
 		Stopwatch _stepWatch = new Stopwatch();
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
 		Stopwatch _snapWatch = new Stopwatch();
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
 
 		double _continueTotal;
@@ -242,7 +248,9 @@ namespace Ink.Runtime
 			public double time;
 		}
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
 		List<StepDetails> _stepDetails = new List<StepDetails>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
 
 #pragma warning disable IDE0044 // Add readonly modifier

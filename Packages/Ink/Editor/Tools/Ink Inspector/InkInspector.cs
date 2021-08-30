@@ -45,17 +45,25 @@ namespace Ink.UnityIntegration {
 			GUILayout.EndHorizontal();
 
 			Rect lastRect = GUILayoutUtility.GetLastRect();
+#pragma warning disable IDE0090 // Use 'new(...)'
 			Rect rect = new Rect(lastRect.x, lastRect.y, lastRect.width, lastRect.height);
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 			Rect iconRect = new Rect(rect.x + 6f, rect.y + 6f, 32f, 32f);
+#pragma warning restore IDE0090 // Use 'new(...)'
 			GUI.DrawTexture(iconRect, InkBrowserIcons.inkFileIconLarge);
+#pragma warning disable IDE0090 // Use 'new(...)'
 			Rect childIconRect = new Rect(iconRect.x, iconRect.y, 16f, 16f);
+#pragma warning restore IDE0090 // Use 'new(...)'
 			if(inkFile == null) {
 				GUI.DrawTexture(childIconRect, InkBrowserIcons.unknownFileIcon, ScaleMode.ScaleToFit);
 			} else if(!inkFile.isMaster) {
 				GUI.DrawTexture(childIconRect, InkBrowserIcons.childIconLarge, ScaleMode.ScaleToFit);
 			}
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 			Rect titleRect = new Rect(rect.x + 44f, rect.y + 6f, rect.width - 44f - 38f - 4f, 16f);
+#pragma warning restore IDE0090 // Use 'new(...)'
 			titleRect.yMin -= 2f;
 			titleRect.yMax += 2f;
 			GUI.Label(titleRect, editor.target.name, EditorStyles.largeLabel);
@@ -115,12 +123,18 @@ namespace Ink.UnityIntegration {
 					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File for included file "+childAssetFile+" not found. Use Assets > Recompile Ink to fix this issue."));
 					return;
 				}
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect iconRect = new Rect(rect.x, rect.y, 0, 16);
+#pragma warning restore IDE0090 // Use 'new(...)'
 				if(childInkFile.hasErrors || childInkFile.hasWarnings) {
 					iconRect.width = 20;
 				}
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect objectFieldRect = new Rect(iconRect.xMax, rect.y, rect.width - iconRect.width - 80, 16);
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect selectRect = new Rect(objectFieldRect.xMax, rect.y, 80, 16);
+#pragma warning restore IDE0090 // Use 'new(...)'
 				if(childInkFile.hasErrors) {
 					EditorGUI.LabelField(iconRect, new GUIContent(InkBrowserIcons.errorIcon));
 				} else if(childInkFile.hasWarnings) {
@@ -154,12 +168,18 @@ namespace Ink.UnityIntegration {
 					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File for master file "+masterAssetFile+" not found. Use Assets > Recompile Ink to fix this issue."));
 					return;
 				}
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect iconRect = new Rect(rect.x, rect.y, 0, 16);
+#pragma warning restore IDE0090 // Use 'new(...)'
 				if(masterInkFile.hasErrors || masterInkFile.hasWarnings) {
 					iconRect.width = 20;
 				}
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect objectFieldRect = new Rect(iconRect.xMax, rect.y, rect.width - iconRect.width - 80, 16);
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect selectRect = new Rect(objectFieldRect.xMax, rect.y, 80, 16);
+#pragma warning restore IDE0090 // Use 'new(...)'
 				if(masterInkFile.hasErrors) {
 					EditorGUI.LabelField(iconRect, new GUIContent(InkBrowserIcons.errorIcon));
 				} else if(masterInkFile.hasWarnings) {
@@ -198,8 +218,12 @@ namespace Ink.UnityIntegration {
 				EditorGUI.LabelField(rect, new GUIContent(InkBrowserIcons.errorIcon), new GUIContent("Errors"));
 			};
 			errorList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
+#pragma warning restore IDE0090 // Use 'new(...)'
 				InkCompilerLog log = ((List<InkCompilerLog>)errorList.list)[index];
 				string label = log.content;
 				GUI.Label(labelRect, label);
@@ -217,8 +241,12 @@ namespace Ink.UnityIntegration {
 				EditorGUI.LabelField(rect, new GUIContent(InkBrowserIcons.warningIcon), new GUIContent("Warnings"));
 			};
 			warningList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
+#pragma warning restore IDE0090 // Use 'new(...)'
 				InkCompilerLog log = ((List<InkCompilerLog>)warningList.list)[index];
 				string label = log.content;
 				GUI.Label(labelRect, label);
@@ -236,8 +264,12 @@ namespace Ink.UnityIntegration {
 				EditorGUI.LabelField(rect, "To do");
 			};
 			todosList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
+#pragma warning restore IDE0090 // Use 'new(...)'
 				InkCompilerLog log = ((List<InkCompilerLog>)todosList.list)[index];
 				string label = log.content;
 				GUI.Label(labelRect, label);

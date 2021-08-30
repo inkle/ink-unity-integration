@@ -69,8 +69,12 @@ namespace Ink
             _statementBreakRulesAtLevel = new ParseRule[levels.Count][];
 
             foreach (var level in levels) {
+#pragma warning disable IDE0090 // Use 'new(...)'
                 List<ParseRule> rulesAtLevel = new List<ParseRule> ();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
                 List<ParseRule> breakingRules = new List<ParseRule> ();
+#pragma warning restore IDE0090 // Use 'new(...)'
 
                 // Diverts can go anywhere
                 rulesAtLevel.Add(Line(MultiDivert));

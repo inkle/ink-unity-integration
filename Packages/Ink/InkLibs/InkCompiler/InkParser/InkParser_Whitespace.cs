@@ -107,7 +107,9 @@ namespace Ink
         }
 
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
 		private CharacterSet _inlineWhitespaceChars = new CharacterSet(" \t");
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
 	}
 }

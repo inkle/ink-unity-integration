@@ -41,7 +41,9 @@ namespace Ink
 
 
             if (includedString != null ) {
+#pragma warning disable IDE0090 // Use 'new(...)'
                 InkParser parser = new InkParser(includedString, filename, _externalErrorHandler, _rootParser);
+#pragma warning restore IDE0090 // Use 'new(...)'
                 includedStory = parser.Parse();
             }
 

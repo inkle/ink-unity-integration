@@ -58,7 +58,9 @@ namespace Ink
         ICollection<char> _excludes;
 #pragma warning restore IDE0044 // Add readonly modifier
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
         CharacterSet _correspondingCharSet = new CharacterSet();
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
     }    
 }

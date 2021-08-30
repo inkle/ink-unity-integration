@@ -79,7 +79,9 @@ namespace Ink
             return sequenceType;
         }
 
+#pragma warning disable IDE0090 // Use 'new(...)'
         CharacterSet _sequenceTypeSymbols = new CharacterSet("!&~$");
+#pragma warning restore IDE0090 // Use 'new(...)'
 
         protected object SequenceTypeWordAnnotation()
         {

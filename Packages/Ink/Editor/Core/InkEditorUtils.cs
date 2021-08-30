@@ -17,7 +17,9 @@ namespace Ink.UnityIntegration {
 		public override void Action(int instanceId, string pathName, string resourceFile) {
 			var text = "";
 			if(File.Exists(resourceFile)) {
+#pragma warning disable IDE0090 // Use 'new(...)'
 				StreamReader streamReader = new StreamReader(resourceFile);
+#pragma warning restore IDE0090 // Use 'new(...)'
 				text = streamReader.ReadToEnd();
 				streamReader.Close();
 			}
@@ -27,9 +29,13 @@ namespace Ink.UnityIntegration {
 		
 		internal static UnityEngine.Object CreateScriptAsset(string pathName, string text) {
 			string fullPath = Path.GetFullPath(pathName);
+#pragma warning disable IDE0090 // Use 'new(...)'
 			UTF8Encoding encoding = new UTF8Encoding(true, false);
+#pragma warning restore IDE0090 // Use 'new(...)'
 			bool append = false;
+#pragma warning disable IDE0090 // Use 'new(...)'
 			StreamWriter streamWriter = new StreamWriter(fullPath, append, encoding);
+#pragma warning restore IDE0090 // Use 'new(...)'
 			streamWriter.Write(text);
 			streamWriter.Close();
 			AssetDatabase.ImportAsset(pathName);
@@ -175,7 +181,9 @@ namespace Ink.UnityIntegration {
 			string fullPathName = EditorUtility.SaveFilePanel("Save Story State", defaultPath, name, "json");
 			if(fullPathName == "") 
 				return null;
+#pragma warning disable IDE0090 // Use 'new(...)'
 			using (StreamWriter outfile = new StreamWriter(fullPathName)) {
+#pragma warning restore IDE0090 // Use 'new(...)'
 				outfile.Write(jsonStoryState);
 			}
 			string relativePath = AbsoluteToUnityRelativePath(fullPathName);

@@ -12,7 +12,9 @@ namespace Ink.UnityIntegration {
 		// This queue tells the compiler which files to recompile after moves have completed.
 		// Not a perfect solution - If Unity doesn't move all the files in the same attempt you can expect some error messages to appear on compile.
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
 		private static List<string> queuedMovedAssets = new List<string>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
 		public static bool disabled = false;
 		// Recompiles any ink files as a result of an ink file (re)import
@@ -46,7 +48,9 @@ namespace Ink.UnityIntegration {
 
 //			bool alsoDeleteJSON = false;
 //			alsoDeleteJSON = EditorUtility.DisplayDialog("Deleting .ink file", "Also delete the JSON file associated with the deleted .ink file?", "Yes", "No"));
+#pragma warning disable IDE0090 // Use 'new(...)'
 			List<InkFile> masterFilesAffected = new List<InkFile>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			for (int i = InkLibrary.instance.inkLibrary.Count - 1; i >= 0; i--) {
 				if(InkLibrary.instance.inkLibrary [i].inkAsset == null) {
 					if(!InkLibrary.instance.inkLibrary[i].isMaster) {
@@ -79,7 +83,9 @@ namespace Ink.UnityIntegration {
 			if (!InkSettings.instance.handleJSONFilesAutomatically) 
 				return;
 			
+#pragma warning disable IDE0090 // Use 'new(...)'
 			List<string> validMovedAssets = new List<string>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			for (var i = 0; i < movedAssets.Length; i++) {
 				if(!InkEditorUtils.IsInkFile(movedAssets[i]))
 					continue;
@@ -106,7 +112,9 @@ namespace Ink.UnityIntegration {
 
 			// Check if no JSON assets were moved (as a result of none needing to move, or this function being called as a result of JSON files being moved)
 			if(!assetMoved && queuedMovedAssets.Count > 0) {
+#pragma warning disable IDE0090 // Use 'new(...)'
 				List<InkFile> filesToCompile = new List<InkFile>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 
 				// Add the old master file to the files to be recompiled
 				foreach(var inkFilePath in queuedMovedAssets) {
@@ -145,7 +153,9 @@ namespace Ink.UnityIntegration {
 		}
 
 		private static void OnImportAssets (string[] importedAssets) {
+#pragma warning disable IDE0090 // Use 'new(...)'
 			List<string> importedInkAssets = new List<string>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			string inklecateFileLocation = null;
 			foreach (var importedAssetPath in importedAssets) {
 				if(InkEditorUtils.IsInkFile(importedAssetPath))

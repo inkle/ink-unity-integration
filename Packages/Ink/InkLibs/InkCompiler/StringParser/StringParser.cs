@@ -32,9 +32,13 @@ namespace Ink
 		}
 
 		public class ParseSuccessStruct {};
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public static ParseSuccessStruct ParseSuccess = new ParseSuccessStruct();
+#pragma warning restore IDE0090 // Use 'new(...)'
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public static CharacterSet numbersCharacterSet = new CharacterSet("0123456789");
+#pragma warning restore IDE0090 // Use 'new(...)'
 
         protected ErrorHandler errorHandler { get; set; }
 
@@ -555,7 +559,9 @@ namespace Ink
 			int ruleId = BeginRule ();
 
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 			CharacterSet pauseAndEnd = new CharacterSet ();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			if (pauseCharacters != null) {
 				pauseAndEnd.UnionWith (pauseCharacters);
 			}
@@ -563,7 +569,9 @@ namespace Ink
 				pauseAndEnd.UnionWith (endCharacters);
 			}
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 			StringBuilder parsedString = new StringBuilder ();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			object ruleResultAtPause = null;
 
 			// Keep attempting to parse strings up to the pause (and end) points.

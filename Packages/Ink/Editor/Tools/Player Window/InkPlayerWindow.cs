@@ -159,12 +159,16 @@ namespace Ink.UnityIntegration {
 			public float continueAutomaticallyTimeInterval = 0.1f;
 			public float chooseAutomaticallyTimeInterval = 0.1f;
 		}
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public static PlayerOptions playerOptions = new PlayerOptions();
+#pragma warning restore IDE0090 // Use 'new(...)'
 
 
         // Allows injecting right click context options into the story content view.
         public delegate void ContextMenuDelegate(GenericMenu contextMenu, InkHistoryContentItem content);
+#pragma warning disable IDE0090 // Use 'new(...)'
         public static List<ContextMenuDelegate> contextMenuDelegates = new List<ContextMenuDelegate>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 
         #endregion
 
@@ -240,16 +244,34 @@ namespace Ink.UnityIntegration {
 				return asset;
 			}
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public StoryPanelState storyPanelState = new StoryPanelState() {showing=true};
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public BaseStoryPanelState choicePanelState = new BaseStoryPanelState() {showing=true};
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public DivertPanelState divertPanelState = new DivertPanelState();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public NamedContentPanelState namedContentPanelState = new NamedContentPanelState();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public FunctionPanelState functionPanelState = new FunctionPanelState();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			// public FunctionPanelState.FunctionParams functionParams = new FunctionPanelState.FunctionParams();
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public VariablesPanelState variablesPanelState = new VariablesPanelState();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public ObservedVariablesPanelState observedVariablesPanelState = new ObservedVariablesPanelState();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public BaseStoryPanelState saveLoadPanelState = new BaseStoryPanelState();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public BaseStoryPanelState profilerPanelState = new BaseStoryPanelState();
+#pragma warning restore IDE0090 // Use 'new(...)'
 		}
 
 		
@@ -309,9 +331,13 @@ namespace Ink.UnityIntegration {
 		}
 		
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
 		private static UndoHistory<InkPlayerHistoryItem> storyStateHistory = new UndoHistory<InkPlayerHistoryItem>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
 		private static List<InkHistoryContentItem> storyHistory = new List<InkHistoryContentItem>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 
 		
 		private static Exception playStoryException;
@@ -356,7 +382,9 @@ namespace Ink.UnityIntegration {
 
 		[System.Serializable]
 		public class StoryPanelState : BaseStoryPanelState {
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public DisplayOptions displayOptions = new DisplayOptions();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			public string searchString = string.Empty;
 			
 			public const float minScrollRectHeight = 30;
@@ -418,9 +446,13 @@ namespace Ink.UnityIntegration {
 					}
 				}
 				public string functionName = String.Empty;
+#pragma warning disable IDE0090 // Use 'new(...)'
 				public List<FunctionInput> inputs = new List<FunctionInput>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			}
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public FunctionParams functionParams = new FunctionParams();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			public string testedFunctionName = null;
 			public object functionReturnValue = null;
 		}
@@ -428,11 +460,17 @@ namespace Ink.UnityIntegration {
 		[System.Serializable]
 		public class VariablesPanelState : BaseStoryPanelState {
 			public string searchString = string.Empty;
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public List<string> expandedVariables = new List<string>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 		}
 		public class ObservedVariablesPanelState : BaseStoryPanelState {
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public List<string> observedVariableNames = new List<string>();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 			public Dictionary<string, ObservedVariable> observedVariables = new Dictionary<string, ObservedVariable>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 		}
 
 		[System.Serializable]
@@ -602,7 +640,9 @@ namespace Ink.UnityIntegration {
 			AddWarningsAndErrorsToHistory();
 		}
 		static void OnEvaluateFunction (string functionName, object[] arguments) {
+#pragma warning disable IDE0090 // Use 'new(...)'
             StringBuilder sb = new StringBuilder(functionName);
+#pragma warning restore IDE0090 // Use 'new(...)'
 			if(arguments != null && arguments.Length > 0) {
 				sb.Append(" with args: ");
 				for (int i = 0; i < arguments.Length; i++) {
@@ -620,7 +660,9 @@ namespace Ink.UnityIntegration {
 			AddWarningsAndErrorsToHistory();
 		}
 		static void OnCompleteEvaluateFunction (string functionName, object[] arguments, string textOutput, object result) {
+#pragma warning disable IDE0090 // Use 'new(...)'
 			StringBuilder sb = new StringBuilder(functionName);
+#pragma warning restore IDE0090 // Use 'new(...)'
 			if(arguments != null && arguments.Length > 0) {
 				sb.Append(" with args: ");
 				for (int i = 0; i < arguments.Length; i++) {
@@ -642,7 +684,9 @@ namespace Ink.UnityIntegration {
 			AddWarningsAndErrorsToHistory();
 		}
 		static void OnChoosePathString (string pathString, object[] arguments) {
+#pragma warning disable IDE0090 // Use 'new(...)'
             StringBuilder sb = new StringBuilder("ChoosePathString: ");
+#pragma warning restore IDE0090 // Use 'new(...)'
 			sb.Append(pathString);
 			if(arguments != null) {
 				sb.Append(" with args: ");
@@ -887,7 +931,9 @@ namespace Ink.UnityIntegration {
 		}
 
 		static void AddToStateHistory () {
+#pragma warning disable IDE0090 // Use 'new(...)'
 			InkPlayerHistoryItem historyItem = new InkPlayerHistoryItem(story.state.ToJson(), new List<InkHistoryContentItem>(storyHistory));
+#pragma warning restore IDE0090 // Use 'new(...)'
 			storyStateHistory.AddToUndoHistory(historyItem);
 		}
 		
@@ -1231,7 +1277,9 @@ namespace Ink.UnityIntegration {
         }
 
 		void CopyStoryHistoryToClipboard () {
+#pragma warning disable IDE0090 // Use 'new(...)'
 			StringBuilder sb = new StringBuilder("Story Log\n");
+#pragma warning restore IDE0090 // Use 'new(...)'
 			foreach(InkHistoryContentItem content in storyHistory) {
 				sb.AppendLine();
 				sb.Append(content.time.ToShortDateString());
@@ -1278,7 +1326,9 @@ namespace Ink.UnityIntegration {
 		}
 		
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
 		static List<InkHistoryContentItem> visibleHistory = new List<InkHistoryContentItem>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
 		static void RefreshVisibleHistory () {
 			visibleHistory.Clear();
@@ -1780,8 +1830,12 @@ namespace Ink.UnityIntegration {
 			
 			float totalHeight = 0;
 
+#pragma warning disable IDE0090 // Use 'new(...)'
 			List<Rect> rects = new List<Rect>();
+#pragma warning restore IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0090 // Use 'new(...)'
 			List<string> paths = new List<string>();
+#pragma warning restore IDE0090 // Use 'new(...)'
             {
                 AddContainer(string.Empty, story.mainContentContainer);
                 void AddContainer (string currentPath, Container container, int indent = 0) {
@@ -1988,9 +2042,13 @@ namespace Ink.UnityIntegration {
 			functionInputList.elementHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing * 2;
 			functionInputList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
 				var input = InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs[index];
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect typeRect = new Rect(rect.x, rect.y, 80, EditorGUIUtility.singleLineHeight);
+#pragma warning restore IDE0090 // Use 'new(...)'
 				input.type = (FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType)EditorGUI.EnumPopup(typeRect, input.type);
+#pragma warning disable IDE0090 // Use 'new(...)'
 				Rect inputRect = new Rect(rect.x + 90, rect.y, rect.width - 90, EditorGUIUtility.singleLineHeight);
+#pragma warning restore IDE0090 // Use 'new(...)'
 				switch(input.type) {
 				case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Int:
 					input.intValue = EditorGUI.IntField(inputRect, input.intValue);
@@ -2086,7 +2144,9 @@ namespace Ink.UnityIntegration {
 		}
 
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
         static List<string> visibleVariables = new List<string>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
 		static void RefreshVisibleVariables () {
 			visibleVariables.Clear();
@@ -2235,7 +2295,9 @@ namespace Ink.UnityIntegration {
 		}
 
 		void DrawObservedVariablesPanel () {
+#pragma warning disable IDE0090 // Use 'new(...)'
 			List<string> allToRemove = new List<string>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 			foreach(var observedVariable in InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables) {
 				bool removeVariable = DrawObservedVariable(observedVariable.Value);
 				if(removeVariable)
@@ -2527,7 +2589,9 @@ namespace Ink.UnityIntegration {
 	public class ObservedVariable {
 		public string variable;
 		public Story.VariableObserver variableObserver;
+#pragma warning disable IDE0090 // Use 'new(...)'
 		public List<ObservedVariableState> values = new List<ObservedVariableState>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 		public bool expanded = true;
 		public Vector2 scrollPosition = Vector2.zero;
 

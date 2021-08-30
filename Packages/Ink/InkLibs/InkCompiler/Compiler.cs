@@ -213,7 +213,9 @@ namespace Ink
         bool _hadParseError;
 
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
         List<DebugSourceRange> _debugSourceRanges = new List<DebugSourceRange> ();
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
     }
 }

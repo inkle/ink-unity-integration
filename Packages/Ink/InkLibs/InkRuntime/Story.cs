@@ -965,7 +965,9 @@ namespace Ink.Runtime
         }
 
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
         List<Container> _prevContainers = new List<Container>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
         void VisitChangedContainersDueToDivert()
         {

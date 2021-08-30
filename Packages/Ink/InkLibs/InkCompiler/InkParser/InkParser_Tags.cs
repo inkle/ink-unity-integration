@@ -45,7 +45,9 @@ namespace Ink
         }
 
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
         CharacterSet _endOfTagCharSet = new CharacterSet ("#\n\r\\");
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
     }
 }

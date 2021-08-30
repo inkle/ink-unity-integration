@@ -34,7 +34,9 @@ IPreprocessBuild
 
     static void AssertNotCompiling () {
         if(InkCompiler.compiling) {
+#pragma warning disable IDE0090 // Use 'new(...)'
             StringBuilder sb = new StringBuilder("Ink is currently compiling!");
+#pragma warning restore IDE0090 // Use 'new(...)'
             var errorString = sb.ToString();
             InkCompiler.buildBlocked = true;
             if(UnityEditor.EditorUtility.DisplayDialog("Ink Build Error!", errorString, "Ok")) {
@@ -46,7 +48,9 @@ IPreprocessBuild
     static void CheckForInvalidFiles () {
         var filesToRecompile = InkLibrary.GetFilesRequiringRecompile();
         if(filesToRecompile.Any()) {
+#pragma warning disable IDE0090 // Use 'new(...)'
             StringBuilder sb = new StringBuilder();
+#pragma warning restore IDE0090 // Use 'new(...)'
             sb.AppendLine("There are Ink files which should be compiled, but appear not to be. You can resolve this by either:");
             sb.AppendLine(" - Compiling your files via 'Assets/Recompile Ink'");
             var resolveStep = " - Disabling 'Compile Automatically' "+(InkSettings.instance.compileAutomatically ? "in your Ink Settings file" : "for each of the files listed below");

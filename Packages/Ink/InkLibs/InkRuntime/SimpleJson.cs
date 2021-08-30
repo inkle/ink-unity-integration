@@ -644,7 +644,9 @@ namespace Ink.Runtime
             }
 
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0090 // Use 'new(...)'
             Stack<StateElement> _stateStack = new Stack<StateElement>();
+#pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0044 // Add readonly modifier
 #pragma warning disable IDE0044 // Add readonly modifier
             TextWriter _writer;
