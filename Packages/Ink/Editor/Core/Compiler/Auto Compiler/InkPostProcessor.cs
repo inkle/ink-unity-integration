@@ -120,7 +120,9 @@ namespace Ink.UnityIntegration {
 				foreach(var inkFilePath in queuedMovedAssets) {
 					InkFile inkFile = InkLibrary.GetInkFileWithPath(inkFilePath);
 					if(inkFile == null) continue;
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
 					foreach(var masterInkFile in inkFile.masterInkFilesIncludingSelf) {
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 						if(!filesToCompile.Contains(inkFile))
 							filesToCompile.Add(inkFile);
 					}
@@ -133,7 +135,9 @@ namespace Ink.UnityIntegration {
 					InkFile inkFile = InkLibrary.GetInkFileWithPath(inkFilePath);
 					if(inkFile == null) continue;
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
 					foreach(var masterInkFile in inkFile.masterInkFilesIncludingSelf) {
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 						if(!filesToCompile.Contains(inkFile))
 							filesToCompile.Add(inkFile);
 					}

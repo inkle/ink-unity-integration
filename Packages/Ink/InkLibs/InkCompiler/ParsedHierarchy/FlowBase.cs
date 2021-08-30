@@ -298,7 +298,9 @@ namespace Ink.Parsed
 
             if ( level == FlowLevel.WeavePoint || level == null ) {
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 Parsed.Object weavePointResult = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
                 if (_rootWeave) {
                     weavePointResult = (Parsed.Object)_rootWeave.WeavePointNamed (name);
@@ -317,7 +319,9 @@ namespace Ink.Parsed
                 return null;
 
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             FlowBase subFlow = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
 
             if (_subFlowsByName.TryGetValue (name, out subFlow)) {

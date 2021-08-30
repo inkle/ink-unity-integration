@@ -427,12 +427,16 @@ namespace Ink.Runtime
 
                     string target = propValue.ToString ();
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                     if (obj.TryGetValue ("var", out propValue))
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
                         divert.variableDivertName = target;
                     else
                         divert.targetPathString = target;
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                     divert.isConditional = obj.TryGetValue("c", out propValue);
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
                     if (external) {
                         if (obj.TryGetValue ("exArgs", out propValue))
@@ -478,7 +482,9 @@ namespace Ink.Runtime
                 }
                 if (isVarAss) {
                     var varName = propValue.ToString ();
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                     var isNewDecl = !obj.TryGetValue("re", out propValue);
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning disable IDE0017 // Simplify object initialization
                     var varAss = new VariableAssignment (varName, isNewDecl);
 #pragma warning restore IDE0017 // Simplify object initialization

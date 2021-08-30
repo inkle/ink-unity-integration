@@ -229,7 +229,9 @@ namespace Ink.Runtime
         public Runtime.Object TryGetDefaultVariableValue (string name)
         {
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             Runtime.Object val = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
             _defaultGlobalVariables.TryGetValue (name, out val);
             return val;
@@ -255,7 +257,9 @@ namespace Ink.Runtime
 
         Runtime.Object GetRawVariableWithName(string name, int contextIndex)
         {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             Runtime.Object varValue = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
             // 0 context = global
             if (contextIndex == 0 || contextIndex == -1) {
@@ -296,7 +300,9 @@ namespace Ink.Runtime
             int contextIndex = -1;
 
             // Are we assigning to a global variable?
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             bool setGlobal = false;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
             if (varAss.isNewDeclaration) {
                 setGlobal = varAss.isGlobal;
             } else {
@@ -318,7 +324,9 @@ namespace Ink.Runtime
             else {
 
                 // De-reference variable reference to point to
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 VariablePointerValue existingPointer = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
                 do {
                     existingPointer = GetRawVariableWithName (name, contextIndex) as VariablePointerValue;
                     if (existingPointer) {
@@ -353,7 +361,9 @@ namespace Ink.Runtime
         public void SetGlobal(string variableName, Runtime.Object value)
         {
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             Runtime.Object oldValue = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
             if( patch == null || !patch.TryGetGlobal(variableName, out oldValue) )
                 _globalVariables.TryGetValue (variableName, out oldValue);

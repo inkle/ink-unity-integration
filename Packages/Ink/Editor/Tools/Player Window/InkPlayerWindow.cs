@@ -1851,7 +1851,9 @@ namespace Ink.UnityIntegration {
                         var newPath = currentPath.Length == 0 ? contentKVP.Key : currentPath+"."+contentKVP.Key;
                         AddContent(newPath, contentKVP, indent);
                     }
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                     indent--;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
                     if(lastTotalHeight != totalHeight) totalHeight += indentChangeVerticalSpacing;
                 }
                 void AddContent (string currentPath, KeyValuePair<string, Runtime.Object> contentKVP, int indent = 0) {
@@ -1984,7 +1986,9 @@ namespace Ink.UnityIntegration {
 			if (GUILayout.Button(new GUIContent("Execute", "Runs the function"))) {
 				AddToHistory(InkHistoryContentItem.CreateForDebugNote("Execute function '"+InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName+"'"));
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
 				string outputContent = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
 				object[] allInput = new object[InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs.Count];
 				for (int i = 0; i < InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs.Count; i++) {

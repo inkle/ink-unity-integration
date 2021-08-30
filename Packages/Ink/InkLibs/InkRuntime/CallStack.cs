@@ -360,7 +360,9 @@ namespace Ink.Runtime
                 contextIndex = currentElementIndex+1;
             
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             Runtime.Object varValue = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
 
             var contextElement = callStack [contextIndex-1];

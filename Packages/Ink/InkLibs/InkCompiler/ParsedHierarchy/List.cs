@@ -20,7 +20,9 @@ namespace Ink.Parsed
                     var nameParts = itemIdentifier?.name.Split ('.');
 
                     string listName = null;
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                     string listItemName = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
                     if (nameParts.Length > 1) {
                         listName = nameParts [0];
                         listItemName = nameParts [1];

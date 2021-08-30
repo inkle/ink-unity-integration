@@ -100,7 +100,9 @@ namespace Ink.Runtime
             }
 
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             int count = 0;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
             if (_patch != null && _patch.TryGetVisitCount(container, out count))
                 return count;
@@ -120,7 +122,9 @@ namespace Ink.Runtime
             }
 
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             int count = 0;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
             var containerPathStr = container.path.ToString();
             _visitCounts.TryGetValue(containerPathStr, out count);
@@ -147,7 +151,9 @@ namespace Ink.Runtime
             }
 
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             int index = 0;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
 
             if ( _patch != null && _patch.TryGetTurnIndex(container, out index) ) {
@@ -603,7 +609,9 @@ namespace Ink.Runtime
         void LoadJsonObj(Dictionary<string, object> jObject)
         {
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
 			object jSaveVersion = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
 			if (!jObject.TryGetValue("inkSaveVersion", out jSaveVersion)) {
                 throw new Exception ("ink save format incorrect, can't load.");
@@ -615,7 +623,9 @@ namespace Ink.Runtime
             // Flows: Always exists in latest format (even if there's just one default)
             // but this dictionary doesn't exist in prev format
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             object flowsObj = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
             if (jObject.TryGetValue("flows", out flowsObj)) {
                 var flowsObjDict = (Dictionary<string, object>)flowsObj;
@@ -662,7 +672,9 @@ namespace Ink.Runtime
                 _currentFlow.currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
 
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 object jChoiceThreadsObj = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
                 jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);
                 _currentFlow.LoadFlowChoiceThreads((Dictionary<string, object>)jChoiceThreadsObj, story);
@@ -692,7 +704,9 @@ namespace Ink.Runtime
 
             // Not optional, but bug in inkjs means it's actually missing in inkjs saves
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             object previousRandomObj = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
             if( jObject.TryGetValue("previousRandom", out previousRandomObj) ) {
                 previousRandom = (int)previousRandomObj;
@@ -879,7 +893,9 @@ namespace Ink.Runtime
                 }
 
                 // Where is the most agressive (earliest) trim point?
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 var trimIndex = -1;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
                 if (glueTrimIndex != -1 && functionTrimIndex != -1)
                     trimIndex = Math.Min (functionTrimIndex, glueTrimIndex);
                 else if (glueTrimIndex != -1)
@@ -1049,7 +1065,9 @@ namespace Ink.Runtime
 
 					foreach (var n in rawList.originNames) {
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                         ListDefinition def = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
                         story.listDefinitions.TryListGetDefinition (n, out def);
 						if( !rawList.origins.Contains(def) )

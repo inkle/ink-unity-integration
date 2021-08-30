@@ -45,7 +45,9 @@ namespace Ink.Runtime
         public ListValue FindSingleItemListWithName (string name)
         {
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
 			ListValue val = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
 			_allUnambiguousListValueCache.TryGetValue(name, out val);
 			return val;

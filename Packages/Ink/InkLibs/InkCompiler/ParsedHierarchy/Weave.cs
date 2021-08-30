@@ -261,7 +261,9 @@ namespace Ink.Parsed
                     }
                 }
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 Runtime.Divert divert = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
                 if (looseEnd is Parsed.Divert) {
                     divert = (Runtime.Divert) looseEnd.runtimeObject;
@@ -491,7 +493,9 @@ namespace Ink.Parsed
                 return null;
 
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             IWeavePoint weavePointResult = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
             if (_namedWeavePoints.TryGetValue (name, out weavePointResult))
                 return weavePointResult;

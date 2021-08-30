@@ -52,7 +52,9 @@ namespace Ink.Parsed
         public override void GenerateIntoContainer (Runtime.Container container)
         {
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             Expression constantValue = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
 
             // If it's a constant reference, just generate the literal expression value
@@ -70,7 +72,9 @@ namespace Ink.Parsed
             // List item reference?
             // Path might be to a list (listName.listItemName or just listItemName)
             if (path.Count == 1 || path.Count == 2) {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 string listItemName = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
                 string listName = null;
 
                 if (path.Count == 1) listItemName = path [0];

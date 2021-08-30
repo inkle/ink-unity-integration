@@ -167,8 +167,10 @@ namespace Ink.Runtime
         // Find most compact representation for a path, whether relative or global
         public string CompactPathString(Path otherPath)
         {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             string globalPathStr = null;
             string relativePathStr = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
             if (otherPath.isRelative) {
                 relativePathStr = otherPath.componentsString;
                 globalPathStr = this.path.PathByAppendingPath(otherPath).componentsString;

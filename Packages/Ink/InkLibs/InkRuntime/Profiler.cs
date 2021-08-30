@@ -92,7 +92,9 @@ namespace Ink.Runtime
 
 			var currObj = callstack.currentElement.currentPointer.Resolve();
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
 			string stepType = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 			var controlCommandStep = currObj as ControlCommand;
 			if( controlCommandStep )
 				stepType = controlCommandStep.commandType.ToString() + " CC";

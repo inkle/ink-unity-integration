@@ -1496,7 +1496,9 @@ namespace Ink.Runtime
                         
                         var list = listVal.value;
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                         InkList newList = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
                         // List was empty: return empty list
                         if (list.Count == 0) {
@@ -1555,7 +1557,9 @@ namespace Ink.Runtime
             // Variable reference
             else if( contentObj is VariableReference ) {
                 var varRef = (VariableReference)contentObj;
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 Runtime.Object foundValue = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
 
                 // Explicit read count value
@@ -1865,7 +1869,9 @@ namespace Ink.Runtime
             object funcResult = funcDef.function (arguments.ToArray());
 
             // Convert return value (if any) to the a type that the ink engine can use
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             Runtime.Object returnObj = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
             if (funcResult != null) {
                 returnObj = Value.Create (funcResult);
                 Assert (returnObj != null, "Could not create ink value from returned object of type " + funcResult.GetType());
@@ -2401,7 +2407,9 @@ namespace Ink.Runtime
                 return;
             
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             VariableObserver observers = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
             if (_variableObservers.TryGetValue (variableName, out observers)) {
 

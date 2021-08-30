@@ -26,7 +26,9 @@ namespace Ink.Parsed
 
                 var contentObjs = elementContentList.content;
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 Parsed.Object seqElObject = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
                 // Don't attempt to create a weave for the sequence element 
                 // if the content list is empty. Weaves don't like it!

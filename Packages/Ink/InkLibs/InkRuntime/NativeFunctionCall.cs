@@ -137,7 +137,9 @@ namespace Ink.Runtime
             if (paramCount == 2 || paramCount == 1) {
 
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 object opForTypeObj = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
                 if (!_operationFuncs.TryGetValue (valType, out opForTypeObj)) {
                     throw new StoryException ("Cannot perform operation '"+this.name+"' on "+valType);
@@ -452,7 +454,9 @@ namespace Ink.Runtime
         static void AddOpToNativeFunc(string name, int args, ValueType valType, object op)
         {
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             NativeFunctionCall nativeFunc = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
             if (!_nativeFunctions.TryGetValue (name, out nativeFunc)) {
                 nativeFunc = new NativeFunctionCall (name, args);

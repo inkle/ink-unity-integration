@@ -222,7 +222,9 @@ namespace Ink.Runtime
 
             else {
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 INamedContent foundContent = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
                 if (namedContent.TryGetValue (component.name, out foundContent)) {
                     return (Runtime.Object)foundContent;

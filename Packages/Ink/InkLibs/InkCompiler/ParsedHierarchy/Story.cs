@@ -130,7 +130,9 @@ namespace Ink.Parsed
 
                 // Check for duplicate definitions
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
                 Parsed.Expression existingDefinition = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
                 if (constants.TryGetValue (constDecl.constantName, out existingDefinition)) {
                     if (!existingDefinition.Equals (constDecl.expression)) {
@@ -241,7 +243,9 @@ namespace Ink.Parsed
 
         public ListElementDefinition ResolveListItem (string listName, string itemName, Parsed.Object source = null)
         {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             ListDefinition listDef = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
             // Search a specific list if we know its name (i.e. the form listName.itemName)
             if (listName != null) {
@@ -473,7 +477,9 @@ namespace Ink.Parsed
 
             // Global variable collision
 #pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             VariableAssignment varDecl = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0018 // Inline variable declaration
             if (variableDeclarations.TryGetValue(identifier?.name, out varDecl) ) {
                 if (varDecl != obj && varDecl.isGlobalDeclaration && varDecl.listDefinition == null) {
