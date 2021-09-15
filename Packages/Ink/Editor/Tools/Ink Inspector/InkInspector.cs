@@ -310,8 +310,18 @@ namespace Ink.UnityIntegration {
 
 		void DrawMasterFileHeader () {
 			EditorGUILayout.LabelField("Master File", EditorStyles.boldLabel);
-			if(!InkSettings.instance.compileAutomatically) {
-				inkFile.compileAutomatically = EditorGUILayout.Toggle("Compile Automatially", inkFile.compileAutomatically);
+			if(!InkSettings.instance.compileAllFilesAutomatically) {
+				EditorGUI.BeginChangeCheck();
+				var newCompileAutomatically = EditorGUILayout.Toggle("Compile Automatially", InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile));
+				if(EditorGUI.EndChangeCheck()) {
+					if(newCompileAutomatically) {
+						InkSettings.instance.filesToCompileAutomatically.Add(inkFile.inkAsset);
+						EditorUtility.SetDirty(InkSettings.instance);
+					} else {
+						InkSettings.instance.filesToCompileAutomatically.Remove(inkFile.inkAsset);
+						EditorUtility.SetDirty(InkSettings.instance);
+					}
+				}
 				EditorApplication.RepaintProjectWindow();
 			}
 			EditorGUI.BeginDisabledGroup(true);
