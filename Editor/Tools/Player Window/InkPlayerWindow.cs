@@ -16,38 +16,144 @@ namespace Ink.UnityIntegration {
 	/// Stories may be attached at runtime. InkPlayerWindow.DrawStoryPropertyField may be used for this.
 	/// </summary>
 	public class InkPlayerWindow : EditorWindow {
-        
-        
         #region User Facing
+
+		public static bool visible {get; private set;}
+		public static bool isOpen {get; private set;}
+		public static bool attached {get; private set;}
+
 		
+		// Fires when story is set. Handy if you want to perform actions on the story as soon as it's tethered.
+        public static Action<Story> OnDidSetStory;
+
+		// Overrides the action triggered by buttons that display story.currentChoices.
+        public static Action<int> OnChooseChoiceIndexOverride;
+
+
+		// Overrides the "Divert" button for named content. Allows for custom ChoosePathString functionality.
+        public static Action<string> OnDivertOverride;
+		// Overrides the "Divert" button label. Can be handy for making it clear that Divert has been overridden in different contexts.
+        public static Func<string, GUIContent> OnDivertLabelOverride;
+
+
+        // Allows injecting right click context options into the story content view.
+        public delegate void ContextMenuDelegate(GenericMenu contextMenu, InkHistoryContentItem content);
+        public static List<ContextMenuDelegate> contextMenuDelegates = new List<ContextMenuDelegate>();
+
+		
+		
+		public static InkPlayerParams playerParams = InkPlayerParams.Standard;
+		public static PlayerOptions playerOptions = new PlayerOptions();
+
+		
+
+		// Create or get the window. If creating, dock it on the same panel as the inspector.
+		[MenuItem("Window/Ink Player %#i", false, 2300)]
+		public static InkPlayerWindow GetWindow () {
+			System.Type windowType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.InspectorWindow");
+			return GetWindow<InkPlayerWindow>(windowTitle, true, windowType);
+		}
+
+		public static InkPlayerWindow GetWindow (bool focus) {
+			System.Type windowType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.InspectorWindow");
+			return GetWindow<InkPlayerWindow>(windowTitle, focus, windowType);
+		}
+		
+
+
+		
+
+		// Entry point for loading and playing a story.
+		public static void LoadAndPlay (TextAsset storyJSONTextAsset) {
+			GetWindow();
+			if(InkPlayerWindow.story != null) {
+				if(EditorUtility.DisplayDialog("Story in progress", "The Ink Player Window is already playing a story. Would you like to stop it and load the new story?", "Stop and load", "Cancel")) {
+					InkPlayerWindow.Stop();
+					InkPlayerWindow.Play(storyJSONTextAsset);
+				}
+			} else {
+				InkPlayerWindow.Play(storyJSONTextAsset);
+			}
+		}
+
+		public static void LoadAndPlay (string storyJSON) {
+			GetWindow();
+			if(InkPlayerWindow.story != null) {
+				if(EditorUtility.DisplayDialog("Story in progress", "The Ink Player Window is already playing a story. Would you like to stop it and load the new story?", "Stop and load", "Cancel")) {
+					InkPlayerWindow.Stop();
+					InkPlayerWindow.Play(storyJSON);
+				}
+			} else {
+				InkPlayerWindow.Play(storyJSON);
+			}
+		}
+	
+		// Handy utility for the common case of not wanting to show the ink player window when game view is maximised
+		public static bool GetGameWindowIsMaximised () {
+			var gameViewType = typeof(EditorWindow).Assembly.GetType("UnityEditor.GameView");
+			var gameWindow = EditorWindow.GetWindow(gameViewType);
+            return gameWindow == null ? false : gameWindow.maximized;
+		}
+		
+
+		// Loads an existing story to the player window. Handy for debugging stories running in games in editor.
+		public static void Attach (Story story) {
+			Attach(story, InkPlayerWindow.InkPlayerParams.ForAttachedStories);
+		}
+		public static void Attach (Story story, InkPlayerParams inkPlayerParams) {
+			Clear();
+			playerOptions.continueAutomatically = false;
+			playerOptions.chooseAutomatically = false;
+			playerParams = inkPlayerParams;
+			attached = true;
+			attachedWhileInPlayMode = EditorApplication.isPlaying;
+			InkPlayerWindow.story = story;
+            
+            // This allows reconstructing the story so it can be used after recompile. However, it can be expensive to run so there's a good argument for not running it on play!
+            // var lastTime = Time.realtimeSinceStartup;
+            // storyJSON = InkPlayerWindow.story.ToJson();
+            // File.WriteAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "AttachedStory.json"), storyJSON);
+            // Debug.Log("Wrote to "+System.IO.Path.Combine(System.IO.Path.GetTempPath(), "AttachedStory.json")+" in "+(Time.realtimeSinceStartup-lastTime));
+		}
+		
+		// Detaches the attached story
+		public static void Detach () {
+			DetachInstance();
+		}
+
+
         /// <summary>
 		/// Draws a property field for a story using GUILayout, allowing you to attach stories to the player window for debugging.
+		/// An example of how this is used is found in the Demo scene.
 		/// </summary>
 		/// <param name="story">Story.</param>
 		/// <param name="label">Label.</param>
-		public static void DrawStoryPropertyField (Story story, GUIContent label) {
-			DrawStoryPropertyField(story, InkPlayerParams.ForAttachedStories, label);
+		public static void DrawStoryPropertyField (Story story, ref bool expanded, GUIContent label) {
+			DrawStoryPropertyField(story, InkPlayerParams.ForAttachedStories, ref expanded, label);
 		}
-		public static void DrawStoryPropertyField (Story story, InkPlayerParams playerParams, GUIContent label) {
+		public static void DrawStoryPropertyField (Story story, InkPlayerParams playerParams, ref bool expanded, GUIContent label, bool interactable = false) {
 			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.PrefixLabel(label);
+			expanded = EditorGUILayout.Foldout(expanded, label, true);
+			// var lastRect = GUILayoutUtility.GetLastRect();
+			// GUILayout.BeginArea(new Rect(lastRect.x+200,lastRect.y,lastRect.width-200,lastRect.height));
+			// Debug.Log(lastRect);
+			// GUI.Box(lastRect,"");
+			// GUILayout.BeginArea(lastRect);
 			if(EditorApplication.isPlaying) {
 				if(story != null) {
-					if(InkPlayerWindow.isOpen) {
-						// InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
-						if(InkPlayerWindow.attached && InkPlayerWindow.story == story) {
-							if(GUILayout.Button("Detach")) {
-								InkPlayerWindow.Detach();
-							}
-						} else {
-							if(GUILayout.Button("Attach")) {
-								InkPlayerWindow.Attach(story, playerParams);
-							}
+					// InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
+					if(InkPlayerWindow.attached && InkPlayerWindow.story == story) {
+						if(GUILayout.Button("Detach", GUILayout.Width(80))) {
+							InkPlayerWindow.Detach();
 						}
 					} else {
-						if(GUILayout.Button("Open Player Window")) {
-							InkPlayerWindow.GetWindow();
+						if(GUILayout.Button("Attach", GUILayout.Width(80))) {
+							InkPlayerWindow.Attach(story, playerParams);
 						}
+					}
+					// EditorGUI.BeginDisabledGroup(visible);
+					if(GUILayout.Button(InkPlayerWindow.isOpen ? "Show Player Window" : "Open Player Window", GUILayout.Width(140))) {
+						InkPlayerWindow.GetWindow();
 					}
 				} else {
 					EditorGUI.BeginDisabledGroup(true);
@@ -56,34 +162,43 @@ namespace Ink.UnityIntegration {
 				}
 			} else {
 				EditorGUI.BeginDisabledGroup(true);
-				GUILayout.Button("Enter play mode to attach to editor");
+				GUILayout.Button("Enter play mode to attach to editor", GUILayout.Width(220));
 				EditorGUI.EndDisabledGroup();
 			}
+			// GUILayout.EndArea();
 			EditorGUILayout.EndHorizontal();
+			if(expanded) {
 
-			if(story != null) {
-				EditorGUI.indentLevel++;
-				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.LabelField("Can Continue", story.canContinue.ToString());
-				EditorGUI.BeginDisabledGroup(true);
-				if(GUILayout.Button("Continue")) {
-					story.Continue();
-				}
-				EditorGUI.EndDisabledGroup();
-				EditorGUILayout.EndHorizontal();
-
-				EditorGUILayout.LabelField("Current Text", story.currentText);
-				foreach(var choice in story.currentChoices) {
+				if(story != null) {
+					EditorGUI.indentLevel++;
+					EditorGUI.BeginDisabledGroup(!interactable);
+					// Draw can continue
 					EditorGUILayout.BeginHorizontal();
-					EditorGUILayout.LabelField("Choice "+choice.index, choice.text);
-					EditorGUI.BeginDisabledGroup(true);
-					if(GUILayout.Button("Choose")) {
-						story.ChooseChoiceIndex(choice.index);
+					EditorGUILayout.Toggle("Can Continue", story.canContinue);
+					if(GUILayout.Button("Continue")) {
+						story.Continue();
+					}
+					EditorGUILayout.EndHorizontal();
+
+					// Draw current text
+					EditorGUILayout.BeginHorizontal();
+					EditorGUILayout.PrefixLabel("Current Text");
+					EditorGUILayout.TextArea(story.currentText, wordWrappedTextArea);
+					EditorGUILayout.EndHorizontal();
+
+					// Draw current choices
+					foreach(var choice in story.currentChoices) {
+						EditorGUILayout.BeginHorizontal();
+						EditorGUILayout.LabelField("Choice "+choice.index, choice.text);
+						if(GUILayout.Button(new GUIContent("Choose"))) {
+							if(OnChooseChoiceIndexOverride != null) OnChooseChoiceIndexOverride(choice.index);
+							else story.ChooseChoiceIndex(choice.index);
+						}
+						EditorGUILayout.EndHorizontal();
 					}
 					EditorGUI.EndDisabledGroup();
-					EditorGUILayout.EndHorizontal();
+					EditorGUI.indentLevel--;
 				}
-				EditorGUI.indentLevel--;
 			}
 		}
 
@@ -128,6 +243,7 @@ namespace Ink.UnityIntegration {
 			public bool disableChoices;
 			public bool disableStateLoading;
 			public bool disableSettingVariables;
+			public bool profileOnStart;
             
 			public static InkPlayerParams Standard {
 				get {
@@ -142,11 +258,11 @@ namespace Ink.UnityIntegration {
 					inkPlayerParams.disableChoices = true;
 					inkPlayerParams.disableStateLoading = true;
 					inkPlayerParams.disableSettingVariables = true;
+					inkPlayerParams.profileOnStart = false;
 					return inkPlayerParams;
 				}
 			} 
 		}
-		public static InkPlayerParams playerParams;
 
 		
         // Allows telling the story to play automatically.
@@ -157,19 +273,44 @@ namespace Ink.UnityIntegration {
 			public float continueAutomaticallyTimeInterval = 0.1f;
 			public float chooseAutomaticallyTimeInterval = 0.1f;
 		}
-		public static PlayerOptions playerOptions = new PlayerOptions();
-
-
-        // Allows injecting right click context options into the story content view.
-        public delegate void ContextMenuDelegate(GenericMenu contextMenu, InkHistoryContentItem content);
-        public static List<ContextMenuDelegate> contextMenuDelegates = new List<ContextMenuDelegate>();
 
         #endregion
 
 
 
 
+		
+		static string storyJSON;
+		static DateTime currentStoryJSONLastEditDateTime;
 
+		private static Story _story;
+		public static Story story {
+			get {
+				return _story;
+			} private set {
+				if(_story != null) {
+					OnUnsetStory();
+				}
+				_story = value;
+				if(_story != null) {
+					OnSetStory();
+				}
+			}
+		}
+
+
+		private static TextAsset _storyStateTextAsset;
+		public static TextAsset storyStateTextAsset {
+			get {
+				return _storyStateTextAsset;
+			} set {
+				if(_storyStateTextAsset == value) 
+					return;
+				_storyStateTextAsset = value;
+				if(_storyStateTextAsset != null)
+					storyStateValid = InkEditorUtils.CheckStoryStateIsValid(storyJSONTextAsset.text, storyStateTextAsset.text);
+			}
+		}
 
 
 
@@ -247,8 +388,6 @@ namespace Ink.UnityIntegration {
 		
 		private const string windowTitle = "Ink Player";
 
-		public static bool isOpen {get; private set;}
-		public static bool attached {get; private set;}
 		static bool attachedWhileInPlayMode {get; set;}
 
 		static TextAsset _storyJSONTextAsset;
@@ -268,47 +407,21 @@ namespace Ink.UnityIntegration {
 				InkPlayerWindowState.Save();
 			}
 		}
-		static string storyJSON;
-		static DateTime currentStoryJSONLastEditDateTime;
-
-		private static Story _story;
-		public static Story story {
-			get {
-				return _story;
-			} private set {
-				if(_story != null) {
-					OnUnsetStory();
-				}
-				_story = value;
-				if(_story != null) {
-					OnSetStory();
-				}
-			}
-		}
-        public static Action<Story> OnDidSetStory;
-
-		private static TextAsset _storyStateTextAsset;
-		public static TextAsset storyStateTextAsset {
-			get {
-				return _storyStateTextAsset;
-			} set {
-				if(_storyStateTextAsset == value) 
-					return;
-				_storyStateTextAsset = value;
-				if(_storyStateTextAsset != null)
-					storyStateValid = InkEditorUtils.CheckStoryStateIsValid(storyJSONTextAsset.text, storyStateTextAsset.text);
-			}
-		}
 		
-		private static UndoHistory<InkPlayerHistoryItem> storyStateHistory = new UndoHistory<InkPlayerHistoryItem>();
-		private static List<InkHistoryContentItem> storyHistory = new List<InkHistoryContentItem>();
+
+
+
+
+
+		static UndoHistory<InkPlayerHistoryItem> storyStateHistory = new UndoHistory<InkPlayerHistoryItem>();
+		static List<InkHistoryContentItem> storyHistory = new List<InkHistoryContentItem>();
 
 		
-		private static Exception playStoryException;
-		private static bool storyStateValid = false;
+		static Exception playStoryException;
+		static bool storyStateValid = false;
 
 
-//		private WindowState windowState = new WindowState();
+//		WindowState windowState = new WindowState();
 //		public class WindowState {
 		static Vector2 _scrollPosition;
 		static Vector2 scrollPosition {
@@ -406,12 +519,38 @@ namespace Ink.UnityIntegration {
 								inkListVariableValue = Ink.Runtime.InkList.FromString(inkListVariablePath, story);
 						} catch {}
 					}
+
+					public override int GetHashCode () {	
+						switch(type) {
+						case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Int:
+							return intValue.GetHashCode();
+						case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.String:
+							return stringValue != null ? stringValue.GetHashCode() : 0;
+						case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Bool:
+							return boolValue.GetHashCode();
+						case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.InkVariable:
+							return inkVariablePath != null ? inkVariablePath.GetHashCode() : 0;
+						case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.InkListVariable:
+							return inkListVariablePath != null ? inkListVariablePath.GetHashCode() : 0;
+						default:
+							Debug.LogWarning("No hash code for type: "+type);
+							return 1;
+						}
+					}
 				}
 				public string functionName = String.Empty;
 				public List<FunctionInput> inputs = new List<FunctionInput>();
+
+				public int GetInputHashCode () {	
+					int hash = 19;
+					if(!string.IsNullOrEmpty(functionName)) hash = hash * 31 + functionName.GetHashCode();
+					foreach(var item in inputs) hash = (hash * 31) + item.GetHashCode();
+					return hash;
+				}
 			}
 			public FunctionParams functionParams = new FunctionParams();
-			public string testedFunctionName = null;
+			public int testedFunctionHash;
+			public DateTime testedFunctionTime;
 			public object functionReturnValue = null;
 		}
 
@@ -450,7 +589,7 @@ namespace Ink.UnityIntegration {
 		static GUIStyle searchTextFieldStyle;
 		static GUIStyle searchCancelButtonStyle;
 		
-		public static DateTime dateTimeNow;
+		static DateTime dateTimeNow;
 
 
 		static float lastOnGUITime = -1f;
@@ -484,17 +623,7 @@ namespace Ink.UnityIntegration {
 		static float timeUntilNextAutomaticContinue = 0;
 
 
-		[MenuItem("Window/Ink Player %#i", false, 2300)]
-		public static InkPlayerWindow GetWindow () {
-			System.Type windowType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.InspectorWindow");
-			return GetWindow<InkPlayerWindow>(windowTitle, true, windowType);
-		}
 
-		public static InkPlayerWindow GetWindow (bool focus) {
-			System.Type windowType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.InspectorWindow");
-			return GetWindow<InkPlayerWindow>(windowTitle, focus, windowType);
-		}
-		
         // TODO - find a way to restore tethered stories after recompile. This is tricky because we don't have a reference to the json, and stories aren't serialized.
         // We should probably save the story to this path - but watch out for giant stories.
         // var jsonStr = story.ToJson ();
@@ -530,14 +659,17 @@ namespace Ink.UnityIntegration {
 		}
 
 		private void OnBecameVisible() {
+        	visible = true;
 			if(doingAutoscroll) {
 				InkPlayerWindowState.Instance.storyPanelState.scrollPosition = new Vector2(InkPlayerWindowState.Instance.storyPanelState.scrollPosition.x, autoscrollTarget);
 				doingAutoscroll = false;
 			}
 		}
-	
-		private void OnBecameInvisible() {}
-
+		
+		void OnBecameInvisible () {
+			visible = false;
+		}
+			
 		void OnDestroy () {
 			isOpen = false;
 		}
@@ -675,59 +807,12 @@ namespace Ink.UnityIntegration {
 
 
 
-		// Loads an existing story to the player window. Handy for debugging stories running in games in editor.
-		public static void Attach (Story story) {
-			Attach(story, InkPlayerWindow.InkPlayerParams.ForAttachedStories);
-		}
-		public static void Attach (Story story, InkPlayerParams inkPlayerParams) {
-			Clear();
-			playerOptions.continueAutomatically = false;
-			playerOptions.chooseAutomatically = false;
-			playerParams = inkPlayerParams;
-			attached = true;
-			attachedWhileInPlayMode = EditorApplication.isPlaying;
-			InkPlayerWindow.story = story;
-            
-            // This allows reconstructing the story so it can be used after recompile. However, it can be expensive to run so there's a good argument for not running it on play!
-            // var lastTime = Time.realtimeSinceStartup;
-            // storyJSON = InkPlayerWindow.story.ToJson();
-            // File.WriteAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "AttachedStory.json"), storyJSON);
-            // Debug.Log("Wrote to "+System.IO.Path.Combine(System.IO.Path.GetTempPath(), "AttachedStory.json")+" in "+(Time.realtimeSinceStartup-lastTime));
-		}
-		
-		public static void Detach () {
-			GetWindow();
-			DetachInstance();
-		}
-
 		static void DetachInstance () {
 			attached = false;
 			story = null;
 		}
 
-		public static void LoadAndPlay (TextAsset storyJSONTextAsset) {
-			GetWindow();
-			if(InkPlayerWindow.story != null) {
-				if(EditorUtility.DisplayDialog("Story in progress", "The Ink Player Window is already playing a story. Would you like to stop it and load the new story?", "Stop and load", "Cancel")) {
-					InkPlayerWindow.Stop();
-					InkPlayerWindow.Play(storyJSONTextAsset);
-				}
-			} else {
-				InkPlayerWindow.Play(storyJSONTextAsset);
-			}
-		}
-
-		public static void LoadAndPlay (string storyJSON) {
-			GetWindow();
-			if(InkPlayerWindow.story != null) {
-				if(EditorUtility.DisplayDialog("Story in progress", "The Ink Player Window is already playing a story. Would you like to stop it and load the new story?", "Stop and load", "Cancel")) {
-					InkPlayerWindow.Stop();
-					InkPlayerWindow.Play(storyJSON);
-				}
-			} else {
-				InkPlayerWindow.Play(storyJSON);
-			}
-		}
+		
 
 		static void Play (TextAsset storyJSONTextAsset) {
 			Play(storyJSONTextAsset, InkPlayerParams.Standard);
@@ -823,6 +908,8 @@ namespace Ink.UnityIntegration {
 			InkPlayerWindowState.Instance.lastStoryWasPlaying = true;
 			InkPlayerWindowState.Save();
 			
+			if(playerParams.profileOnStart) isProfiling = true;
+
 			PingAutomator();
 		}
 
@@ -1014,7 +1101,7 @@ namespace Ink.UnityIntegration {
                     playerParams = InkPlayerParams.Standard;
 					if(attachedWhileInPlayMode) headerTitle.Append(" (Ex-play-mode story)");
 				}
-				GUILayout.Label(new GUIContent(headerTitle.ToString(), "This story reference has been attached from elsewhere"));
+				GUILayout.Label(new GUIContent(headerTitle.ToString(), attachedStoryIcon, "This story reference has been attached from elsewhere"));
 				if (GUILayout.Button(new GUIContent("Detach", "Detach from the loaded external story"), EditorStyles.toolbarButton)) {
 					Detach();
 				}
@@ -1040,12 +1127,12 @@ namespace Ink.UnityIntegration {
 						EditorGUILayout.BeginHorizontal();
 						EditorGUILayout.HelpBox ("Story JSON file has changed. Reload or restart to play updated story.", MessageType.Warning);
 						EditorGUILayout.BeginVertical();
-						if(GUILayout.Button("Reload")) {
+						if(GUILayout.Button(new GUIContent("Reload", restartIcon, "Reload and restart the current story, which has been updated."))) {
 							var storyStateJSON = story.state.ToJson();
 							Play(storyJSONTextAsset, InkPlayerWindow.playerParams);
 							story.state.LoadJson(storyStateJSON);
 						}
-						if(GUILayout.Button("Restart")) {
+						if(GUILayout.Button(new GUIContent("Restart", restartIcon, "Restart the current story"))) {
 							Restart();
 						}
 						EditorGUILayout.EndVertical();
@@ -1065,16 +1152,18 @@ namespace Ink.UnityIntegration {
 
 			if(story == null) {
 				EditorGUI.BeginDisabledGroup(storyJSONTextAsset == null);
-				if(GUILayout.Button(new GUIContent("Start", "Run the story"), EditorStyles.toolbarButton)) {
-					Play(storyJSONTextAsset, InkPlayerParams.Standard);
+				if(GUILayout.Button(new GUIContent("Start", playIcon, "Run the story"), EditorStyles.toolbarButton)) {
+					var playerParams = InkPlayerParams.Standard;
+					playerParams.profileOnStart = InkPlayerWindow.playerParams.profileOnStart;
+					Play(storyJSONTextAsset, playerParams);
 				}
 				EditorGUI.EndDisabledGroup();
 			} else {
 				EditorGUI.BeginDisabledGroup(playerParams.disablePlayControls);
-				if(GUILayout.Button(new GUIContent("Stop", "Stop the story"), EditorStyles.toolbarButton)) {
+				if(GUILayout.Button(new GUIContent("Stop", stopIcon, "Stop the story"), EditorStyles.toolbarButton)) {
 					Stop();
 				}
-				if(GUILayout.Button(new GUIContent("Restart", "Restarts the story"), EditorStyles.toolbarButton)) {
+				if(GUILayout.Button(new GUIContent("Restart", restartIcon, "Restarts the story"), EditorStyles.toolbarButton)) {
 					Restart();
 				}
 				EditorGUI.EndDisabledGroup();
@@ -1086,21 +1175,25 @@ namespace Ink.UnityIntegration {
 			if( story != null ) {
 				var profileButtonTitle = new GUIContent(
 					isProfiling ? "Stop Profiling" : "Profile", 
+					profilerIcon,
 					(isProfiling ? "Stop" : "Start") + " Profiling");
 				isProfiling = GUILayout.Toggle(isProfiling, profileButtonTitle, EditorStyles.toolbarButton);
 
-				GUILayout.FlexibleSpace();
+			} else {
+				var profileButtonTitle = new GUIContent("Profile On Start", profilerIcon, "Immediately start the profiler when the story starts.");
+				playerParams.profileOnStart = GUILayout.Toggle(playerParams.profileOnStart, profileButtonTitle, EditorStyles.toolbarButton);
 			}
+			GUILayout.FlexibleSpace();
 				
 			// Undo/Redo
 			if(story != null) {
 				EditorGUI.BeginDisabledGroup(playerParams.disableUndoHistory || !storyStateHistory.canUndo);
-				if(GUILayout.Button(new GUIContent("Undo", "Undo the last continue or choice"), EditorStyles.toolbarButton, GUILayout.Width(36))) {
+				if(GUILayout.Button(new GUIContent("Undo", undoIcon, "Undo the last continue or choice"), EditorStyles.toolbarButton, GUILayout.Width(46))) {
 					Undo();
 				}
 				EditorGUI.EndDisabledGroup();
 				EditorGUI.BeginDisabledGroup(playerParams.disableUndoHistory || !storyStateHistory.canRedo);
-				if(GUILayout.Button(new GUIContent("Redo", "Redo the last continue or choice"), EditorStyles.toolbarButton, GUILayout.Width(36))) {
+				if(GUILayout.Button(new GUIContent("Redo", redoIcon, "Redo the last continue or choice"), EditorStyles.toolbarButton, GUILayout.Width(46))) {
 					Redo();
 				}
 				EditorGUI.EndDisabledGroup();
@@ -1122,6 +1215,7 @@ namespace Ink.UnityIntegration {
 				if(!playerParams.disablePlayControls) playerOptions.chooseAutomatically = newChooseAutomatically;
 			}
 			EditorGUI.EndDisabledGroup();
+			EditorGUILayout.LabelField(new GUIContent(timeIntervalIcon, "Time between automatic choices"), GUILayout.Width(16));
 			playerOptions.continueAutomaticallyTimeInterval = playerOptions.chooseAutomaticallyTimeInterval = GUILayout.HorizontalSlider(playerOptions.continueAutomaticallyTimeInterval, 1f, 0f, GUILayout.Width(80));
 			GUILayout.EndHorizontal();
 		}
@@ -1142,11 +1236,11 @@ namespace Ink.UnityIntegration {
 			
 			InkPlayerWindowState.Instance.storyPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.storyPanelState.showing, "Content", true);
 			
-			if(GUILayout.Button(new GUIContent("Clear", "Clears the output"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false))) {
+			if(GUILayout.Button(new GUIContent("Clear", clearIcon, "Clears the output"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false))) {
 				ClearStoryHistory();
 			}
 			GUILayout.Space(12);
-			if(GUILayout.Button(new GUIContent("Copy", "Copy the output to clipboard"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false))) {
+			if(GUILayout.Button(new GUIContent("Copy", /*copyToClipboardIcon, */"Copy the output to clipboard"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false))) {
 				CopyStoryHistoryToClipboard();
 			}
 
@@ -1672,7 +1766,8 @@ namespace Ink.UnityIntegration {
 		}
 
 		static void MakeChoice (Choice choice) {
-			story.ChooseChoiceIndex(choice.index);
+			if(OnChooseChoiceIndexOverride != null) OnChooseChoiceIndexOverride(choice.index);
+			else story.ChooseChoiceIndex(choice.index);
 			if(!playerParams.disableUndoHistory) AddToStateHistory();
 			TryContinue();
 		}
@@ -1825,32 +1920,37 @@ namespace Ink.UnityIntegration {
 			GUILayout.Space(viewportRect.height);
 		}
 
+		static GUIContent defaultDivertLabel = new GUIContent("Divert");
 		void DrawNamedContentItem (Rect rect, string currentPath) {
 			EditorGUI.LabelField(rect, new GUIContent(currentPath, "Path"));
 			EditorGUI.LabelField(new Rect(rect.xMax-200, rect.y, 32, rect.height), new GUIContent(story.state.VisitCountAtPathString(currentPath).ToString(), "Read count"));
-			if(GUI.Button(new Rect(rect.xMax-168, rect.y, 80, rect.height), new GUIContent("Divert"))) {
-                // This is a bit horrible tbh. Not all the paths we show are valid for diverting, but we don't really have a way of testing it.
-                // Additionally, doing this can brick the story, so it's important we prevent it.
-                // We test by creating an entirely new story and running it, and checking for errors in the flow.
-                // The result is that this function is really slow :(
-				var hadError = false;
-                try {
-                    // We might optimise this by caching story.ToJson() - we could use this in other places too.
-                    var tmpStory = new Story(story.ToJson());
-			        tmpStory.allowExternalFunctionFallbacks = true;
-                    var state = story.state.ToJson();
-                    tmpStory.state.LoadJson(state);
-				    tmpStory.ChoosePathString(currentPath);
-				    tmpStory.ContinueMaximally();
-                } catch (Exception e) {
-                    Debug.LogWarning("Could not divert to "+currentPath+"! Only Knots and Stitches can be diverted to. Is this a function? Alternatively, the path might lead to an error, which we prevent from occuring in this tool to safeguard the state.\n"+e.ToString());
-                    hadError = true;
-                } finally {
-                    if(!hadError) {
-				        story.ChoosePathString(currentPath);
-                        AddToHistory(InkHistoryContentItem.CreateForDebugNote("Diverted to '"+currentPath+"'"));
-                    }
-                }
+			if(GUI.Button(new Rect(rect.xMax-168, rect.y, 80, rect.height), OnDivertLabelOverride == null ? defaultDivertLabel : OnDivertLabelOverride(currentPath))) {
+                if(OnDivertOverride != null) {
+					OnDivertOverride(currentPath);
+				} else {
+					// This is a bit horrible tbh. Not all the paths we show are valid for diverting, but we don't really have a way of testing it.
+					// Additionally, doing this can brick the story, so it's important we prevent it.
+					// We test by creating an entirely new story and running it, and checking for errors in the flow.
+					// The result is that this function is really slow :(
+					var hadError = false;
+					try {
+						// We might optimise this by caching story.ToJson() - we could use this in other places too.
+						var tmpStory = new Story(story.ToJson());
+						tmpStory.allowExternalFunctionFallbacks = true;
+						var state = story.state.ToJson();
+						tmpStory.state.LoadJson(state);
+						tmpStory.ChoosePathString(currentPath);
+						tmpStory.ContinueMaximally();
+					} catch (Exception e) {
+						Debug.LogWarning("Could not divert to "+currentPath+"! Only Knots and Stitches can be diverted to. Is this a function? Alternatively, the path might lead to an error, which we prevent from occuring in this tool to safeguard the state.\n"+e.ToString());
+						hadError = true;
+					} finally {
+						if(!hadError) {
+							story.ChoosePathString(currentPath);
+							AddToHistory(InkHistoryContentItem.CreateForDebugNote("Diverted to '"+currentPath+"'"));
+						}
+					}
+				}
             }
 
             if(Event.current.type == EventType.MouseDown && Event.current.button == 1 && rect.Contains(Event.current.mousePosition)) {
@@ -1895,22 +1995,28 @@ namespace Ink.UnityIntegration {
 			//     }
 			// }
 
+			var functionParams = InkPlayerWindowState.Instance.functionPanelState.functionParams;
+
 			GUILayout.BeginVertical(GUI.skin.box);
 			EditorGUI.BeginChangeCheck();
-			InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName = EditorGUILayout.TextField("Function Name", InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName);
+			functionParams.functionName = EditorGUILayout.TextField("Function Name", functionParams.functionName);
 			if(EditorGUI.EndChangeCheck()) {
-				InkPlayerWindowState.Instance.functionPanelState.testedFunctionName = null;
+				InkPlayerWindowState.Instance.functionPanelState.testedFunctionHash = 0;
+				InkPlayerWindowState.Instance.functionPanelState.testedFunctionTime = default(DateTime);
 				InkPlayerWindowState.Instance.functionPanelState.functionReturnValue = null;
 			}
 			functionInputList.DoLayoutList();
-			bool functionIsValid = InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName != String.Empty && story.HasFunction(InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName);
+			bool functionIsValid = functionParams.functionName != String.Empty && story.HasFunction(functionParams.functionName);
 			EditorGUI.BeginDisabledGroup(!functionIsValid);
-			if (GUILayout.Button(new GUIContent("Execute", "Runs the function"))) {
-				AddToHistory(InkHistoryContentItem.CreateForDebugNote("Execute function '"+InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName+"'"));
+			
+			Story.ExternalFunction externalFunction;
+			var isExternalFunction = story.TryGetExternalFunction(functionParams.functionName, out externalFunction);
+			if (GUILayout.Button(new GUIContent(isExternalFunction ? "Execute (External)" : "Execute", "Runs the function"))) {
+				AddToHistory(InkHistoryContentItem.CreateForDebugNote("Execute function '"+functionParams.functionName+"'"));
 				string outputContent = null;
-				object[] allInput = new object[InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs.Count];
-				for (int i = 0; i < InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs.Count; i++) {
-					var input = InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs[i];
+				object[] allInput = new object[functionParams.inputs.Count];
+				for (int i = 0; i < functionParams.inputs.Count; i++) {
+					var input = functionParams.inputs[i];
 					object obj = null;
 					switch(input.type) {
 					case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Int:
@@ -1931,19 +2037,36 @@ namespace Ink.UnityIntegration {
 					}
 					allInput[i] = obj;
 				}
-
-				InkPlayerWindowState.Instance.functionPanelState.functionReturnValue = story.EvaluateFunction(InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName, out outputContent, allInput);
+				if(isExternalFunction) {
+					OnEvaluateFunction(functionParams.functionName, allInput);
+					InkPlayerWindowState.Instance.functionPanelState.functionReturnValue = externalFunction (allInput);
+					OnCompleteEvaluateFunction(functionParams.functionName, allInput, null, InkPlayerWindowState.Instance.functionPanelState.functionReturnValue);
+				} else {
+					InkPlayerWindowState.Instance.functionPanelState.functionReturnValue = story.EvaluateFunction(functionParams.functionName, out outputContent, allInput);
+				}
 				if(outputContent != null)
 					AddStoryContent(outputContent, null);
-				InkPlayerWindowState.Instance.functionPanelState.testedFunctionName = InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName;
+
+				InkPlayerWindowState.Instance.functionPanelState.testedFunctionHash = functionParams.GetInputHashCode();
+				InkPlayerWindowState.Instance.functionPanelState.testedFunctionTime = dateTimeNow;
 			}
 			EditorGUI.EndDisabledGroup();
 			GUILayout.EndVertical();
 		}
 
 		void DrawFunctionOutput () {
-			bool functionIsValid = InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName != String.Empty && story.HasFunction(InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName);
-			if(functionIsValid && InkPlayerWindowState.Instance.functionPanelState.functionParams.functionName == InkPlayerWindowState.Instance.functionPanelState.testedFunctionName) {
+			float timeSinceLastWrite = (float)(dateTimeNow - InkPlayerWindowState.Instance.functionPanelState.testedFunctionTime).TotalSeconds;
+			var revealTime = 0.8f;
+			var l = Mathf.InverseLerp(revealTime, 0, timeSinceLastWrite);
+			var newColor = new Color(GUI.color.r, GUI.color.g, GUI.color.b, 0);
+			var color = Color.Lerp(GUI.color, newColor, l);
+			var oldGUIColor = GUI.color; 
+			GUI.color = color;
+
+			var functionParams = InkPlayerWindowState.Instance.functionPanelState.functionParams;
+
+			bool functionIsValid = functionParams.functionName != String.Empty && story.HasFunction(functionParams.functionName);
+			if(functionIsValid && functionParams.GetInputHashCode() == InkPlayerWindowState.Instance.functionPanelState.testedFunctionHash) {
 				GUILayout.BeginVertical(GUI.skin.box);
 				if(InkPlayerWindowState.Instance.functionPanelState.functionReturnValue == null) {
 					EditorGUILayout.LabelField("Output (Null)");
@@ -1962,16 +2085,19 @@ namespace Ink.UnityIntegration {
 				}
 				GUILayout.EndVertical();
 			}
+			GUI.color = oldGUIColor;
 		}
 
 		void BuildFunctionInputList () {
-			functionInputList = new ReorderableList(InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs, typeof(FunctionPanelState.FunctionParams.FunctionInput), true, true, true, true);
+			var functionParams = InkPlayerWindowState.Instance.functionPanelState.functionParams;
+
+			functionInputList = new ReorderableList(functionParams.inputs, typeof(FunctionPanelState.FunctionParams.FunctionInput), true, true, true, true);
 			functionInputList.drawHeaderCallback = (Rect rect) => {
 				EditorGUI.LabelField(rect, "Inputs");
 			};
 			functionInputList.elementHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing * 2;
 			functionInputList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
-				var input = InkPlayerWindowState.Instance.functionPanelState.functionParams.inputs[index];
+				var input = functionParams.inputs[index];
 				Rect typeRect = new Rect(rect.x, rect.y, 80, EditorGUIUtility.singleLineHeight);
 				input.type = (FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType)EditorGUI.EnumPopup(typeRect, input.type);
 				Rect inputRect = new Rect(rect.x + 90, rect.y, rect.width - 90, EditorGUIUtility.singleLineHeight);
@@ -2257,7 +2383,7 @@ namespace Ink.UnityIntegration {
 
 
 		#region Profiler
-		bool isProfiling {
+		static bool isProfiling {
 			get {
 				return _currentStoryProfiler != null;
 			}
@@ -2278,11 +2404,10 @@ namespace Ink.UnityIntegration {
 				}
 			}
 		}
-		ProfileNode _profilerResultRootNode;
-		Ink.Runtime.Profiler _currentStoryProfiler;
-		Ink.Runtime.Profiler _previousStoryProfiler;
-
-
+		static ProfileNode _profilerResultRootNode;
+		static Ink.Runtime.Profiler _currentStoryProfiler;
+		static Ink.Runtime.Profiler _previousStoryProfiler;
+		
 		void DrawProfilerData() {
 
 			// Don't show profiler data at all if you've never clicked Profile button
@@ -2503,6 +2628,157 @@ namespace Ink.UnityIntegration {
 			}
 		}
 		#endregion
+
+
+		
+
+		static GUIStyle _wordWrappedTextArea;
+		static GUIStyle wordWrappedTextArea {
+			get {
+				if(_wordWrappedTextArea == null) {
+					_wordWrappedTextArea = new GUIStyle(EditorStyles.textArea);
+					_wordWrappedTextArea.wordWrap = true;
+				}
+				return _wordWrappedTextArea;
+			}
+		}
+
+		static Texture _profilerIcon;
+		static Texture profilerIcon {
+			get {
+				if(_profilerIcon == null) {
+					_profilerIcon = EditorGUIUtility.IconContent("UnityEditor.ProfilerWindow").image;
+					// Profiler.CPU
+					// Record Off
+					// Record On
+				}
+				return _profilerIcon;
+			}
+		}
+		
+		static Texture _playIcon;
+		static Texture playIcon {
+			get {
+				if(_playIcon == null) {
+					_playIcon = EditorGUIUtility.IconContent("PlayButton").image;
+				}
+				return _playIcon;
+			}
+		}
+		static Texture _stopIcon;
+		static Texture stopIcon {
+			get {
+				if(_stopIcon == null) {
+					_stopIcon = EditorGUIUtility.IconContent("PreMatQuad").image;
+				}
+				return _stopIcon;
+			}
+		}
+		static Texture _restartIcon;
+		static Texture restartIcon {
+			get {
+				if(_restartIcon == null) {
+					_restartIcon = EditorGUIUtility.IconContent("Refresh").image;
+				}
+				return _restartIcon;
+			}
+		}
+		static Texture _attachedStoryIcon;
+		static Texture attachedStoryIcon {
+			get {
+				if(_attachedStoryIcon == null) {
+					_attachedStoryIcon = EditorGUIUtility.IconContent("UnityEditor.FindDependencies").image;
+				}
+				return _attachedStoryIcon;
+			}
+		}
+		static Texture _saveIcon;
+		static Texture saveIcon {
+			get {
+				if(_saveIcon == null) {
+					_saveIcon = EditorGUIUtility.IconContent("SaveAs").image;
+				}
+				return _saveIcon;
+			}
+		}
+		static Texture _clearIcon;
+		static Texture clearIcon {
+			get {
+				if(_clearIcon == null) {
+					_clearIcon = EditorGUIUtility.IconContent("d_Grid.EraserTool").image;
+					// d_back
+				}
+				return _clearIcon;
+			}
+		}
+		static Texture _copyToClipboardIcon;
+		static Texture copyToClipboardIcon {
+			get {
+				if(_copyToClipboardIcon == null) {
+					_copyToClipboardIcon = EditorGUIUtility.IconContent("Clipboard").image;
+				}
+				return _copyToClipboardIcon;
+			}
+		}
+		static Texture _undoIcon;
+		static Texture undoIcon {
+			get {
+				if(_undoIcon == null) {
+					_undoIcon = EditorGUIUtility.IconContent("d_back").image;
+					// d_back
+					// Animation.PrevKey
+				}
+				return _undoIcon;
+			}
+		}
+		static Texture _redoIcon;
+		static Texture redoIcon {
+			get {
+				if(_redoIcon == null) {
+					_redoIcon = EditorGUIUtility.IconContent("d_forward").image;
+					// d_forward
+					// Animation.NextKey
+				}
+				return _redoIcon;
+			}
+		}
+		static Texture _warningIcon;
+		static Texture warningIcon {
+			get {
+				if(_warningIcon == null) {
+					_warningIcon = EditorGUIUtility.IconContent("console.warnicon.sml").image;
+				}
+				return _warningIcon;
+			}
+		}
+		static Texture _errorIcon;
+		static Texture errorIcon {
+			get {
+				if(_errorIcon == null) {
+					_errorIcon = EditorGUIUtility.IconContent("console.erroricon.sml").image;
+				}
+				return _errorIcon;
+			}
+		}
+		static Texture _functionIcon;
+		static Texture functionIcon {
+			get {
+				if(_functionIcon == null) {
+					_functionIcon = EditorGUIUtility.IconContent("d_StyleSheet Icon").image;
+				}
+				return _functionIcon;
+			}
+		}
+		static Texture _timeIntervalIcon;
+		static Texture timeIntervalIcon {
+			get {
+
+				if(_timeIntervalIcon == null) {
+					_timeIntervalIcon = EditorGUIUtility.IconContent("UnityEditor.AnimationWindow").image;
+				}
+				return _timeIntervalIcon;
+			}
+		}
 	}
 
 	// Keeps a history of state changes for an ink variable. Handy for debugging.
