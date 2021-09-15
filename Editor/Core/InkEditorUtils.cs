@@ -39,55 +39,14 @@ namespace Ink.UnityIntegration {
 	public static class InkEditorUtils {
 		public const string inkFileExtension = ".ink";
 		const string lastCompileTimeKey = "InkIntegrationLastCompileTime";
-
 		
 		// When compiling we call AssetDatabase.DisallowAutoRefresh. 
 		// We NEED to remember to re-allow it or unity stops registering file changes!
 		// The issue is that you need to pair calls perfectly, and you can't even use a try-catch to get around it.
 		// So - we cache if we've disabled auto refresh here, since this persists across plays.
-		// This does have one issue - this setting is saved even when unity re-opens, but the internal asset refresh state isn't.
-		// We need this to reset on launching the editor.
-		// We currently fix this by setting it false on InkEditorUtils.OnOpenUnityEditor
-		// A potentially better approach is to use playerprefs for this, since it's really nothing to do with the library.
 		public static bool disallowedAutoRefresh {
-			get {
-				if(EditorPrefs.HasKey("InkLibraryDisallowedAutoRefresh")) 
-					return EditorPrefs.GetBool("InkLibraryDisallowedAutoRefresh");
-				return false;
-			} set {
-				EditorPrefs.SetBool("InkLibraryDisallowedAutoRefresh", value);
-			}
-		}
-
-		// This should run before any of the other ink integration scripts.
-		static InkEditorUtils () {
-			EnsureFirstLaunchHandled();
-			EditorApplication.wantsToQuit += WantsToQuit;
-		}
-
-		// Save the current EditorApplication.timeSinceStartup so OnOpenUnityEditor is sure to run next time the editor opens. 
-		static bool WantsToQuit () {
-			LoadAndSaveLastCompileTime();
-			return true;
-		}
-		public static bool isFirstCompile;
-		static void EnsureFirstLaunchHandled () {
-			float lastCompileTime = LoadAndSaveLastCompileTime();
-			isFirstCompile = EditorApplication.timeSinceStartup < lastCompileTime;
-			if(isFirstCompile)
-				OnOpenUnityEditor();
-		}
-
-		static float LoadAndSaveLastCompileTime () {
-			float lastCompileTime = 0;
-			if(EditorPrefs.HasKey(lastCompileTimeKey))
-				lastCompileTime = EditorPrefs.GetFloat(lastCompileTimeKey);
-			EditorPrefs.SetFloat(lastCompileTimeKey, (float)EditorApplication.timeSinceStartup);
-			return lastCompileTime;
-		}
-
-		static void OnOpenUnityEditor () {
-			disallowedAutoRefresh = false;
+			get => SessionState.GetBool("InkLibraryDisallowedAutoRefresh", false);
+			set => SessionState.SetBool("InkLibraryDisallowedAutoRefresh", value);
 		}
 
 		[MenuItem("Assets/Rebuild Ink Library", false, 200)]
