@@ -90,7 +90,7 @@ namespace Ink.UnityIntegration {
         }
 
 		public List<InkFile> inkLibrary = new List<InkFile>();
-		Dictionary<DefaultAsset, InkFile> inkLibraryDictionary;
+		Dictionary<DefaultAsset, InkFile> inkLibraryDictionary = new Dictionary<DefaultAsset, InkFile>();
 		
         public int Count {
             get {
@@ -133,8 +133,7 @@ namespace Ink.UnityIntegration {
 		}
 
         static void BuildLookupDictionary () {
-            if(instance.inkLibraryDictionary == null) instance.inkLibraryDictionary = new Dictionary<DefaultAsset, InkFile>();
-            else instance.inkLibraryDictionary.Clear();
+            instance.inkLibraryDictionary.Clear();
 			foreach(var inkFile in instance.inkLibrary) {
                 instance.inkLibraryDictionary.Add(inkFile.inkAsset, inkFile);
             }
@@ -266,7 +265,7 @@ namespace Ink.UnityIntegration {
 			
 			// Re-enable the ink asset post processor
 			InkPostProcessor.disabled = false;
-			Debug.Log("Ink Library was rebuilt.");
+			Debug.Log("Ink Library was rebuilt.\n"+instance.inkLibrary.Count+" ink files are currently tracked.");
 		}
 
 		public static void CreateOrReadUpdatedInkFiles (List<string> importedInkAssets) {
@@ -274,6 +273,7 @@ namespace Ink.UnityIntegration {
 				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
 				if(inkFile == null) {
 					DefaultAsset asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(importedAssetPath);
+					Debug.Assert(asset != null);
 					inkFile = new InkFile(asset);
 					Add(inkFile);
 				} else {
