@@ -190,7 +190,6 @@ namespace Ink.UnityIntegration {
 				}
 			}
 		}
-		public DefaultAsset masterInkAsset;
 
 		// Is this ink file a master file?
 		public bool isMaster {
