@@ -33,10 +33,10 @@ IPreprocessBuild
     }
 
     static void AssertNotCompiling () {
-        if(InkCompiler.compiling) {
+        if(InkCompiler.executingCompilationStack) {
             StringBuilder sb = new StringBuilder("Ink is currently compiling!");
             var errorString = sb.ToString();
-            InkCompiler.buildBlocked = true;
+            InkCompiler.SetBuildBlocked();
             if(UnityEditor.EditorUtility.DisplayDialog("Ink Build Error!", errorString, "Ok")) {
                 Debug.LogError(errorString);
             }
