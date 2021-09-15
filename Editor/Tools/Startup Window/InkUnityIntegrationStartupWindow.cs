@@ -52,6 +52,7 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.EndVertical();
 			GUILayout.EndArea();
 
+
 			GUILayout.Space(20+areaSize.y);
 			
 			if(announcementVersionPreviouslySeen == -1) {
@@ -80,12 +81,11 @@ namespace Ink.UnityIntegration {
 			{
 				scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 				{
-                    // 1.0.3
+                    // 1.0.2
 					EditorGUILayout.BeginVertical(GUI.skin.box);
-					EditorGUILayout.LabelField("Version 1.0.3:", EditorStyles.boldLabel);
+					EditorGUILayout.LabelField("Version 1.0.2:", EditorStyles.boldLabel);
 					EditorGUILayout.LabelField("• Fix a very rare but quite nasty compilation bug.", EditorStyles.wordWrappedLabel);
 					EditorGUILayout.EndVertical();
-					EditorGUILayout.BeginVertical(GUI.skin.box);
                     // 1.0.0
 					EditorGUILayout.BeginVertical(GUI.skin.box);
 					EditorGUILayout.LabelField("🎉Version 1.0.0🎉:", EditorStyles.boldLabel);
@@ -123,7 +123,5 @@ namespace Ink.UnityIntegration {
 
 			EditorGUILayout.EndVertical();
 		}
-
-		
 	}
 }
