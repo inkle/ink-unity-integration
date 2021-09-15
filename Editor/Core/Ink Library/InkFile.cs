@@ -11,8 +11,7 @@ namespace Ink.UnityIntegration {
 	// Helper class for ink files that maintains INCLUDE connections between ink files
 	[System.Serializable]
 	public class InkFile {
-		
-		public bool compileAutomatically = false;
+		public bool compileAutomatically => InkSettings.instance.filesToCompileAutomatically.Contains(inkAsset);
 		// A reference to the ink file
 		public DefaultAsset inkAsset;
 

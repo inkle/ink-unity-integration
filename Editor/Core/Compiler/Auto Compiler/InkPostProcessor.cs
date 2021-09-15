@@ -67,7 +67,7 @@ namespace Ink.UnityIntegration {
 				inkFile.FindIncludedFiles();
 			}
 			foreach(InkFile masterFile in masterFilesAffected) {
-				if(InkSettings.instance.compileAutomatically || masterFile.compileAutomatically) {
+				if(InkSettings.instance.ShouldCompileInkFileAutomatically(masterFile)) {
 					InkCompiler.CompileInk(masterFile);
 				}
 			}
@@ -133,10 +133,8 @@ namespace Ink.UnityIntegration {
 
 				// Compile any ink files that are deemed master files a rebuild
 				foreach(var inkFile in filesToCompile) {
-					if(inkFile.isMaster) {
-						if(InkSettings.instance.compileAutomatically || inkFile.compileAutomatically) {
-							InkCompiler.CompileInk(inkFile);
-						}
+					if(InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile)) {
+						InkCompiler.CompileInk(inkFile);
 					}
 				}
 			}

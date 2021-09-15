@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
 using Debug = UnityEngine.Debug;
 
 /// <summary>
@@ -76,8 +77,9 @@ namespace Ink.UnityIntegration {
 
 
         public DefaultAsset defaultJsonAssetPath;
-
-        public bool compileAutomatically = true;
+		[UnityEngine.Serialization.FormerlySerializedAs("compileAutomatically")]
+        public bool compileAllFilesAutomatically = true;
+        public List<DefaultAsset> filesToCompileAutomatically = new List<DefaultAsset>();
 		public bool delayInPlayMode = true;
 		public bool handleJSONFilesAutomatically = true;
 
@@ -96,8 +98,17 @@ namespace Ink.UnityIntegration {
 		}
 		#endif
         
-		// Deletes the persistent version of this asset that we used to use prior to 0.9.71
+		public bool ShouldCompileInkFileAutomatically (InkFile inkFile) {
+			return compileAllFilesAutomatically || (inkFile.isMaster && filesToCompileAutomatically.Contains(inkFile.inkAsset));
+		}
+
 		void OnEnable () {
+			// Validate the filesToCompileAutomatically list.
+            for (int i = filesToCompileAutomatically.Count - 1; i >= 0; i--) {
+                if(filesToCompileAutomatically[i] == null)
+					filesToCompileAutomatically.RemoveAt(i);
+            }
+			// Deletes the persistent version of this asset that we used to use prior to 0.9.71
 			if(!Application.isPlaying && EditorUtility.IsPersistent(this)) {
 				var path = AssetDatabase.GetAssetPath(this);
 				if(!string.IsNullOrEmpty(path)) {

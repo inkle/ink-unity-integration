@@ -49,7 +49,7 @@ IPreprocessBuild
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("There are Ink files which should be compiled, but appear not to be. You can resolve this by either:");
             sb.AppendLine(" - Compiling your files via 'Assets/Recompile Ink'");
-            var resolveStep = " - Disabling 'Compile Automatically' "+(InkSettings.instance.compileAutomatically ? "in your Ink Settings file" : "for each of the files listed below");
+            var resolveStep = " - Disabling 'Compile Automatically' "+(InkSettings.instance.compileAllFilesAutomatically ? "in your Ink Settings file" : "for each of the files listed below");
             sb.AppendLine(resolveStep);
             sb.AppendLine();
             sb.AppendLine("Files:");
