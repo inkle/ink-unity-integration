@@ -105,9 +105,10 @@ namespace Ink.UnityIntegration {
             CompileInk(inkFiles, false, null);
         }
 		public static void CompileInk (InkFile[] inkFiles, bool immediate, Action onComplete) {
+			if(inkFiles == null || inkFiles.Length == 0) return;
 			#if UNITY_2019_4_OR_NEWER
-			if(!InkEditorUtils.disallowedAutoRefresh) {
-				InkEditorUtils.disallowedAutoRefresh = true;
+			if(!disallowedAutoRefresh) {
+				disallowedAutoRefresh = true;
 				try {
 					AssetDatabase.DisallowAutoRefresh();
 				} catch (Exception e) {
@@ -184,7 +185,7 @@ namespace Ink.UnityIntegration {
 			List<InkFile> masterInkFiles = new List<InkFile>();
 			foreach (var importedAssetPath in importedInkAssets) {
                 foreach(var masterInkFile in GetMasterFilesIncludingInkAssetPath(importedAssetPath)) {
-					if (!masterInkFiles.Contains(masterInkFile) && !InkSettings.instance.ShouldCompileInkFileAutomatically(masterInkFile)) {
+					if (!masterInkFiles.Contains(masterInkFile) && InkSettings.instance.ShouldCompileInkFileAutomatically(masterInkFile)) {
 						masterInkFiles.Add(masterInkFile);
 					}
 				}
@@ -215,6 +216,16 @@ namespace Ink.UnityIntegration {
 
 		// Track if we've currently locked compilation of Unity C# Scripts
 		static bool hasLockedUnityCompilation = false;
+		
+		// When compiling we call AssetDatabase.DisallowAutoRefresh. 
+		// We NEED to remember to re-allow it or unity stops registering file changes!
+		// The issue is that you need to pair calls perfectly, and you can't even use a try-catch to get around it.
+		// So - we cache if we've disabled auto refresh here, since this persists across plays.
+		static bool disallowedAutoRefresh {
+			get => SessionState.GetBool("InkLibraryDisallowedAutoRefresh", false);
+			set => SessionState.SetBool("InkLibraryDisallowedAutoRefresh", value);
+		}
+
         // Actions to run when we finish compiling.
         static List<Action> onCompleteActions = new List<Action>();
 		
@@ -248,6 +259,7 @@ namespace Ink.UnityIntegration {
 		List<InkCompiler.CompilationStackItem> compilationStack = new List<InkCompiler.CompilationStackItem>();
 		#endregion
 		
+		[System.Serializable]
 		class CompilationStackItem {
 			public CompilationStackItemState state = CompilationStackItemState.Queued;
 			public bool immediate;
@@ -321,8 +333,9 @@ namespace Ink.UnityIntegration {
             EditorApplication.UnlockReloadAssemblies();
 			#if UNITY_2019_4_OR_NEWER
 			// This one, on the other hand, seems to actually occur sometimes - presumably because c# compiles at the same time as the ink.
-			if(InkEditorUtils.disallowedAutoRefresh) {
-				InkEditorUtils.disallowedAutoRefresh = false;
+			if(disallowedAutoRefresh) {
+				disallowedAutoRefresh = false;
+				Debug.Log("Allow "+disallowedAutoRefresh);
 				try {
 					AssetDatabase.AllowAutoRefresh();
 				} catch (Exception e) {
@@ -655,8 +668,9 @@ namespace Ink.UnityIntegration {
 			#endif
 			
 			#if UNITY_2019_4_OR_NEWER
-			if(InkEditorUtils.disallowedAutoRefresh) {
-				InkEditorUtils.disallowedAutoRefresh = false;
+			if(disallowedAutoRefresh) {
+				disallowedAutoRefresh = false;
+				Debug.Log("Allow "+disallowedAutoRefresh);
 				try {
 					AssetDatabase.AllowAutoRefresh();
 				} catch (Exception e) {

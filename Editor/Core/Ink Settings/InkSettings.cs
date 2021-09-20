@@ -105,8 +105,10 @@ namespace Ink.UnityIntegration {
 		void OnEnable () {
 			// Validate the filesToCompileAutomatically list.
             for (int i = filesToCompileAutomatically.Count - 1; i >= 0; i--) {
-                if(filesToCompileAutomatically[i] == null)
+                if(filesToCompileAutomatically[i] == null) {
+					Debug.Log("REMOVED");
 					filesToCompileAutomatically.RemoveAt(i);
+				}
             }
 			// Deletes the persistent version of this asset that we used to use prior to 0.9.71
 			if(!Application.isPlaying && EditorUtility.IsPersistent(this)) {
