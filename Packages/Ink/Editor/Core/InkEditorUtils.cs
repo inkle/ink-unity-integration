@@ -39,15 +39,6 @@ namespace Ink.UnityIntegration {
 	public static class InkEditorUtils {
 		public const string inkFileExtension = ".ink";
 		const string lastCompileTimeKey = "InkIntegrationLastCompileTime";
-		
-		// When compiling we call AssetDatabase.DisallowAutoRefresh. 
-		// We NEED to remember to re-allow it or unity stops registering file changes!
-		// The issue is that you need to pair calls perfectly, and you can't even use a try-catch to get around it.
-		// So - we cache if we've disabled auto refresh here, since this persists across plays.
-		public static bool disallowedAutoRefresh {
-			get => SessionState.GetBool("InkLibraryDisallowedAutoRefresh", false);
-			set => SessionState.SetBool("InkLibraryDisallowedAutoRefresh", value);
-		}
 
 		[MenuItem("Assets/Rebuild Ink Library", false, 200)]
 		public static void RebuildLibrary() {
