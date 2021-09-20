@@ -114,7 +114,10 @@ namespace Ink.UnityIntegration {
 
 		void OnValidate () {
             BuildLookupDictionary();
-            Validate();
+            // This is experimental! I'd like to see if it fixes the issue where assets have not yet been imported.
+            EditorApplication.delayCall += () => {
+                Validate();
+            };
         }
 		// After recompile, the data associated with the object is fetched (or whatever happens to it) by this point. 
 		void OnEnable () {
@@ -244,6 +247,9 @@ namespace Ink.UnityIntegration {
 						AssetDatabase.ImportAsset(localAssetPath);
 						inkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localAssetPath);
 						if(inkFileAsset == null) {
+                            // If this occurs as a result assets not having been imported before OnValidate => Validate we should return immediately and set a flag to true.
+                            // If an asset import is detected immediately after this via InkPostProcessor, then this rebuild may (will?) have been unnecessary anyway.
+                            // At time of writing (11/05/21) I've not done this and am locally toying with EditorApplication.delayCall in OnValidate.
 							Debug.LogWarning("Ink File Asset not found at "+localAssetPath+". This can occur if the .meta file has not yet been created. This issue should resolve itself, but if unexpected errors occur, rebuild Ink Library using Assets > Recompile Ink");
 							continue;
 						}
