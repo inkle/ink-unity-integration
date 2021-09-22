@@ -300,6 +300,7 @@ namespace Ink.UnityIntegration {
 				DrawTODOList();
 			} else {
 				DrawSubFileHeader();
+				DrawIncludedFiles();
 			}
 
 			DrawFileContents ();
