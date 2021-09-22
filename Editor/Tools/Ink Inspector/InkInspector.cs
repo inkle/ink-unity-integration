@@ -192,11 +192,11 @@ namespace Ink.UnityIntegration {
 		}
 
 		void CreateErrorList () {
-			errorList.elementHeight = 18;
 			errorList = new ReorderableList(inkFile.errors, typeof(string), false, true, false, false);
 			errorList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, new GUIContent(InkBrowserIcons.errorIcon), new GUIContent("Errors"));
 			};
+			errorList.elementHeight = 18;
 			errorList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
 				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
 				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
@@ -312,7 +312,7 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.LabelField("Master File", EditorStyles.boldLabel);
 			if(!InkSettings.instance.compileAllFilesAutomatically) {
 				EditorGUI.BeginChangeCheck();
-				var newCompileAutomatically = EditorGUILayout.Toggle("Compile Automatially", InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile));
+				var newCompileAutomatically = EditorGUILayout.Toggle(new GUIContent("Compile Automatially", "If true, this file recompiles automatically when any changes are detected."), InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile));
 				if(EditorGUI.EndChangeCheck()) {
 					if(newCompileAutomatically) {
 						InkSettings.instance.filesToCompileAutomatically.Add(inkFile.inkAsset);
