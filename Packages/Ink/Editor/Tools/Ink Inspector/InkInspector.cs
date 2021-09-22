@@ -98,7 +98,7 @@ namespace Ink.UnityIntegration {
 
 		void CreateIncludeList () {
 			List<DefaultAsset> includeTextAssets = inkFile.includes;
-			includesFileList = new ReorderableList(includeTextAssets, typeof(DefaultAsset), false, false, false, false);
+			includesFileList = new ReorderableList(includeTextAssets, typeof(DefaultAsset), false, true, false, false);
 			includesFileList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "Included Files");
 			};
@@ -137,7 +137,7 @@ namespace Ink.UnityIntegration {
 
 		void CreateMastersList () {
 			List<DefaultAsset> mastersTextAssets = inkFile.masterInkAssets;
-			mastersFileList = new ReorderableList(mastersTextAssets, typeof(DefaultAsset), false, false, false, false);
+			mastersFileList = new ReorderableList(mastersTextAssets, typeof(DefaultAsset), false, true, false, false);
 			mastersFileList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "Master Files");
 			};
@@ -192,8 +192,8 @@ namespace Ink.UnityIntegration {
 		}
 
 		void CreateErrorList () {
-			errorList = new ReorderableList(inkFile.errors, typeof(string), false, false, false, false);
 			errorList.elementHeight = 18;
+			errorList = new ReorderableList(inkFile.errors, typeof(string), false, true, false, false);
 			errorList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, new GUIContent(InkBrowserIcons.errorIcon), new GUIContent("Errors"));
 			};
@@ -211,7 +211,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		void CreateWarningList () {
-			warningList = new ReorderableList(inkFile.warnings, typeof(string), false, false, false, false);
+			warningList = new ReorderableList(inkFile.warnings, typeof(string), false, true, false, false);
 			warningList.elementHeight = 18;
 			warningList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, new GUIContent(InkBrowserIcons.warningIcon), new GUIContent("Warnings"));
@@ -230,7 +230,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		void CreateTodoList () {
-			todosList = new ReorderableList(inkFile.todos, typeof(string), false, false, false, false);
+			todosList = new ReorderableList(inkFile.todos, typeof(string), false, true, false, false);
 			todosList.elementHeight = 18;
 			todosList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "To do");
