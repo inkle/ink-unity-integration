@@ -398,19 +398,12 @@ namespace Ink.UnityIntegration {
 		/// Rebuilds which files are master files and the connections between the files.
 		/// </summary>
 		public static void RebuildInkFileConnections () {
-			Queue<InkFile> inkFileQueue = new Queue<InkFile>(instance.inkLibrary);
-			while (inkFileQueue.Count > 0) {
-				InkFile inkFile = inkFileQueue.Dequeue();
+			// Parse content of each InkFile for INCLUDE tags and add them to a list
+			foreach(var inkFile in instance.inkLibrary) {
 				inkFile.parents = new List<DefaultAsset>();
 				inkFile.masterInkAssets = new List<DefaultAsset>();
 				inkFile.ParseContent();
 				inkFile.FindIncludedFiles(true);
-
-				foreach (InkFile includedInkFile in inkFile.includesInkFiles) {
-					if (!inkFileQueue.Contains(includedInkFile)) {
-						inkFileQueue.Enqueue(includedInkFile);
-					}
-				}
 			}
 
 			// We now set the master file for ink files. As a file can be in an include hierarchy, we need to do this in two passes.
