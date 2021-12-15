@@ -10,16 +10,6 @@ namespace Ink.UnityIntegration {
 		Vector2 scrollPosition;
 		static int announcementVersionPreviouslySeen;
 
-		private static Texture2D _logoIcon;
-		public static Texture2D logoIcon {
-			get {
-				if(_logoIcon == null) {
-					_logoIcon = Resources.Load<Texture2D>("InkLogoIcon");
-				}
-				return _logoIcon;
-			}
-		}
-
 		static InkUnityIntegrationStartupWindow () {
 			UnityEditor.EditorApplication.delayCall += TryCreateWindow;      
 		}
@@ -45,7 +35,7 @@ namespace Ink.UnityIntegration {
 			var areaSize = new Vector2(90,90);
 			GUILayout.BeginArea(new Rect((position.width-areaSize.x)*0.5f, 15, areaSize.x, areaSize.y));
 			EditorGUILayout.BeginVertical();
-			EditorGUILayout.LabelField(new GUIContent(logoIcon), GUILayout.Width(areaSize.x), GUILayout.Height(areaSize.x*((float)logoIcon.height/logoIcon.width)));
+			EditorGUILayout.LabelField(new GUIContent(InkEditorUtils.inkLogoIcon), GUILayout.Width(areaSize.x), GUILayout.Height(areaSize.x*((float)InkEditorUtils.inkLogoIcon.height/InkEditorUtils.inkLogoIcon.width)));
 			GUILayout.Space(5);
 			EditorGUILayout.LabelField("Version "+InkLibrary.unityIntegrationVersionCurrent.ToString(), EditorStyles.centeredGreyMiniLabel);
 			EditorGUILayout.LabelField("Ink version "+InkLibrary.inkVersionCurrent.ToString(), EditorStyles.centeredGreyMiniLabel);

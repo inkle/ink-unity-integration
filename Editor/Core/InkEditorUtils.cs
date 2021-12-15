@@ -40,6 +40,16 @@ namespace Ink.UnityIntegration {
 		public const string inkFileExtension = ".ink";
 		const string lastCompileTimeKey = "InkIntegrationLastCompileTime";
 
+		private static Texture2D _inkLogoIcon;
+		public static Texture2D inkLogoIcon {
+			get {
+				if(_inkLogoIcon == null) {
+					_inkLogoIcon = Resources.Load<Texture2D>("InkLogoIcon");
+				}
+				return _inkLogoIcon;
+			}
+		}
+
 		[MenuItem("Assets/Rebuild Ink Library", false, 200)]
 		public static void RebuildLibrary() {
 			InkLibrary.Rebuild();
