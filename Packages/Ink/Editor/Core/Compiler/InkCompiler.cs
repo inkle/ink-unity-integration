@@ -104,7 +104,7 @@ namespace Ink.UnityIntegration {
 		public static void CompileInk (params InkFile[] inkFiles) {
             CompileInk(inkFiles, false, null);
         }
-		public static void CompileInk (InkFile[] inkFiles, bool immediate, Action onComplete) {
+		public static void CompileInk (InkFile[] inkFiles, bool immediate, Action onComplete = null) {
 			if(inkFiles == null || inkFiles.Length == 0) return;
 			#if UNITY_2019_4_OR_NEWER
 			if(!disallowedAutoRefresh) {
@@ -522,6 +522,10 @@ namespace Ink.UnityIntegration {
 			item.endTime = DateTime.Now;
 			if (item.timeTaken > InkSettings.instance.compileTimeout * 0.6f)
 				Debug.LogWarning ("Compilation for "+Path.GetFileName(item.inkFile.filePath)+" took over 60% of the time required to timeout the compiler. Consider increasing the compile timeout on the InkSettings file.");
+			
+			// If there's nothing left to compile, we can mark the stack as done!
+			if(!AnyOfStateInCompilationStack(CompilationStackItemState.Compiling) && !AnyOfStateInCompilationStack(CompilationStackItemState.Queued))
+				OnCompleteCompilationStack();
 		}
 
 		// Runs a new instance of Ink.Compiler, performing the actual compilation process!
@@ -564,6 +568,7 @@ namespace Ink.UnityIntegration {
 
 		// When all files in stack have been compiled. 
 		// This is called via update because Process events run in another thread.
+		// It's now also called via CompleteCompilingFile, which enables immediate mode compliation to run synchronously!
 		private static void OnCompleteCompilationStack () {
 			if(AnyOfStateInCompilationStack(CompilationStackItemState.Queued)) {
 				Debug.LogError("OnCompleteCompilationStack was called, but a file is now in the queue!");
