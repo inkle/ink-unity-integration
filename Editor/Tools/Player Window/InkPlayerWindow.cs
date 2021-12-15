@@ -493,6 +493,7 @@ namespace Ink.UnityIntegration {
 				[System.Serializable]
 				public class FunctionInput {
 					public enum FunctionInputType {
+						Float,
 						Int,
 						String,
 						Bool,
@@ -500,6 +501,7 @@ namespace Ink.UnityIntegration {
 						InkListVariable
 					}
 					public FunctionInputType type;
+					public float floatValue;
 					public int intValue;
 					public string stringValue;
 					public bool boolValue;
@@ -522,6 +524,8 @@ namespace Ink.UnityIntegration {
 
 					public override int GetHashCode () {	
 						switch(type) {
+						case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Float:
+							return floatValue.GetHashCode();
 						case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Int:
 							return intValue.GetHashCode();
 						case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.String:
@@ -813,7 +817,6 @@ namespace Ink.UnityIntegration {
 		}
 
 		
-
 		static void Play (TextAsset storyJSONTextAsset) {
 			Play(storyJSONTextAsset, InkPlayerParams.Standard);
 		}
@@ -832,6 +835,7 @@ namespace Ink.UnityIntegration {
 				PlayInternal();
 			}
 		}
+
 
 		static void PlayInternal () {
 			story = new Story(storyJSON);
@@ -2019,6 +2023,9 @@ namespace Ink.UnityIntegration {
 					var input = functionParams.inputs[i];
 					object obj = null;
 					switch(input.type) {
+					case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Float:
+						obj = input.floatValue;
+						break;
 					case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Int:
 						obj = input.intValue;
 						break;
@@ -2102,6 +2109,9 @@ namespace Ink.UnityIntegration {
 				input.type = (FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType)EditorGUI.EnumPopup(typeRect, input.type);
 				Rect inputRect = new Rect(rect.x + 90, rect.y, rect.width - 90, EditorGUIUtility.singleLineHeight);
 				switch(input.type) {
+				case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Float:
+					input.floatValue = EditorGUI.FloatField(inputRect, input.floatValue);
+					break;
 				case FunctionPanelState.FunctionParams.FunctionInput.FunctionInputType.Int:
 					input.intValue = EditorGUI.IntField(inputRect, input.intValue);
 					break;
@@ -2212,7 +2222,7 @@ namespace Ink.UnityIntegration {
                 return;
             EditorGUILayout.BeginHorizontal();
             object variableValue = story.variablesState[variable];
-            if(DrawVariableLayout(new GUIContent(variable), variable, ref variableValue, "observable")) {
+            if(DrawVariableLayout(new GUIContent(variable, variableValue.GetType().Name), variable, ref variableValue, "observable")) {
                 variableToChange = variable;
                 newVariableValue = variableValue;
             }
@@ -2272,22 +2282,22 @@ namespace Ink.UnityIntegration {
 			if(variableValue is string) {
 				EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.DelayedTextField(guiContent, (string)variableValue);
-                anythingChanged = lastVariableValue != variableValue;
+                anythingChanged = (string)lastVariableValue != (string)variableValue;
 				EditorGUI.EndDisabledGroup();
 			} else if(variableValue is float) {
 				EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.FloatField(guiContent, (float)variableValue);
-                anythingChanged = lastVariableValue != variableValue;
+                anythingChanged = (float)lastVariableValue != (float)variableValue;
 				EditorGUI.EndDisabledGroup();
 			} else if(variableValue is int) {
 				EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.IntField(guiContent, (int)variableValue);
-                anythingChanged = lastVariableValue != variableValue;
+                anythingChanged = (int)lastVariableValue != (int)variableValue;
 				EditorGUI.EndDisabledGroup();
 			} else if(variableValue is bool) {
 				EditorGUI.BeginDisabledGroup(playerParams.disableSettingVariables);
 				variableValue = EditorGUILayout.Toggle(guiContent, (bool)variableValue);
-                anythingChanged = lastVariableValue != variableValue;
+                anythingChanged = (bool)lastVariableValue != (bool)variableValue;
 				EditorGUI.EndDisabledGroup();
 			} else if(variableValue is InkList) {
 				anythingChanged = EditorGUILayoutInkListField(guiContent, (InkList)variableValue, variableName+expandedIDModifier);
