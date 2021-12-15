@@ -1791,7 +1791,7 @@ namespace Ink.UnityIntegration {
 		#region SaveLoad
 		static void DrawSaveLoad () {
 			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-			InkPlayerWindowState.Instance.saveLoadPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.saveLoadPanelState.showing, "Story State", true);
+			InkPlayerWindowState.Instance.saveLoadPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.saveLoadPanelState.showing, "Save/Load", true);
 			EditorGUILayout.EndHorizontal();
 			if(InkPlayerWindowState.Instance.saveLoadPanelState.showing)
 				DrawSaveLoadPanel ();
