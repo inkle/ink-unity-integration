@@ -109,6 +109,10 @@ namespace Ink.UnityIntegration {
 			attachedWhileInPlayMode = EditorApplication.isPlaying;
 			InkPlayerWindow.story = story;
             
+			// Clear the last loaded story setup on attaching stories. We don't NEED to do this but it's never really helpful and often seems like a bug.
+			InkPlayerWindowState.Instance.lastStoryJSONAssetPath = null;
+			InkPlayerWindowState.Instance.lastStoryWasPlaying = false;
+
             // This allows reconstructing the story so it can be used after recompile. However, it can be expensive to run so there's a good argument for not running it on play!
             // var lastTime = Time.realtimeSinceStartup;
             // storyJSON = InkPlayerWindow.story.ToJson();
@@ -876,6 +880,7 @@ namespace Ink.UnityIntegration {
 			InkPlayerWindowState.Save();
 		}
 
+
 		static void OnSetStory () {
 			_story.onDidContinue += OnDidContinue;
 			_story.onMakeChoice += OnMakeChoice;
@@ -909,7 +914,8 @@ namespace Ink.UnityIntegration {
             RefreshVisibleHistory();
             RefreshVisibleVariables();
 
-			InkPlayerWindowState.Instance.lastStoryWasPlaying = true;
+			if(!attached) 
+				InkPlayerWindowState.Instance.lastStoryWasPlaying = true;
 			InkPlayerWindowState.Save();
 			
 			if(playerParams.profileOnStart) isProfiling = true;
@@ -1056,7 +1062,8 @@ namespace Ink.UnityIntegration {
 			this.Repaint();
 			scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
-			if(story == null && attached) DetachInstance();
+			if(story == null && attached) 
+				DetachInstance();
 
 			DisplayHeader();
 
