@@ -280,6 +280,7 @@ namespace Ink.UnityIntegration {
 					DefaultAsset asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(importedAssetPath);
 					Debug.Assert(asset != null);
 					inkFile = new InkFile(asset);
+					inkFile.FindCompiledJSONAsset();
 					Add(inkFile);
 				} else {
 					inkFile.ParseContent();
