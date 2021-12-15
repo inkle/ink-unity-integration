@@ -11,32 +11,21 @@ using UnityEditor.Callbacks;
 using Path = System.IO.Path;
 
 namespace Ink.UnityIntegration {
-	class CreateInkAssetAction : EndNameEditAction {
-		public override void Action(int instanceId, string pathName, string resourceFile) {
-			var text = "";
-			if(File.Exists(resourceFile)) {
-				StreamReader streamReader = new StreamReader(resourceFile);
-				text = streamReader.ReadToEnd();
-				streamReader.Close();
-			}
-			UnityEngine.Object asset = CreateScriptAsset(pathName, text);
-			ProjectWindowUtil.ShowCreatedAsset(asset);
-		}
-		
-		internal static UnityEngine.Object CreateScriptAsset(string pathName, string text) {
-			string fullPath = Path.GetFullPath(pathName);
-			UTF8Encoding encoding = new UTF8Encoding(true, false);
-			bool append = false;
-			StreamWriter streamWriter = new StreamWriter(fullPath, append, encoding);
-			streamWriter.Write(text);
-			streamWriter.Close();
-			AssetDatabase.ImportAsset(pathName);
-			return AssetDatabase.LoadAssetAtPath(pathName, typeof(DefaultAsset));
-		}
-	}
-    
 	[InitializeOnLoad]
 	public static class InkEditorUtils {
+		class CreateInkAssetAction : EndNameEditAction {
+			public override void Action(int instanceId, string pathName, string resourceFile) {
+				var text = "";
+				if(File.Exists(resourceFile)) {
+					StreamReader streamReader = new StreamReader(resourceFile);
+					text = streamReader.ReadToEnd();
+					streamReader.Close();
+				}
+				var assetPath = CreateScriptAsset(pathName, text);
+				var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
+				ProjectWindowUtil.ShowCreatedAsset(asset);
+			}
+		}
 		public const string inkFileExtension = ".ink";
 		const string lastCompileTimeKey = "InkIntegrationLastCompileTime";
 
@@ -75,16 +64,45 @@ namespace Ink.UnityIntegration {
         }
 
 
+
 		[MenuItem("Assets/Create/Ink", false, 120)]
-		public static void CreateNewInkFile () {
+		public static void CreateNewInkFileAtSelectedPathWithTemplateAndStartNameEditing () {
 			string fileName = "New Ink.ink";
 			string filePath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(GetSelectedPathOrFallback(), fileName));
-			CreateNewInkFile(filePath, InkSettings.instance.templateFilePath);
+			CreateNewInkFileAtPathWithTemplateAndStartNameEditing(filePath, InkSettings.instance.templateFilePath);
 		}
-
-		public static void CreateNewInkFile (string filePath, string templateFileLocation) {
+		
+		public static void CreateNewInkFileAtPathWithTemplateAndStartNameEditing (string filePath, string templateFileLocation) {
+			if(Path.GetExtension(filePath) != ".ink") filePath += ".ink";
 			ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<CreateInkAssetAction>(), filePath, InkBrowserIcons.inkFileIcon, templateFileLocation);
 		}
+
+		public static DefaultAsset CreateNewInkFileAtPath (string filePath, string text) {
+			if(Path.GetExtension(filePath) != ".ink") filePath += ".ink";
+			var assetPath = CreateScriptAsset(filePath, text);
+			return AssetDatabase.LoadAssetAtPath<DefaultAsset>(assetPath);
+		}
+		
+		static string CreateScriptAsset(string pathName, string text) {
+			string fullPath = Path.GetFullPath(pathName);
+			fullPath = fullPath.Replace('\\', '/');
+			var assetRelativePath = fullPath;
+			if(fullPath.StartsWith(Application.dataPath)) {
+				assetRelativePath = fullPath.Substring(Application.dataPath.Length-6); 
+			}
+			var directoryPath = Path.GetDirectoryName(fullPath);
+			if(!Directory.Exists(directoryPath))
+				Directory.CreateDirectory(directoryPath);
+			UTF8Encoding encoding = new UTF8Encoding(true, false);
+			StreamWriter streamWriter = null;
+			streamWriter = new StreamWriter(fullPath, false, encoding);
+			streamWriter.Write(text);
+			streamWriter.Close();
+			AssetDatabase.ImportAsset(assetRelativePath);
+			return assetRelativePath;
+		}
+
+
 
 		private static string GetSelectedPathOrFallback() {
 			string path = "Assets";
@@ -207,7 +225,7 @@ namespace Ink.UnityIntegration {
 		public static string CombinePaths(string firstPath, string secondPath) {
             Debug.Assert(firstPath != null);
             Debug.Assert(secondPath != null);
-			return SanitizePathString(Path.Combine(firstPath, secondPath));
+			return SanitizePathString(firstPath+"/"+secondPath);
 		}
 
 		public static string AbsoluteToUnityRelativePath(string fullPath) {
