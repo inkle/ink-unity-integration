@@ -308,9 +308,17 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
+		public static IEnumerable<InkFile> GetInkFilesMarkedToCompileAsMasterFiles () {
+			if(instance.inkLibrary == null) yield break;
+			foreach (InkFile inkFile in instance.inkLibrary) {
+				if(inkFile.compileAsMasterFile) 
+					yield return inkFile;
+			}
+		}
+
 		// All the master files which are dirty and are set to compile
 		public static IEnumerable<InkFile> GetFilesRequiringRecompile () {
-			foreach(InkFile inkFile in InkLibrary.GetMasterInkFiles ()) {
+			foreach(InkFile inkFile in InkLibrary.GetInkFilesMarkedToCompileAsMasterFiles ()) {
 				if(inkFile.requiresCompile && InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile)) 
 					yield return inkFile;
 			}
@@ -318,7 +326,7 @@ namespace Ink.UnityIntegration {
 
 		// All the master files which are set to compile
 		public static IEnumerable<InkFile> FilesCompiledByRecompileAll () {
-			foreach(InkFile inkFile in InkLibrary.GetMasterInkFiles ()) {
+			foreach(InkFile inkFile in InkLibrary.GetInkFilesMarkedToCompileAsMasterFiles ()) {
 				if(InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile)) 
 					yield return inkFile;
 			}
@@ -461,7 +469,8 @@ namespace Ink.UnityIntegration {
 					} else {
 						Debug.LogWarning("Child file already contained master file reference! This is weird!");
 					}
-					if(InkSettings.instance.handleJSONFilesAutomatically && childInkFile.jsonAsset != null) {
+					// If the child file is compiled but shouldn't be, delete the compiled json for it.
+					if(InkSettings.instance.handleJSONFilesAutomatically && !childInkFile.compileAsMasterFile && childInkFile.jsonAsset != null) {
 						AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(childInkFile.jsonAsset));
 						childInkFile.jsonAsset = null;
 					}

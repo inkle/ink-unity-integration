@@ -11,6 +11,7 @@ namespace Ink.UnityIntegration {
 	// Helper class for ink files that maintains INCLUDE connections between ink files
 	[System.Serializable]
 	public class InkFile {
+		public bool compileAsMasterFile => isMaster || InkSettings.instance.includeFilesToCompileAsMasterFiles.Contains(inkAsset);
 		public bool compileAutomatically => InkSettings.instance.filesToCompileAutomatically.Contains(inkAsset);
 		// A reference to the ink file
 		public DefaultAsset inkAsset;
@@ -121,7 +122,7 @@ namespace Ink.UnityIntegration {
 
 		public bool requiresCompile {
 			get {
-				if(!isMaster) return false;
+				if(!compileAsMasterFile) return false;
 				return jsonAsset == null || lastEditDate > lastCompileDate || hasUnhandledCompileErrors;
 			}
 		}
@@ -132,7 +133,7 @@ namespace Ink.UnityIntegration {
 		/// <value>The last compile date of the story.</value>
 		public DateTime lastCompileDate {
 			get {
-				if(isMaster) {
+				if(compileAsMasterFile) {
 					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(jsonAsset));
 					return File.GetLastWriteTime(fullJSONFilePath);
 				} else {
@@ -239,6 +240,7 @@ namespace Ink.UnityIntegration {
 			this.inkAsset = inkAsset;
 			
 			ParseContent();
+			// Should we run FindCompiledJSONAsset here?
 		}
 
 		public void FindCompiledJSONAsset () {
