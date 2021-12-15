@@ -359,7 +359,7 @@ namespace Ink.UnityIntegration {
 			foreach(InkFile inkFile in instance.inkLibrary) {
 				listOfFiles.AppendLine(inkFile.ToString());
 			}
-			Debug.LogWarning (file + " missing from ink library. Please rebuild.\n"+listOfFiles);
+			Debug.LogWarning (file + " missing from ink library. Please rebuild.\nFiles in Library:\n"+listOfFiles);
 			return null;
 		}
 
