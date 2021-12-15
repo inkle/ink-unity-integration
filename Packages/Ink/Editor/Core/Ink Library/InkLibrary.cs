@@ -434,11 +434,13 @@ namespace Ink.UnityIntegration {
 		/// Rebuilds which files are master files and the connections between the files.
 		/// </summary>
 		public static void RebuildInkFileConnections () {
-			// Parse content of each InkFile for INCLUDE tags and add them to a list
-			foreach(var inkFile in instance.inkLibrary) {
+			foreach (InkFile inkFile in instance.inkLibrary) {
+				// Resets the connections between files
 				inkFile.parents = new List<DefaultAsset>();
 				inkFile.masterInkAssets = new List<DefaultAsset>();
+				// Gets the paths of the files to include
 				inkFile.ParseContent();
+				// Finds and adds include files from those paths
 				inkFile.FindIncludedFiles(true);
 			}
 
