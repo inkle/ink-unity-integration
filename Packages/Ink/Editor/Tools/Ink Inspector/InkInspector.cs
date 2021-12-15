@@ -248,7 +248,17 @@ namespace Ink.UnityIntegration {
 			};
 		}
 
-		static void OpenInEditor (string filePath, int lineNumber) {
+		public static void DrawInkLine (InkFile inkFile, int lineNumber, string label) {
+			GUILayout.BeginHorizontal();
+			GUILayout.Label(label);
+			string openLabel = "Open"+ (lineNumber == -1 ? "" : " ("+lineNumber+")");
+			if(GUILayout.Button(openLabel, GUILayout.Width(80))) {
+				OpenInEditor(inkFile.filePath, lineNumber);
+			}
+			GUILayout.EndHorizontal();
+		}
+
+		public static void OpenInEditor (string filePath, int lineNumber) {
 			#if UNITY_2019_1_OR_NEWER
 			// This function replaces OpenFileAtLineExternal, but I guess it's totally internal and can't be accessed.
 			// CodeEditorUtility.Editor.Current.OpenProject(filePath, lineNumber);
@@ -277,7 +287,22 @@ namespace Ink.UnityIntegration {
 				return;
 			}
 			
-			if(inkFile.isMaster) {
+			if(!inkFile.isMaster) {
+				EditorGUI.BeginChangeCheck();
+				var newCompileAsIfMaster = EditorGUILayout.Toggle(new GUIContent("Compile As If Master File", "This file is included by another ink file. Typically, these files don't want to be compiled, but this option enables them to be for special purposes."), InkSettings.instance.includeFilesToCompileAsMasterFiles.Contains(inkFile.inkAsset));
+				if(EditorGUI.EndChangeCheck()) {
+					if(newCompileAsIfMaster) {
+						InkSettings.instance.includeFilesToCompileAsMasterFiles.Add(inkFile.inkAsset);
+						EditorUtility.SetDirty(InkSettings.instance);
+					} else {
+						InkSettings.instance.includeFilesToCompileAsMasterFiles.Remove(inkFile.inkAsset);
+						EditorUtility.SetDirty(InkSettings.instance);
+					}
+				}
+				EditorApplication.RepaintProjectWindow();
+			}
+
+			if(inkFile.compileAsMasterFile) {
 				DrawMasterFileHeader();
 				DrawEditAndCompileDates(inkFile);
 				if(inkFile.hasUnhandledCompileErrors) {
@@ -292,17 +317,17 @@ namespace Ink.UnityIntegration {
 				if(inkFile.requiresCompile && GUILayout.Button("Compile")) {
 					InkCompiler.CompileInk(inkFile);
 				}
-				DrawIncludedFiles();
 
 				DrawCompileErrors();
 				DrawErrors();
 				DrawWarnings();
 				DrawTODOList();
 			} else {
-				DrawSubFileHeader();
-				DrawIncludedFiles();
+				EditorGUILayout.LabelField("Include File", EditorStyles.boldLabel);
 			}
 
+			DrawListOfMasterFiles();
+			DrawIncludedFiles();
 			DrawFileContents ();
 			
 
@@ -310,7 +335,8 @@ namespace Ink.UnityIntegration {
 		}
 
 		void DrawMasterFileHeader () {
-			EditorGUILayout.LabelField("Master File", EditorStyles.boldLabel);
+			if(inkFile.isMaster) EditorGUILayout.LabelField("Master File", EditorStyles.boldLabel);
+			if(!inkFile.isMaster) EditorGUILayout.LabelField("Include treated as Master", EditorStyles.boldLabel);
 			if(!InkSettings.instance.compileAllFilesAutomatically) {
 				EditorGUI.BeginChangeCheck();
 				var newCompileAutomatically = EditorGUILayout.Toggle(new GUIContent("Compile Automatially", "If true, this file recompiles automatically when any changes are detected."), InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile));
@@ -346,8 +372,7 @@ namespace Ink.UnityIntegration {
 //				}
 		}
 
-		void DrawSubFileHeader() {
-			EditorGUILayout.LabelField("Include File", EditorStyles.boldLabel);
+		void DrawListOfMasterFiles() {
 			if(mastersFileList != null && mastersFileList.count > 0) {
 				mastersFileList.DoLayoutList();
 			}

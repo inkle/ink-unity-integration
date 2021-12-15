@@ -429,7 +429,7 @@ namespace Ink.UnityIntegration {
 				Debug.LogError("Tried to compile ink file but input was null.");
 				return;
 			}
-			if(!inkFile.isMaster)
+			if(!inkFile.compileAsMasterFile)
 				Debug.LogWarning("Compiling InkFile which is an include. Any file created is likely to be invalid. Did you mean to call CompileInk on inkFile.master?");
 
 			// If we've not yet locked C# compilation do so now
