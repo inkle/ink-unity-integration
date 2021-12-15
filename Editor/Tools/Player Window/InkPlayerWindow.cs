@@ -379,14 +379,14 @@ namespace Ink.UnityIntegration {
 
 			public StoryPanelState storyPanelState = new StoryPanelState() {showing=true};
 			public BaseStoryPanelState choicePanelState = new BaseStoryPanelState() {showing=true};
-			public DivertPanelState divertPanelState = new DivertPanelState();
+			public BaseStoryPanelState profilerPanelState = new BaseStoryPanelState();
+			public BaseStoryPanelState saveLoadPanelState = new BaseStoryPanelState();
+			// public DivertPanelState divertPanelState = new DivertPanelState();
 			public NamedContentPanelState namedContentPanelState = new NamedContentPanelState();
 			public FunctionPanelState functionPanelState = new FunctionPanelState();
 			// public FunctionPanelState.FunctionParams functionParams = new FunctionPanelState.FunctionParams();
 			public VariablesPanelState variablesPanelState = new VariablesPanelState();
 			public ObservedVariablesPanelState observedVariablesPanelState = new ObservedVariablesPanelState();
-			public BaseStoryPanelState saveLoadPanelState = new BaseStoryPanelState();
-			public BaseStoryPanelState profilerPanelState = new BaseStoryPanelState();
 		}
 
 		
@@ -484,10 +484,10 @@ namespace Ink.UnityIntegration {
 			public string searchString = string.Empty;
 		}
 
-		[System.Serializable]
-		public class DivertPanelState : BaseStoryPanelState {
-			public string divertCommand = String.Empty;
-		}
+		// [System.Serializable]
+		// public class DivertPanelState : BaseStoryPanelState {
+		// 	public string divertCommand = String.Empty;
+		// }
 
 		static ReorderableList functionInputList;
 		[System.Serializable]
@@ -923,6 +923,7 @@ namespace Ink.UnityIntegration {
 			PingAutomator();
 		}
 
+
 		static void PingAutomator () {
 			if(playerParams.disablePlayControls) return;
             if(story.canContinue && playerOptions.continueAutomatically) {
@@ -1060,6 +1061,10 @@ namespace Ink.UnityIntegration {
 			}
 
 			this.Repaint();
+			
+			var lw = EditorGUIUtility.labelWidth;
+			EditorGUIUtility.labelWidth = 200;
+
 			scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
 			if(story == null && attached) 
@@ -1102,6 +1107,8 @@ namespace Ink.UnityIntegration {
                 var scrollRectMaxY = GUILayoutUtility.GetLastRect().yMax;
                 mainScrollViewActive = lastRectMaxY >= (scrollRectMaxY-3);
             }
+
+			EditorGUIUtility.labelWidth = lw;
 		}
 		
 		void DisplayHeader () {
