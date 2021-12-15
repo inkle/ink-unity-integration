@@ -30,7 +30,7 @@ namespace Ink.UnityIntegration {
 			GUILayout.Space(19f);
 			GUILayout.BeginHorizontal();
 
-			GUILayoutUtility.GetRect(10f, 10f, 16f, 16f, EditorStyles.layerMaskField);
+			GUILayoutUtility.GetRect(10f, 10f, 16f, 35f, EditorStyles.layerMaskField);
 			GUILayout.FlexibleSpace();
 
 			EditorGUI.BeginDisabledGroup(inkFile == null);
