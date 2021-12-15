@@ -68,7 +68,6 @@ namespace Ink.UnityIntegration {
 				instance = ScriptableObject.CreateInstance<InkLibrary>();
 				instance.hideFlags = HideFlags.HideAndDontSave;
 				Rebuild();
-				instance.Save(true);
 			}
 		}
 		
