@@ -202,7 +202,7 @@ namespace Ink.UnityIntegration {
             return wasDirty;
 		}
 
-        public static void Add (InkFile inkFile) {
+        static void Add (InkFile inkFile) {
             instance.inkLibrary.Add(inkFile);
 			SortInkLibrary();
 			instance.inkLibraryDictionary.Add(inkFile.inkAsset, inkFile);
@@ -273,6 +273,24 @@ namespace Ink.UnityIntegration {
 			Debug.Log("Ink Library was rebuilt.\n"+instance.inkLibrary.Count+" ink files are currently tracked.");
 		}
 
+		// To be used when adding .ink files. 
+		// This process is typically handled by CreateOrReadUpdatedInkFiles, called from InkPostProcessor; but it may be desired to remove/disable the post processor.
+		// In those cases, this is the correct way to ensure the ink library correctly processes the file.
+		public static InkFile AddNewInkFile (DefaultAsset asset) {
+			Debug.Assert(asset != null);
+			// First, check if we've already got it in the library!
+			foreach(var _inkFile in instance)
+				if(_inkFile.inkAsset == asset)
+					return _inkFile;
+			// If not
+			var inkFile = new InkFile(asset);
+			inkFile.FindCompiledJSONAsset();
+			Add(inkFile);
+			RebuildInkFileConnections();
+			return inkFile;
+		}
+
+		// This is called from InkPostProcessor after ink file(s) has been added/changed.
 		public static void CreateOrReadUpdatedInkFiles (List<string> importedInkAssets) {
 			foreach (var importedAssetPath in importedInkAssets) {
 				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
@@ -395,6 +413,16 @@ namespace Ink.UnityIntegration {
 			if(instance.inkLibrary == null) return null;
 			foreach(InkFile inkFile in instance.inkLibrary) {
 				if(inkFile.absoluteFilePath == absolutePath) {
+					return inkFile;
+				}
+			}
+			return null;
+		}
+
+		public static InkFile GetInkFileWithJSONFile (TextAsset inkJSONAsset) {
+			if(instance.inkLibrary == null) return null;
+			foreach(InkFile inkFile in instance.inkLibrary) {
+				if(inkFile.jsonAsset == inkJSONAsset) {
 					return inkFile;
 				}
 			}
