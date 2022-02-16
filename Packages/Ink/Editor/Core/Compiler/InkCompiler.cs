@@ -254,6 +254,10 @@ namespace Ink.UnityIntegration {
 		static object _compileThreadActiveLock = new object();
 		#endregion
 
+		#if UNITY_2020_2_OR_NEWER
+		// ID for the Unity Progress API, which shows progress of the compile in the bottom right of Unity.
+		static int compileProgressID;
+		#endif
 		
 		#region Serialized Private Variables
 		// If InkSettings' delayInPlayMode option is true, dirty files are added here when they're changed in play mode
@@ -464,7 +468,8 @@ namespace Ink.UnityIntegration {
 				state = CompilationStackItemState.Queued,
 				immediate = immediate
 			};
-
+			
+			if(instance.compilationStack.Count == 0) OnBeginCompilationStack();
 			instance.compilationStack.Add(pendingFile);
 			instance.Save(true);
 			
@@ -518,6 +523,10 @@ namespace Ink.UnityIntegration {
 			}
 			item.state = CompilationStackItemState.Compiling;
 			item.startTime = DateTime.Now;
+			#if UNITY_2020_2_OR_NEWER
+			Progress.SetStepLabel(compileProgressID, item.inkFile.filePath);
+			Progress.Report(compileProgressID, instance.compilationStack.IndexOf(item), instance.compilationStack.Count);
+			#endif
 		}
 
 		// Marks a CompilationStackItem as Complete
@@ -572,6 +581,13 @@ namespace Ink.UnityIntegration {
 
 			// This MUST be the very last thing to occur in this function!
 			compileThreadActive = false;
+		}
+
+		// When the compilation stack first gains an item
+		private static void OnBeginCompilationStack () {
+			#if UNITY_2020_2_OR_NEWER
+			compileProgressID = Progress.Start("Compiling Ink", null, Progress.Options.None, -1);
+			#endif
 		}
 
 		// When all files in stack have been compiled. 
@@ -673,7 +689,10 @@ namespace Ink.UnityIntegration {
 				outputLog.Append (filesCompiledLog.ToString());
 				Debug.Log(outputLog);
 			}
-
+			#if UNITY_2020_2_OR_NEWER
+			Progress.Remove(compileProgressID);
+			compileProgressID = -1;
+			#endif
 			
 			#if !UNITY_EDITOR_LINUX
 			EditorUtility.ClearProgressBar();
