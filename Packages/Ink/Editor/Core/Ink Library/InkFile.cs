@@ -264,6 +264,8 @@ namespace Ink.UnityIntegration {
 			return File.ReadAllText(absoluteFilePath);
 		}
 
+		// Parses the ink file to get any info we need.
+		// Currently this only scans for includePaths, which are later used by FindIncludedFiles.
 		public void ParseContent () {
 			includePaths.Clear();
 			includePaths.AddRange(InkIncludeParser.ParseIncludes(GetFileContents()));
