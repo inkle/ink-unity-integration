@@ -268,5 +268,43 @@ namespace Ink.UnityIntegration {
 
 			return String.IsNullOrEmpty(extension) && InkLibrary.instance.inkLibrary.Exists(f => f.filePath == path);
 		}
+
+
+
+		/// <summary>
+		/// Opens an ink file in the associated editor at the correct line number.
+		/// TODO - If the editor is inky, this code should load the master file, but immediately show the correct child file at the correct line.
+		/// </summary>
+		public static void OpenInEditor (InkFile inkFile, InkCompilerLog log) {
+			var targetFilePath = log.GetAbsoluteFilePath(inkFile);
+			#if UNITY_2019_1_OR_NEWER
+			// This function replaces OpenFileAtLineExternal, but I guess it's totally internal and can't be accessed.
+			// CodeEditorUtility.Editor.Current.OpenProject(targetFilePath, lineNumber);
+			#pragma warning disable
+			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(targetFilePath, log.lineNumber);
+			#pragma warning restore
+			#else
+			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(targetFilePath, log.lineNumber);
+			#endif
+		}
+		/// <summary>
+		/// Opens an ink file in the associated editor at the correct line number.
+		/// TODO - If the editor is inky, this code should load the master file, but immediately show the correct child file at the correct line.
+		/// </summary>
+		public static void OpenInEditor (string masterFilePath, string subFilePath, int lineNumber) {
+			if(!string.IsNullOrEmpty(subFilePath) && Path.GetFileName(masterFilePath) != subFilePath) {
+				Debug.LogWarning("Tried to open an ink file ("+subFilePath+") at line "+lineNumber+" but the file is an include file. This is not currently implemented. The master ink file will be opened at line 0 instead.");
+				lineNumber = 0;
+			}
+			#if UNITY_2019_1_OR_NEWER
+			// This function replaces OpenFileAtLineExternal, but I guess it's totally internal and can't be accessed.
+			// CodeEditorUtility.Editor.Current.OpenProject(masterFilePath, lineNumber);
+			#pragma warning disable
+			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(masterFilePath, lineNumber);
+			#pragma warning restore
+			#else
+			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(masterFilePath, lineNumber);
+			#endif
+		}
 	}
 }

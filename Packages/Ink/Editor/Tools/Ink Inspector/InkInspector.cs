@@ -205,7 +205,7 @@ namespace Ink.UnityIntegration {
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
 				if(GUI.Button(buttonRect, openLabel)) {
-					OpenInEditor(inkFile.filePath, log.lineNumber);
+					InkEditorUtils.OpenInEditor(inkFile, log);
 				}
 			};
 		}
@@ -224,7 +224,7 @@ namespace Ink.UnityIntegration {
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
 				if(GUI.Button(buttonRect, openLabel)) {
-					OpenInEditor(inkFile.filePath, log.lineNumber);
+					InkEditorUtils.OpenInEditor(inkFile, log);
 				}
 			};
 		}
@@ -243,31 +243,19 @@ namespace Ink.UnityIntegration {
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
 				if(GUI.Button(buttonRect, openLabel)) {
-					OpenInEditor(inkFile.filePath, log.lineNumber);
+					InkEditorUtils.OpenInEditor(inkFile, log);
 				}
 			};
 		}
 
-		public static void DrawInkLine (InkFile inkFile, int lineNumber, string label) {
+		public static void DrawLayoutInkLine (InkFile inkFile, int lineNumber, string label) {
 			GUILayout.BeginHorizontal();
 			GUILayout.Label(label);
 			string openLabel = "Open"+ (lineNumber == -1 ? "" : " ("+lineNumber+")");
 			if(GUILayout.Button(openLabel, GUILayout.Width(80))) {
-				OpenInEditor(inkFile.filePath, lineNumber);
+				InkEditorUtils.OpenInEditor(inkFile.filePath, null, lineNumber);
 			}
 			GUILayout.EndHorizontal();
-		}
-
-		public static void OpenInEditor (string filePath, int lineNumber) {
-			#if UNITY_2019_1_OR_NEWER
-			// This function replaces OpenFileAtLineExternal, but I guess it's totally internal and can't be accessed.
-			// CodeEditorUtility.Editor.Current.OpenProject(filePath, lineNumber);
-			#pragma warning disable
-			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(filePath, lineNumber);
-			#pragma warning restore
-			#else
-			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(filePath, lineNumber);
-			#endif
 		}
 
 		public override void OnInspectorGUI () {
