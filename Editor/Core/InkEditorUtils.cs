@@ -73,12 +73,12 @@ namespace Ink.UnityIntegration {
 		}
 		
 		public static void CreateNewInkFileAtPathWithTemplateAndStartNameEditing (string filePath, string templateFileLocation) {
-			if(Path.GetExtension(filePath) != ".ink") filePath += ".ink";
+			if(Path.GetExtension(filePath) != inkFileExtension) filePath += inkFileExtension;
 			ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<CreateInkAssetAction>(), filePath, InkBrowserIcons.inkFileIcon, templateFileLocation);
 		}
 
 		public static DefaultAsset CreateNewInkFileAtPath (string filePath, string text) {
-			if(Path.GetExtension(filePath) != ".ink") filePath += ".ink";
+			if(Path.GetExtension(filePath) != inkFileExtension) filePath += inkFileExtension;
 			var assetPath = CreateScriptAsset(filePath, text);
 			return AssetDatabase.LoadAssetAtPath<DefaultAsset>(assetPath);
 		}
