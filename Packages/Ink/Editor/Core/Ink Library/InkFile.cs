@@ -153,7 +153,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		// File that contains this file as an include, if one exists.
-		public List<DefaultAsset> parents;
+		public List<DefaultAsset> parents = new List<DefaultAsset>();
 		public IEnumerable<InkFile> parentInkFiles {
 			get {
 				if(parents != null && parents.Count != 0) {
@@ -170,13 +170,11 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		public List<DefaultAsset> masterInkAssets;
+		public List<DefaultAsset> masterInkAssets = new List<DefaultAsset>();
 		public IEnumerable<InkFile> masterInkFiles {
 			get {
-				if(masterInkAssets != null && masterInkAssets.Count != 0) {
-					foreach(var masterInkAsset in masterInkAssets) {
-						yield return InkLibrary.GetInkFileWithFile(masterInkAsset);
-					}
+				foreach(var masterInkAsset in masterInkAssets) {
+					yield return InkLibrary.GetInkFileWithFile(masterInkAsset);
 				}
 			}
 		}
@@ -194,7 +192,7 @@ namespace Ink.UnityIntegration {
 		// Is this ink file a master file?
 		public bool isMaster {
 			get {
-				return masterInkAssets == null || masterInkAssets.Count == 0;
+				return masterInkAssets.Count == 0;
 			}
 		}
 		

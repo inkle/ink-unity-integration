@@ -51,31 +51,37 @@ namespace Ink.UnityIntegration {
 
 //			bool alsoDeleteJSON = false;
 //			alsoDeleteJSON = EditorUtility.DisplayDialog("Deleting .ink file", "Also delete the JSON file associated with the deleted .ink file?", "Yes", "No"));
-			List<InkFile> masterFilesAffected = new List<InkFile>();
+			List<InkFile> filesRemoved = new List<InkFile>();
+			List<DefaultAsset> masterFilesAffected = new List<DefaultAsset>();
 			for (int i = InkLibrary.instance.inkLibrary.Count - 1; i >= 0; i--) {
 				if(InkLibrary.instance.inkLibrary [i].inkAsset == null) {
-					if(!InkLibrary.instance.inkLibrary[i].compileAsMasterFile) {
-						foreach(var masterInkFile in InkLibrary.instance.inkLibrary[i].masterInkFiles) {
-							if(!masterFilesAffected.Contains(masterInkFile))
-								masterFilesAffected.Add(masterInkFile);
-						}
-					}
-					if(InkSettings.instance.handleJSONFilesAutomatically) {
-                        var assetPath = AssetDatabase.GetAssetPath(InkLibrary.instance.inkLibrary[i].jsonAsset);
-						if(assetPath != null && assetPath != string.Empty) {
-                            AssetDatabase.DeleteAsset(assetPath);
-                        }
-                    }
+					filesRemoved.Add(InkLibrary.instance.inkLibrary[i]);
 					InkLibrary.RemoveAt(i);
 				}
 			}
+			foreach(var removedFile in filesRemoved) {
+				if(!removedFile.compileAsMasterFile) {
+					foreach(var masterInkAsset in removedFile.masterInkAssets) {
+						if(masterInkAsset != null && !masterFilesAffected.Contains(masterInkAsset))
+							masterFilesAffected.Add(masterInkAsset);
+					}
+				}
+				if(InkSettings.instance.handleJSONFilesAutomatically) {
+					var assetPath = AssetDatabase.GetAssetPath(removedFile.jsonAsset);
+					if(assetPath != null && assetPath != string.Empty) {
+						AssetDatabase.DeleteAsset(assetPath);
+					}
+				}
+			}
+
 			// After deleting files, we might have broken some include references, so we rebuild them. There's probably a faster way to do this, or we could probably just remove any null references, but this is a bit more robust.
 			foreach(InkFile inkFile in InkLibrary.instance.inkLibrary) {
 				inkFile.FindIncludedFiles();
 			}
-			foreach(InkFile masterFile in masterFilesAffected) {
-				if(InkSettings.instance.ShouldCompileInkFileAutomatically(masterFile)) {
-					InkCompiler.CompileInk(masterFile);
+			foreach(var masterFile in masterFilesAffected) {
+				var masterInkFile = InkLibrary.GetInkFileWithFile(masterFile);
+				if(masterInkFile != null && InkSettings.instance.ShouldCompileInkFileAutomatically(masterInkFile)) {
+					InkCompiler.CompileInk(masterInkFile);
 				}
 			}
 		}
