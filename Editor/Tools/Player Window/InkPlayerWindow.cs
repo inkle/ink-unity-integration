@@ -2359,6 +2359,7 @@ namespace Ink.UnityIntegration {
 			} else {
 				EditorGUILayout.LabelField(guiContent, new GUIContent("InkPlayerError: Variable is of unexpected type "+variableValue.GetType().Name+"."));
 			}
+			EditorGUILayout.LabelField(variableValue.GetType().Name, EditorStyles.miniLabel, GUILayout.Width(80));
 			EditorGUILayout.EndHorizontal();
 			return anythingChanged;
 		}
