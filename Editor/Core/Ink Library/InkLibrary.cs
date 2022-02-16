@@ -374,10 +374,12 @@ namespace Ink.UnityIntegration {
 				}
 			}
 
+			var missingFileHasProperFileExtension = Path.GetExtension(AssetDatabase.GetAssetPath(file)) == InkEditorUtils.inkFileExtension;
 			if (addIfMissing) {
 				InkFile newFile = new InkFile(file);
 				instance.inkLibrary.Add(newFile);
-				Debug.Log(file + " missing from ink library. Adding it now.");
+				if(missingFileHasProperFileExtension) Debug.Log(file + " missing from ink library. Adding it now.");
+				else Debug.LogWarning("File "+file + " is missing the .ink extension, but is believed to be an ink file. All ink files should use the .ink file extension! A common effect of this is forcing the InkLibrary to rebuild unexpectedly when the file is detected as an include of another file.");
 				return newFile;
 			}
 
@@ -385,7 +387,8 @@ namespace Ink.UnityIntegration {
 			foreach(InkFile inkFile in instance.inkLibrary) {
 				listOfFiles.AppendLine(inkFile.ToString());
 			}
-			Debug.LogWarning (file + " missing from ink library. Please rebuild.\nFiles in Library:\n"+listOfFiles);
+			if(missingFileHasProperFileExtension) Debug.LogWarning (file + " missing from ink library. Please rebuild.\nFiles in Library:\n"+listOfFiles);
+			else Debug.LogWarning (file + " is missing from ink library. It is also missing the .ink file extension. All ink files should use the .ink file extension! \nFiles in Library:\n"+listOfFiles);
 			return null;
 		}
 
@@ -434,10 +437,13 @@ namespace Ink.UnityIntegration {
 		/// Rebuilds which files are master files and the connections between the files.
 		/// </summary>
 		public static void RebuildInkFileConnections () {
-			foreach (InkFile inkFile in instance.inkLibrary) {
+			// Clone it because InkFile.FindIncludedFiles calls InkLibrary.GetInkFileWithFile which can cause new files to be added to the ink library.
+			var tempImmutableInkLibrary = new List<InkFile>(instance.inkLibrary);
+			foreach (InkFile inkFile in tempImmutableInkLibrary) {
+			// foreach (InkFile inkFile in instance.inkLibrary) {
 				// Resets the connections between files
-				inkFile.parents = new List<DefaultAsset>();
-				inkFile.masterInkAssets = new List<DefaultAsset>();
+				inkFile.parents.Clear();
+				inkFile.masterInkAssets.Clear();
 				// Gets the paths of the files to include
 				inkFile.ParseContent();
 				// Finds and adds include files from those paths
@@ -460,7 +466,7 @@ namespace Ink.UnityIntegration {
 				}
 			}
 			// Next, we create a list of all the files owned by the actual master file, which we obtain by travelling up the parent tree from each file.
-			Dictionary<InkFile, List<InkFile>> masterChildRelationships = new Dictionary<InkFile, List<InkFile>>();
+			var masterChildRelationships = new Dictionary<InkFile, List<InkFile>>();
 			foreach (InkFile inkFile in instance.inkLibrary) {
 				foreach(var parentInkFile in inkFile.parentInkFiles) {
 					InkFile lastMasterInkFile = parentInkFile;
