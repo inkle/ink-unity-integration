@@ -123,7 +123,7 @@ namespace Ink.UnityIntegration {
 		public bool requiresCompile {
 			get {
 				if(!compileAsMasterFile) return false;
-				return jsonAsset == null || lastEditDate > lastCompileDate || hasUnhandledCompileErrors;
+				return jsonAsset == null || hasUnhandledCompileErrors || lastEditDate > lastCompileDate;
 			}
 		}
 
