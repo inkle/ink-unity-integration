@@ -337,7 +337,7 @@ namespace Ink.UnityIntegration {
 		// All the master files which are dirty and are set to compile
 		public static IEnumerable<InkFile> GetFilesRequiringRecompile () {
 			foreach(InkFile inkFile in InkLibrary.GetInkFilesMarkedToCompileAsMasterFiles ()) {
-				if(inkFile.requiresCompile && InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile)) 
+				if(InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile) && inkFile.requiresCompile) 
 					yield return inkFile;
 			}
 		}
