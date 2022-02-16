@@ -379,6 +379,7 @@ namespace Ink.UnityIntegration {
 
 			public StoryPanelState storyPanelState = new StoryPanelState() {showing=true};
 			public BaseStoryPanelState choicePanelState = new BaseStoryPanelState() {showing=true};
+			public BaseStoryPanelState storyStatePanelState = new BaseStoryPanelState();
 			public BaseStoryPanelState profilerPanelState = new BaseStoryPanelState();
 			public BaseStoryPanelState saveLoadPanelState = new BaseStoryPanelState();
 			// public DivertPanelState divertPanelState = new DivertPanelState();
@@ -1081,6 +1082,7 @@ namespace Ink.UnityIntegration {
 			if(story != null && story.state != null) {
 				DrawStoryHistory();
 				DrawChoices();
+				DrawStoryState();
 				DrawProfilerData();
 				DrawSaveLoad();
 				DrawNamedContent();
@@ -1792,6 +1794,40 @@ namespace Ink.UnityIntegration {
 		#endregion
 		
 
+
+
+
+		#region StoryState
+		static void DrawStoryState () {
+			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+			InkPlayerWindowState.Instance.storyStatePanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.storyStatePanelState.showing, "Story State", true);
+			EditorGUILayout.EndHorizontal();
+			if(InkPlayerWindowState.Instance.storyStatePanelState.showing)
+				DrawStoryStatePanel ();
+		}
+
+		static void DrawStoryStatePanel () {
+			GUILayout.BeginVertical();
+			
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.PrefixLabel("Story Seed");
+			EditorGUILayout.LabelField(story.state.storySeed.ToString());
+			EditorGUILayout.EndHorizontal();
+
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.PrefixLabel("Current Turn Index");
+			EditorGUILayout.LabelField(story.state.currentTurnIndex.ToString());
+			EditorGUILayout.EndHorizontal();
+
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.PrefixLabel("Current Path String");
+			if(story.canContinue) EditorGUILayout.LabelField(story.state.currentPathString);
+			else EditorGUILayout.LabelField("(Always blank when story.canContinue is false)");
+			EditorGUILayout.EndHorizontal();
+
+			GUILayout.EndVertical();
+		}
+		#endregion
 
 
 
