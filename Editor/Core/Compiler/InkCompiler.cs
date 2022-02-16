@@ -297,14 +297,14 @@ namespace Ink.UnityIntegration {
 				foreach(var output in logOutput) {
 					if(output.type == ErrorType.Error) {
 						inkFile.errors.Add(output);
-						Debug.LogError("Ink "+output.type+" for "+Path.GetFileName(inkFile.filePath)+": "+output.content + " (at "+output.fileName+":"+output.lineNumber+")", inkFile.inkAsset);
+						Debug.LogError("Ink "+output.type+" for "+Path.GetFileName(inkFile.filePath)+": "+output.content + " (at "+output.relativeFilePath+":"+output.lineNumber+")", inkFile.inkAsset);
 					} else if (output.type == ErrorType.Warning) {
 						inkFile.warnings.Add(output);
-						Debug.LogWarning("Ink "+output.type+" for "+Path.GetFileName(inkFile.filePath)+": "+output.content + " (at "+output.fileName+" "+output.lineNumber+")", inkFile.inkAsset);
+						Debug.LogWarning("Ink "+output.type+" for "+Path.GetFileName(inkFile.filePath)+": "+output.content + " (at "+output.relativeFilePath+" "+output.lineNumber+")", inkFile.inkAsset);
 					} else if (output.type == ErrorType.Author) {
 						inkFile.todos.Add(output);
 						if(InkSettings.instance.printInkLogsInConsoleOnCompile)
-							Debug.Log("Ink Log for "+Path.GetFileName(inkFile.filePath)+": "+output.content + " (at "+output.fileName+" "+output.lineNumber+")", inkFile.inkAsset);
+							Debug.Log("Ink Log for "+Path.GetFileName(inkFile.filePath)+": "+output.content + " (at "+output.relativeFilePath+" "+output.lineNumber+")", inkFile.inkAsset);
 					}
 				}
 			}
@@ -544,7 +544,7 @@ namespace Ink.UnityIntegration {
 				errorHandler = (string message, ErrorType type) => {
 					InkCompilerLog log;
 					if(InkCompilerLog.TryParse(message, out log)) {
-						if(string.IsNullOrEmpty(log.fileName)) log.fileName = Path.GetFileName(item.inkAbsoluteFilePath);
+						if(string.IsNullOrEmpty(log.relativeFilePath)) log.relativeFilePath = Path.GetFileName(item.inkAbsoluteFilePath);
 						item.logOutput.Add(log);
 					} else {
 						Debug.LogWarning("Couldn't parse log "+message);

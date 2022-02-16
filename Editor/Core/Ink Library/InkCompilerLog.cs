@@ -7,21 +7,27 @@ namespace Ink.UnityIntegration
 	public class InkCompilerLog {
 		public Ink.ErrorType type;
 		public string content;
-		public string fileName;
+		public string relativeFilePath;
 		public int lineNumber;
 
-		public InkCompilerLog (Ink.ErrorType type, string content, string fileName, int lineNumber = -1) {
+		public InkCompilerLog (Ink.ErrorType type, string content, string relativeFilePath, int lineNumber = -1) {
 			this.type = type;
 			this.content = content;
-			this.fileName = fileName;
+			this.relativeFilePath = relativeFilePath;
 			this.lineNumber = lineNumber;
+		}
+
+		public string GetAbsoluteFilePath (InkFile masterInkFile) {
+			Debug.Log(masterInkFile.absoluteFolderPath);
+			Debug.Log(relativeFilePath);
+			return System.IO.Path.Combine(masterInkFile.absoluteFolderPath, relativeFilePath);
 		}
 
 		public static bool TryParse (string rawLog, out InkCompilerLog log) {
 			var match = _errorRegex.Match(rawLog);
 			if (match.Success) {
 				Ink.ErrorType errorType = Ink.ErrorType.Author;
-				string filename = null;
+				string relativeFilePath = null;
 				int lineNo = -1;
 				string message = null;
 				
@@ -36,7 +42,7 @@ namespace Ink.UnityIntegration
 				
 				var filenameCapture = match.Groups["filename"];
 				if (filenameCapture != null)
-					filename = filenameCapture.Value;
+					relativeFilePath = filenameCapture.Value;
 				
 				var lineNoCapture = match.Groups["lineNo"];
 				if (lineNoCapture != null)
@@ -45,7 +51,7 @@ namespace Ink.UnityIntegration
 				var messageCapture = match.Groups["message"];
 				if (messageCapture != null)
 					message = messageCapture.Value.Trim();
-				log = new InkCompilerLog(errorType, message, filename, lineNo);
+				log = new InkCompilerLog(errorType, message, relativeFilePath, lineNo);
 				return true;
 			} else {
 				Debug.LogWarning("Could not parse InkFileLog from log: "+rawLog);
