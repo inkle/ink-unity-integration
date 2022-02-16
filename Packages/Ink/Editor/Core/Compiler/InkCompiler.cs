@@ -171,6 +171,14 @@ namespace Ink.UnityIntegration {
 			}
 			return count;
 		}
+		static CompilationStackItem GetCurrentlyCompilingFile () {
+			foreach(var compilationStackItem in instance.compilationStack) {
+				if(compilationStackItem.state == CompilationStackItemState.Compiling) {
+					return compilationStackItem;
+				}
+			}
+			return null;
+		}
 
 		public static bool IsInkFileOnCompilationStack (InkFile inkFile) {
 			foreach(var compilationStackItem in instance.compilationStack) {
@@ -713,11 +721,19 @@ namespace Ink.UnityIntegration {
 		#region Progress Bar
 		static void UpdateProgressBar () {
 			if(instance.compilationStack.Count == 0) return;
-			int numCompiling = CountOfStateInCompilationStack(CompilationStackItemState.Compiling);
-			string message = "Compiling .Ink File "+(instance.compilationStack.Count-numCompiling)+" of "+instance.compilationStack.Count+".";
-			if(playModeBlocked) message += " Will enter play mode when complete.";
-			if(buildBlocked || playModeBlocked || EditorApplication.isPlaying) EditorUtility.DisplayProgressBar("Compiling Ink...", message, GetEstimatedCompilationProgress());
+			if(buildBlocked || playModeBlocked || EditorApplication.isPlaying) ShowProgressBar();
 			else EditorUtility.ClearProgressBar();
+		}
+
+		public static void ShowProgressBar () {
+			int numCompiling = CountOfStateInCompilationStack(CompilationStackItemState.Compiling);
+			var compilingFile = GetCurrentlyCompilingFile();
+			string message = "";
+			if(compilingFile == null) message += "Compiling...";
+			else message += "Compiling "+compilingFile.inkFile.inkAsset.name+" for "+compilingFile.timeTaken+"s";
+			message += "\n.Ink File "+(instance.compilationStack.Count-numCompiling)+" of "+instance.compilationStack.Count+".";
+			if(playModeBlocked) message += " Will enter play mode when complete.";
+			EditorUtility.DisplayProgressBar("Compiling Ink...", message, GetEstimatedCompilationProgress());
 		}
 
 		public static float GetEstimatedCompilationProgress () {
