@@ -600,6 +600,7 @@ namespace Ink.Runtime
             choice.sourcePath = jObj ["originalChoicePath"].ToString();
             choice.originalThreadIndex = (int)jObj ["originalThreadIndex"];
             choice.pathStringOnChoice = jObj ["targetPath"].ToString();
+            choice.currentTags = jObj["currentTags"] as List<string>;
             return choice;
         }
         public static void WriteChoice(SimpleJson.Writer writer, Choice choice)
@@ -610,6 +611,12 @@ namespace Ink.Runtime
             writer.WriteProperty("originalChoicePath", choice.sourcePath);
             writer.WriteProperty("originalThreadIndex", choice.originalThreadIndex);
             writer.WriteProperty("targetPath", choice.pathStringOnChoice);
+            writer.WritePropertyStart("currentTags");
+            writer.WriteArrayStart();
+            foreach (var tag in choice.currentTags)
+                writer.Write(tag);
+            writer.WriteArrayEnd();
+            writer.WritePropertyEnd();
             writer.WriteObjectEnd();
         }
 

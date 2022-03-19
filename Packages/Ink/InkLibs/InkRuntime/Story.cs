@@ -1069,7 +1069,14 @@ namespace Ink.Runtime
 
             // Set final text for the choice
             choice.text = (startText + choiceOnlyText).Trim(' ', '\t');
-
+            foreach (var contentItem in choicePoint.choiceTarget.content)
+            {
+                if (contentItem is Tag)
+                {
+                    var tag = contentItem as Tag;
+                    choice.currentTags.Add(tag.text);
+                }
+            }
             return choice;
         }
 

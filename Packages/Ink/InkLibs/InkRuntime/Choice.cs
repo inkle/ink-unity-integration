@@ -45,9 +45,12 @@ namespace Ink.Runtime
         public int originalThreadIndex;
 
         public bool isInvisibleDefault;
+        
+        public List<string> currentTags { get; set; }
 
         public Choice()
         {
+            currentTags = new List<string>();
         }
 	}
 }
