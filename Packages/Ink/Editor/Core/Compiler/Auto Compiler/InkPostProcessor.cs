@@ -51,26 +51,30 @@ namespace Ink.UnityIntegration {
 
 //			bool alsoDeleteJSON = false;
 //			alsoDeleteJSON = EditorUtility.DisplayDialog("Deleting .ink file", "Also delete the JSON file associated with the deleted .ink file?", "Yes", "No"));
-			List<InkFile> filesRemoved = new List<InkFile>();
-			List<DefaultAsset> masterFilesAffected = new List<DefaultAsset>();
+			List<InkFile> masterFilesAffected = new List<InkFile>();
 			for (int i = InkLibrary.instance.inkLibrary.Count - 1; i >= 0; i--) {
-				if(InkLibrary.instance.inkLibrary [i].inkAsset == null) {
-					filesRemoved.Add(InkLibrary.instance.inkLibrary[i]);
+				var inkFile = InkLibrary.instance.inkLibrary[i];
+				// If this file was deleted...
+				if(inkFile.inkAsset == null) {
+					// Mark the master files to be recompiled (note that those files might also have been deleted)
+					if(!inkFile.compileAsMasterFile) {
+						foreach(var masterInkAsset in inkFile.masterInkAssets) {
+							if(masterInkAsset != null) {
+								var masterInkFile = InkLibrary.GetInkFileWithFile(masterInkAsset);
+								if(!masterFilesAffected.Contains(masterInkFile))
+									masterFilesAffected.Add(masterInkFile);
+							}
+						}
+					}
+					// Delete the associated json file
+					if(InkSettings.instance.handleJSONFilesAutomatically) {
+                        var assetPath = AssetDatabase.GetAssetPath(inkFile.jsonAsset);
+						if(assetPath != null && assetPath != string.Empty) {
+                            AssetDatabase.DeleteAsset(assetPath);
+                        }
+                    }
+					// Finally, remove it from the ink library
 					InkLibrary.RemoveAt(i);
-				}
-			}
-			foreach(var removedFile in filesRemoved) {
-				if(!removedFile.compileAsMasterFile) {
-					foreach(var masterInkAsset in removedFile.masterInkAssets) {
-						if(masterInkAsset != null && !masterFilesAffected.Contains(masterInkAsset))
-							masterFilesAffected.Add(masterInkAsset);
-					}
-				}
-				if(InkSettings.instance.handleJSONFilesAutomatically) {
-					var assetPath = AssetDatabase.GetAssetPath(removedFile.jsonAsset);
-					if(assetPath != null && assetPath != string.Empty) {
-						AssetDatabase.DeleteAsset(assetPath);
-					}
 				}
 			}
 
@@ -138,12 +142,17 @@ namespace Ink.UnityIntegration {
 					InkFile inkFile = InkLibrary.GetInkFileWithPath(inkFilePath);
 					if(inkFile == null) continue;
 					foreach(var masterInkFile in inkFile.masterInkFilesIncludingSelf) {
-						if(InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile) && !filesToCompile.Contains(inkFile))
-							filesToCompile.Add(inkFile);
+						if(InkSettings.instance.ShouldCompileInkFileAutomatically(masterInkFile) && !filesToCompile.Contains(masterInkFile))
+							filesToCompile.Add(masterInkFile);
 					}
 				}
 
 				InkLibrary.RebuildInkFileConnections();
+
+                // If rebuilding connections caused a file that was previously considered a master file to no longer be, then we remove it.
+				for (int i = filesToCompile.Count - 1; i >= 0; i--)
+                    if(!filesToCompile[i].compileAsMasterFile) 
+						filesToCompile.RemoveAt(i);
 
 				// Add the new file to be recompiled
 				foreach(var inkFilePath in queuedMovedInkFileAssets) {
@@ -151,8 +160,8 @@ namespace Ink.UnityIntegration {
 					if(inkFile == null) continue;
 
 					foreach(var masterInkFile in inkFile.masterInkFilesIncludingSelf) {
-						if(InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile) && !filesToCompile.Contains(inkFile))
-							filesToCompile.Add(inkFile);
+						if(InkSettings.instance.ShouldCompileInkFileAutomatically(masterInkFile) && !filesToCompile.Contains(masterInkFile))
+							filesToCompile.Add(masterInkFile);
 					}
 				}
 

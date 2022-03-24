@@ -637,7 +637,8 @@ namespace Ink.UnityIntegration {
                         errorLog.Append ("'");
                         errorLog.Append (compilingFile.inkFile.filePath);
                         errorLog.Append ("'");
-                        errorLog.AppendLine ("! Please report following error(s) as a bug:");
+                        errorLog.AppendLine ("! You may be able to resolve your issue by using Edit > Rebuild Ink Library.");
+                        errorLog.AppendLine ("Please report following error(s) as a bug:");
                         foreach (var error in compilingFile.unhandledErrorOutput)
                             errorLog.AppendLine (error);
                         Debug.LogError(errorLog);
