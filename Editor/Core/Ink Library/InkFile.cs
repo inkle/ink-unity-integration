@@ -134,6 +134,9 @@ namespace Ink.UnityIntegration {
 		public DateTime lastCompileDate {
 			get {
 				if(compileAsMasterFile) {
+					if(jsonAsset == null)
+						return default(DateTime);
+				
 					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(jsonAsset));
 					return File.GetLastWriteTime(fullJSONFilePath);
 				} else {

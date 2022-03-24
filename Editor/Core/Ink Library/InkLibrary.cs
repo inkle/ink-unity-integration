@@ -224,8 +224,9 @@ namespace Ink.UnityIntegration {
 			// Disable the asset post processor in case any assetdatabase functions called as a result of this would cause further operations.
 			InkPostProcessor.disabled = true;
 			
-            // Remove any old file connections
-            Clean();
+            // Clear the old data
+            instance.inkLibrary.Clear();
+            instance.inkLibraryDictionary.Clear();
 
 			// Reset the asset name
 			instance.name = "Ink Library "+unityIntegrationVersionCurrent.ToString();
@@ -292,15 +293,24 @@ namespace Ink.UnityIntegration {
 
 		// This is called from InkPostProcessor after ink file(s) has been added/changed.
 		public static void CreateOrReadUpdatedInkFiles (List<string> importedInkAssets) {
-			foreach (var importedAssetPath in importedInkAssets) {
-				InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
+            for (int i = 0; i < importedInkAssets.Count; i++) {
+                string importedAssetPath = importedInkAssets[i];
+                InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
 				if(inkFile == null) {
 					DefaultAsset asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(importedAssetPath);
-					Debug.Assert(asset != null);
-					inkFile = new InkFile(asset);
-					inkFile.FindCompiledJSONAsset();
-					Add(inkFile);
+					if(asset == null) {
+						// This file wasn't found! This is a rare bug. We remove the file from the list in this case, preventing it from causing further bugs.
+						importedInkAssets.RemoveAt(i);
+						i--;
+						Debug.LogWarning("InkLibrary failed to load ink file at "+importedAssetPath+". It has been removed from the list of files. You can ignore this warning.");
+					} else {
+						// New file; create and add InkFile to represent it. Content is read in InkFile constructor.
+						inkFile = new InkFile(asset);
+						inkFile.FindCompiledJSONAsset();
+						Add(inkFile);
+					}
 				} else {
+					// Read content
 					inkFile.ParseContent();
 				}
 			}
