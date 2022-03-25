@@ -11,83 +11,32 @@ using UnityEditor.Callbacks;
 using Path = System.IO.Path;
 
 namespace Ink.UnityIntegration {
-	class CreateInkAssetAction : EndNameEditAction {
-		public override void Action(int instanceId, string pathName, string resourceFile) {
-			var text = "";
-			if(File.Exists(resourceFile)) {
-				StreamReader streamReader = new StreamReader(resourceFile);
-				text = streamReader.ReadToEnd();
-				streamReader.Close();
-			}
-			UnityEngine.Object asset = CreateScriptAsset(pathName, text);
-			ProjectWindowUtil.ShowCreatedAsset(asset);
-		}
-		
-		internal static UnityEngine.Object CreateScriptAsset(string pathName, string text) {
-			string fullPath = Path.GetFullPath(pathName);
-			UTF8Encoding encoding = new UTF8Encoding(true, false);
-			bool append = false;
-			StreamWriter streamWriter = new StreamWriter(fullPath, append, encoding);
-			streamWriter.Write(text);
-			streamWriter.Close();
-			AssetDatabase.ImportAsset(pathName);
-			return AssetDatabase.LoadAssetAtPath(pathName, typeof(DefaultAsset));
-		}
-	}
-    
 	[InitializeOnLoad]
 	public static class InkEditorUtils {
+		class CreateInkAssetAction : EndNameEditAction {
+			public override void Action(int instanceId, string pathName, string resourceFile) {
+				var text = "";
+				if(File.Exists(resourceFile)) {
+					StreamReader streamReader = new StreamReader(resourceFile);
+					text = streamReader.ReadToEnd();
+					streamReader.Close();
+				}
+				var assetPath = CreateScriptAsset(pathName, text);
+				var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
+				ProjectWindowUtil.ShowCreatedAsset(asset);
+			}
+		}
 		public const string inkFileExtension = ".ink";
 		const string lastCompileTimeKey = "InkIntegrationLastCompileTime";
 
-		
-		// When compiling we call AssetDatabase.DisallowAutoRefresh. 
-		// We NEED to remember to re-allow it or unity stops registering file changes!
-		// The issue is that you need to pair calls perfectly, and you can't even use a try-catch to get around it.
-		// So - we cache if we've disabled auto refresh here, since this persists across plays.
-		// This does have one issue - this setting is saved even when unity re-opens, but the internal asset refresh state isn't.
-		// We need this to reset on launching the editor.
-		// We currently fix this by setting it false on InkEditorUtils.OnOpenUnityEditor
-		// A potentially better approach is to use playerprefs for this, since it's really nothing to do with the library.
-		public static bool disallowedAutoRefresh {
+		private static Texture2D _inkLogoIcon;
+		public static Texture2D inkLogoIcon {
 			get {
-				if(EditorPrefs.HasKey("InkLibraryDisallowedAutoRefresh")) 
-					return EditorPrefs.GetBool("InkLibraryDisallowedAutoRefresh");
-				return false;
-			} set {
-				EditorPrefs.SetBool("InkLibraryDisallowedAutoRefresh", value);
+				if(_inkLogoIcon == null) {
+					_inkLogoIcon = Resources.Load<Texture2D>("InkLogoIcon");
+				}
+				return _inkLogoIcon;
 			}
-		}
-
-		// This should run before any of the other ink integration scripts.
-		static InkEditorUtils () {
-			EnsureFirstLaunchHandled();
-			EditorApplication.wantsToQuit += WantsToQuit;
-		}
-
-		// Save the current EditorApplication.timeSinceStartup so OnOpenUnityEditor is sure to run next time the editor opens. 
-		static bool WantsToQuit () {
-			LoadAndSaveLastCompileTime();
-			return true;
-		}
-		public static bool isFirstCompile;
-		static void EnsureFirstLaunchHandled () {
-			float lastCompileTime = LoadAndSaveLastCompileTime();
-			isFirstCompile = EditorApplication.timeSinceStartup < lastCompileTime;
-			if(isFirstCompile)
-				OnOpenUnityEditor();
-		}
-
-		static float LoadAndSaveLastCompileTime () {
-			float lastCompileTime = 0;
-			if(EditorPrefs.HasKey(lastCompileTimeKey))
-				lastCompileTime = EditorPrefs.GetFloat(lastCompileTimeKey);
-			EditorPrefs.SetFloat(lastCompileTimeKey, (float)EditorApplication.timeSinceStartup);
-			return lastCompileTime;
-		}
-
-		static void OnOpenUnityEditor () {
-			disallowedAutoRefresh = false;
 		}
 
 		[MenuItem("Assets/Rebuild Ink Library", false, 200)]
@@ -115,16 +64,45 @@ namespace Ink.UnityIntegration {
         }
 
 
+
 		[MenuItem("Assets/Create/Ink", false, 120)]
-		public static void CreateNewInkFile () {
+		public static void CreateNewInkFileAtSelectedPathWithTemplateAndStartNameEditing () {
 			string fileName = "New Ink.ink";
 			string filePath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(GetSelectedPathOrFallback(), fileName));
-			CreateNewInkFile(filePath, InkSettings.instance.templateFilePath);
+			CreateNewInkFileAtPathWithTemplateAndStartNameEditing(filePath, InkSettings.instance.templateFilePath);
 		}
-
-		public static void CreateNewInkFile (string filePath, string templateFileLocation) {
+		
+		public static void CreateNewInkFileAtPathWithTemplateAndStartNameEditing (string filePath, string templateFileLocation) {
+			if(Path.GetExtension(filePath) != inkFileExtension) filePath += inkFileExtension;
 			ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<CreateInkAssetAction>(), filePath, InkBrowserIcons.inkFileIcon, templateFileLocation);
 		}
+
+		public static DefaultAsset CreateNewInkFileAtPath (string filePath, string text) {
+			if(Path.GetExtension(filePath) != inkFileExtension) filePath += inkFileExtension;
+			var assetPath = CreateScriptAsset(filePath, text);
+			return AssetDatabase.LoadAssetAtPath<DefaultAsset>(assetPath);
+		}
+		
+		static string CreateScriptAsset(string pathName, string text) {
+			string fullPath = Path.GetFullPath(pathName);
+			fullPath = fullPath.Replace('\\', '/');
+			var assetRelativePath = fullPath;
+			if(fullPath.StartsWith(Application.dataPath)) {
+				assetRelativePath = fullPath.Substring(Application.dataPath.Length-6); 
+			}
+			var directoryPath = Path.GetDirectoryName(fullPath);
+			if(!Directory.Exists(directoryPath))
+				Directory.CreateDirectory(directoryPath);
+			UTF8Encoding encoding = new UTF8Encoding(true, false);
+			StreamWriter streamWriter = null;
+			streamWriter = new StreamWriter(fullPath, false, encoding);
+			streamWriter.Write(text);
+			streamWriter.Close();
+			AssetDatabase.ImportAsset(assetRelativePath);
+			return assetRelativePath;
+		}
+
+
 
 		private static string GetSelectedPathOrFallback() {
 			string path = "Assets";
@@ -247,7 +225,7 @@ namespace Ink.UnityIntegration {
 		public static string CombinePaths(string firstPath, string secondPath) {
             Debug.Assert(firstPath != null);
             Debug.Assert(secondPath != null);
-			return SanitizePathString(Path.Combine(firstPath, secondPath));
+			return SanitizePathString(firstPath+"/"+secondPath);
 		}
 
 		public static string AbsoluteToUnityRelativePath(string fullPath) {
@@ -289,6 +267,44 @@ namespace Ink.UnityIntegration {
 			}
 
 			return String.IsNullOrEmpty(extension) && InkLibrary.instance.inkLibrary.Exists(f => f.filePath == path);
+		}
+
+
+
+		/// <summary>
+		/// Opens an ink file in the associated editor at the correct line number.
+		/// TODO - If the editor is inky, this code should load the master file, but immediately show the correct child file at the correct line.
+		/// </summary>
+		public static void OpenInEditor (InkFile inkFile, InkCompilerLog log) {
+			var targetFilePath = log.GetAbsoluteFilePath(inkFile);
+			#if UNITY_2019_1_OR_NEWER
+			// This function replaces OpenFileAtLineExternal, but I guess it's totally internal and can't be accessed.
+			// CodeEditorUtility.Editor.Current.OpenProject(targetFilePath, lineNumber);
+			#pragma warning disable
+			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(targetFilePath, log.lineNumber);
+			#pragma warning restore
+			#else
+			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(targetFilePath, log.lineNumber);
+			#endif
+		}
+		/// <summary>
+		/// Opens an ink file in the associated editor at the correct line number.
+		/// TODO - If the editor is inky, this code should load the master file, but immediately show the correct child file at the correct line.
+		/// </summary>
+		public static void OpenInEditor (string masterFilePath, string subFilePath, int lineNumber) {
+			if(!string.IsNullOrEmpty(subFilePath) && Path.GetFileName(masterFilePath) != subFilePath) {
+				Debug.LogWarning("Tried to open an ink file ("+subFilePath+") at line "+lineNumber+" but the file is an include file. This is not currently implemented. The master ink file will be opened at line 0 instead.");
+				lineNumber = 0;
+			}
+			#if UNITY_2019_1_OR_NEWER
+			// This function replaces OpenFileAtLineExternal, but I guess it's totally internal and can't be accessed.
+			// CodeEditorUtility.Editor.Current.OpenProject(masterFilePath, lineNumber);
+			#pragma warning disable
+			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(masterFilePath, lineNumber);
+			#pragma warning restore
+			#else
+			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(masterFilePath, lineNumber);
+			#endif
 		}
 	}
 }

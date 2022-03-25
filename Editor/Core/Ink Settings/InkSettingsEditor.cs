@@ -46,19 +46,21 @@ namespace Ink.UnityIntegration {
 		}
 		#endif
 
-        static string versionLabel => string.Format("Ink Unity Integration version "+InkLibrary.unityIntegrationVersionCurrent+"\nInk version "+InkLibrary.inkVersionCurrent+"\nInk story format version "+Ink.Runtime.Story.inkVersionCurrent+"\nInk save format version "+Ink.Runtime.StoryState.kInkSaveStateVersion);
-		static void DrawSettings (InkSettings settings) {
+        static void DrawSettings (InkSettings settings) {
+			EditorGUI.indentLevel++;
+			DrawVersions();
+			EditorGUILayout.Separator();
+
 			var cachedLabelWidth = EditorGUIUtility.labelWidth;
 			EditorGUIUtility.labelWidth = 260;
 
-			EditorGUILayout.HelpBox(versionLabel, MessageType.Info);
-
-			if(settings.templateFile == null) {
-				EditorGUILayout.HelpBox("Template not found. Ink files created via Assets > Create > Ink will be blank.", MessageType.Info);
-			}
-			settings.templateFile = (DefaultAsset)EditorGUILayout.ObjectField(new GUIContent("Ink Template", "Optional. The default content of files created via Assets > Create > Ink."), settings.templateFile, typeof(DefaultAsset));
+			EditorGUILayout.LabelField(new GUIContent("Settings"), EditorStyles.boldLabel);
+			if(settings.templateFile == null) 
+				DrawTemplateMissingWarning();
+      settings.templateFile = (DefaultAsset)EditorGUILayout.ObjectField(new GUIContent("Ink Template", "Optional. The default content of files created via Assets > Create > Ink."), settings.templateFile, typeof(DefaultAsset));
+      
 			settings.defaultJsonAssetPath = (DefaultAsset)EditorGUILayout.ObjectField(new GUIContent("New JSON Path", "By default, story JSON files are placed next to the ink. Drag a folder here to place new JSON files there instead."), settings.defaultJsonAssetPath, typeof(DefaultAsset));
-            settings.compileAutomatically = EditorGUILayout.Toggle(new GUIContent("Compile All Ink Automatically", "When disabled, automatic compilation can be enabled on a per-story basis via the inspector for a master story file. This can be helpful when you have several stories in a single project."), settings.compileAutomatically);
+            settings.compileAllFilesAutomatically = EditorGUILayout.Toggle(new GUIContent("Compile All Ink Automatically", "When disabled, automatic compilation can be enabled on a per-story basis via the inspector for a master story file. This can be helpful when you have several stories in a single project."), settings.compileAllFilesAutomatically);
             settings.delayInPlayMode = EditorGUILayout.Toggle(new GUIContent("Delay compilation if in Play Mode", "When enabled, ink compilation is delayed if in play mode. Files will be compiled on re-entering edit mode."), settings.delayInPlayMode);
             settings.printInkLogsInConsoleOnCompile = EditorGUILayout.Toggle(new GUIContent("Print ink TODOs in console on compile", "When enabled, ink lines starting with TODO are printed in the console."), settings.printInkLogsInConsoleOnCompile);
             settings.handleJSONFilesAutomatically = EditorGUILayout.Toggle(new GUIContent("Handle JSON Automatically", "Whether JSON files are moved, renamed and deleted along with their ink files."), settings.handleJSONFilesAutomatically);
@@ -66,24 +68,23 @@ namespace Ink.UnityIntegration {
 
 			EditorGUIUtility.labelWidth = cachedLabelWidth;
 
-            EditorGUILayout.Separator();
-            if(GUILayout.Button("Show changelog")) {
-                InkUnityIntegrationStartupWindow.ShowWindow();
-            }
+			EditorGUI.indentLevel--;
 		}
 		static void DrawSettings (SerializedObject settings) {
+			DrawVersions();
+			EditorGUILayout.Separator();
+
 			var cachedLabelWidth = EditorGUIUtility.labelWidth;
 			EditorGUIUtility.labelWidth = 260;
 			EditorGUI.BeginChangeCheck();
 
-			EditorGUILayout.HelpBox(versionLabel, MessageType.Info);
-
-			if(settings.FindProperty("templateFile").objectReferenceValue == null) {
-				EditorGUILayout.HelpBox("Template not found. Ink files created via Assets > Create > Ink will be blank.", MessageType.Info);
-			}
+			EditorGUILayout.LabelField(new GUIContent("Settings"), EditorStyles.boldLabel);
+			if(settings.FindProperty("templateFile").objectReferenceValue == null) 
+				DrawTemplateMissingWarning();
+			
 			EditorGUILayout.PropertyField(settings.FindProperty("templateFile"), new GUIContent("Ink Template", "Optional. The default content of files created via Assets > Create > Ink."));
 			EditorGUILayout.PropertyField(settings.FindProperty("defaultJsonAssetPath"), new GUIContent("New JSON Path", "By default, story JSON files are placed next to the ink. Drag a folder here to place new JSON files there instead."));
-            EditorGUILayout.PropertyField(settings.FindProperty("compileAutomatically"), new GUIContent("Compile All Ink Automatically", "When disabled, automatic compilation can be enabled on a per-story basis via the inspector for a master story file. This can be helpful when you have several stories in a single project."));
+            EditorGUILayout.PropertyField(settings.FindProperty("compileAllFilesAutomatically"), new GUIContent("Compile All Ink Automatically", "When disabled, automatic compilation can be enabled on a per-story basis via the inspector for a master story file. This can be helpful when you have several stories in a single project."));
             EditorGUILayout.PropertyField(settings.FindProperty("delayInPlayMode"), new GUIContent("Delay compilation if in Play Mode", "When enabled, ink compilation is delayed if in play mode. Files will be compiled on re-entering edit mode."));
             EditorGUILayout.PropertyField(settings.FindProperty("printInkLogsInConsoleOnCompile"), new GUIContent("Print ink TODOs in console on compile", "When enabled, ink lines starting with TODO are printed in the console."));
             EditorGUILayout.PropertyField(settings.FindProperty("handleJSONFilesAutomatically"), new GUIContent("Handle JSON Automatically", "Whether JSON files are moved, renamed and deleted along with their ink files."));
@@ -93,11 +94,24 @@ namespace Ink.UnityIntegration {
 				settings.ApplyModifiedProperties();
 			}
 			EditorGUIUtility.labelWidth = cachedLabelWidth;
-            
-            EditorGUILayout.Separator();
+		}
+
+
+		static void DrawVersions () {
+			EditorGUILayout.LabelField(new GUIContent("Version Info"), EditorStyles.boldLabel);
+			EditorGUI.BeginDisabledGroup(true);
+			EditorGUILayout.TextField(new GUIContent("Plugin version", "The version of the Ink Unity Integration package."), InkLibrary.unityIntegrationVersionCurrent.ToString());
+			EditorGUILayout.TextField(new GUIContent("Ink version", "The version of ink that is included by the Unity package, used to compile and play ink files."), InkLibrary.inkVersionCurrent.ToString());
+			EditorGUILayout.TextField(new GUIContent("Ink story format version", "Significant changes to the Ink runtime are recorded by the story format version.\nCompatibility between different versions is limited; see comments at Ink.Runtime.Story.inkVersionCurrent for more details."), Ink.Runtime.Story.inkVersionCurrent.ToString());
+			EditorGUILayout.TextField(new GUIContent("Ink save format version", "Version of the ink save/load system.\nCompatibility between different versions is limited; see comments at Ink.Runtime.StoryState.kInkSaveStateVersion for more details."), Ink.Runtime.StoryState.kInkSaveStateVersion.ToString());
+			EditorGUI.EndDisabledGroup();
             if(GUILayout.Button("Show changelog")) {
                 InkUnityIntegrationStartupWindow.ShowWindow();
             }
+		}
+
+		static void DrawTemplateMissingWarning () {
+			EditorGUILayout.HelpBox("Template not found. Ink files created via Assets > Create > Ink will be blank.", MessageType.Info);
 		}
 	}
 }

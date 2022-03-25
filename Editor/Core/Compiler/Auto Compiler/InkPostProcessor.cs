@@ -7,12 +7,17 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Ink.UnityIntegration {
-	class InkPostProcessor : AssetPostprocessor {
+	
+	public class InkPostProcessor : AssetPostprocessor {
 		// Several assets moved at the same time can cause unity to call OnPostprocessAllAssets several times as a result of moving additional files, or simply due to minor time differences.
 		// This queue tells the compiler which files to recompile after moves have completed.
 		// Not a perfect solution - If Unity doesn't move all the files in the same attempt you can expect some error messages to appear on compile.
-		private static List<string> queuedMovedAssets = new List<string>();
+		private static List<string> queuedMovedInkFileAssets = new List<string>();
+		
+		// We should make this a stack, similar to GUI.BeginDisabledGroup.
 		public static bool disabled = false;
+		// I'd like to make this a public facing setting sometime. Options are async or immediate.
+		public static bool compileImmediatelyOnImport = false;
 		// Recompiles any ink files as a result of an ink file (re)import
 		private static void OnPostprocessAllAssets (string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths) {
 			if(disabled) return;
@@ -20,10 +25,12 @@ namespace Ink.UnityIntegration {
 				OnDeleteAssets(deletedAssets);
 			}
 			if(movedAssets.Length > 0) {
-				OnMoveAssets(movedAssets.Except(importedAssets).ToArray());
+				OnMoveAssets(movedAssets);
 			}
 			if(importedAssets.Length > 0) {
-				OnImportAssets(importedAssets);
+				// Assets that are renamed are both moved and imported. We do all the work in OnMoveAssets, so do nothing here.
+				var importedAssetsThatWerentRenames = importedAssets.Except(movedAssets).ToArray();
+				OnImportAssets(importedAssetsThatWerentRenames);
 			}
             #if !UNITY_2020_1_OR_NEWER
 			if(InkLibrary.created)
@@ -46,29 +53,38 @@ namespace Ink.UnityIntegration {
 //			alsoDeleteJSON = EditorUtility.DisplayDialog("Deleting .ink file", "Also delete the JSON file associated with the deleted .ink file?", "Yes", "No"));
 			List<InkFile> masterFilesAffected = new List<InkFile>();
 			for (int i = InkLibrary.instance.inkLibrary.Count - 1; i >= 0; i--) {
-				if(InkLibrary.instance.inkLibrary [i].inkAsset == null) {
-					if(!InkLibrary.instance.inkLibrary[i].isMaster) {
-						foreach(var masterInkFile in InkLibrary.instance.inkLibrary[i].masterInkFiles) {
-							if(!masterFilesAffected.Contains(masterInkFile))
-								masterFilesAffected.Add(masterInkFile);
+				var inkFile = InkLibrary.instance.inkLibrary[i];
+				// If this file was deleted...
+				if(inkFile.inkAsset == null) {
+					// Mark the master files to be recompiled (note that those files might also have been deleted)
+					if(!inkFile.compileAsMasterFile) {
+						foreach(var masterInkAsset in inkFile.masterInkAssets) {
+							if(masterInkAsset != null) {
+								var masterInkFile = InkLibrary.GetInkFileWithFile(masterInkAsset);
+								if(!masterFilesAffected.Contains(masterInkFile))
+									masterFilesAffected.Add(masterInkFile);
+							}
 						}
 					}
+					// Delete the associated json file
 					if(InkSettings.instance.handleJSONFilesAutomatically) {
-                        var assetPath = AssetDatabase.GetAssetPath(InkLibrary.instance.inkLibrary[i].jsonAsset);
+                        var assetPath = AssetDatabase.GetAssetPath(inkFile.jsonAsset);
 						if(assetPath != null && assetPath != string.Empty) {
                             AssetDatabase.DeleteAsset(assetPath);
                         }
                     }
+					// Finally, remove it from the ink library
 					InkLibrary.RemoveAt(i);
 				}
 			}
+
 			// After deleting files, we might have broken some include references, so we rebuild them. There's probably a faster way to do this, or we could probably just remove any null references, but this is a bit more robust.
 			foreach(InkFile inkFile in InkLibrary.instance.inkLibrary) {
 				inkFile.FindIncludedFiles();
 			}
-			foreach(InkFile masterFile in masterFilesAffected) {
-				if(InkSettings.instance.compileAutomatically || masterFile.compileAutomatically) {
-					InkCompiler.CompileInk(masterFile);
+			foreach(var masterInkFile in masterFilesAffected) {
+				if(InkSettings.instance.ShouldCompileInkFileAutomatically(masterInkFile)) {
+					InkCompiler.CompileInk(masterInkFile);
 				}
 			}
 		}
@@ -82,12 +98,11 @@ namespace Ink.UnityIntegration {
 				if(!InkEditorUtils.IsInkFile(movedAssets[i]))
 					continue;
 				validMovedAssets.Add(movedAssets[i]);
-				queuedMovedAssets.Add(movedAssets[i]);
+				queuedMovedInkFileAssets.Add(movedAssets[i]);
 
 			}
 			// Move compiled JSON files.
 			// This can cause Unity to postprocess assets again.
-			bool assetMoved = false;
 			foreach(var inkFilePath in validMovedAssets) {
 				InkFile inkFile = InkLibrary.GetInkFileWithPath(inkFilePath);
 				if(inkFile == null) continue;
@@ -98,47 +113,67 @@ namespace Ink.UnityIntegration {
 				string movedAssetDir = Path.GetDirectoryName(inkFilePath);
 				string movedAssetFile = Path.GetFileName(inkFilePath);
 				string newPath = InkEditorUtils.CombinePaths(movedAssetDir, Path.GetFileNameWithoutExtension(movedAssetFile)) + ".json";
-				AssetDatabase.MoveAsset(jsonAssetPath, newPath);
-				assetMoved = true;
-			}
 
+				// On moving an ink file, we either recompile it, creating a new json file in the correct location, or we move the json file.
+				if(InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile)) {
+					// We have to delay this, or it doesn't properly inform unity (there's no version of "ImportAsset" for delete); I guess it doesn't want OnPostprocessAllAssets to fire recursively.
+					EditorApplication.delayCall += () => {
+						AssetDatabase.DeleteAsset(jsonAssetPath);
+						AssetDatabase.Refresh();
+					};
+				} else {
+					if (string.IsNullOrEmpty(AssetDatabase.ValidateMoveAsset(jsonAssetPath, newPath))) {
+						Debug.Assert(newPath==inkFile.jsonPath);
+						EditorApplication.delayCall += () => {
+							AssetDatabase.MoveAsset(jsonAssetPath, newPath);
+							AssetDatabase.ImportAsset(newPath);
+							AssetDatabase.Refresh();
+							inkFile.FindCompiledJSONAsset();
+						};
+						// Debug.Log(jsonAssetPath+" to "+newPath);
+					} else {
+						// This will fire if the JSON file is also moved with the ink - in this case the json file will be in movedAssets.
+						// Debug.Log($"Failed to move asset from path '{jsonAssetPath}' to '{newPath}'.");
+					}
+				}
+			}
 			// Check if no JSON assets were moved (as a result of none needing to move, or this function being called as a result of JSON files being moved)
-			if(!assetMoved && queuedMovedAssets.Count > 0) {
+			if(queuedMovedInkFileAssets.Count > 0) {
 				List<InkFile> filesToCompile = new List<InkFile>();
 
 				// Add the old master file to the files to be recompiled
-				foreach(var inkFilePath in queuedMovedAssets) {
+				foreach(var inkFilePath in queuedMovedInkFileAssets) {
 					InkFile inkFile = InkLibrary.GetInkFileWithPath(inkFilePath);
 					if(inkFile == null) continue;
 					foreach(var masterInkFile in inkFile.masterInkFilesIncludingSelf) {
-						if(!filesToCompile.Contains(inkFile))
-							filesToCompile.Add(inkFile);
+						if(InkSettings.instance.ShouldCompileInkFileAutomatically(masterInkFile) && !filesToCompile.Contains(masterInkFile))
+							filesToCompile.Add(masterInkFile);
 					}
 				}
 
 				InkLibrary.RebuildInkFileConnections();
 
+                // If rebuilding connections caused a file that was previously considered a master file to no longer be, then we remove it.
+				for (int i = filesToCompile.Count - 1; i >= 0; i--)
+                    if(!filesToCompile[i].compileAsMasterFile) 
+						filesToCompile.RemoveAt(i);
+
 				// Add the new file to be recompiled
-				foreach(var inkFilePath in queuedMovedAssets) {
+				foreach(var inkFilePath in queuedMovedInkFileAssets) {
 					InkFile inkFile = InkLibrary.GetInkFileWithPath(inkFilePath);
 					if(inkFile == null) continue;
 
 					foreach(var masterInkFile in inkFile.masterInkFilesIncludingSelf) {
-						if(!filesToCompile.Contains(inkFile))
-							filesToCompile.Add(inkFile);
+						if(InkSettings.instance.ShouldCompileInkFileAutomatically(masterInkFile) && !filesToCompile.Contains(masterInkFile))
+							filesToCompile.Add(masterInkFile);
 					}
 				}
 
-				queuedMovedAssets.Clear();
+				queuedMovedInkFileAssets.Clear();
+				
 
 				// Compile any ink files that are deemed master files a rebuild
-				foreach(var inkFile in filesToCompile) {
-					if(inkFile.isMaster) {
-						if(InkSettings.instance.compileAutomatically || inkFile.compileAutomatically) {
-							InkCompiler.CompileInk(inkFile);
-						}
-					}
-				}
+				InkCompiler.CompileInk(filesToCompile.ToArray(), compileImmediatelyOnImport);
 			}
 		}
 
