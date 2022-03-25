@@ -82,9 +82,8 @@ namespace Ink.UnityIntegration {
 			foreach(InkFile inkFile in InkLibrary.instance.inkLibrary) {
 				inkFile.FindIncludedFiles();
 			}
-			foreach(var masterFile in masterFilesAffected) {
-				var masterInkFile = InkLibrary.GetInkFileWithFile(masterFile);
-				if(masterInkFile != null && InkSettings.instance.ShouldCompileInkFileAutomatically(masterInkFile)) {
+			foreach(var masterInkFile in masterFilesAffected) {
+				if(InkSettings.instance.ShouldCompileInkFileAutomatically(masterInkFile)) {
 					InkCompiler.CompileInk(masterInkFile);
 				}
 			}
@@ -124,12 +123,17 @@ namespace Ink.UnityIntegration {
 					};
 				} else {
 					if (string.IsNullOrEmpty(AssetDatabase.ValidateMoveAsset(jsonAssetPath, newPath))) {
-						AssetDatabase.MoveAsset(jsonAssetPath, newPath);
-						AssetDatabase.ImportAsset(newPath);
-						AssetDatabase.Refresh();
-						Debug.Log(jsonAssetPath+" to "+newPath);
+						Debug.Assert(newPath==inkFile.jsonPath);
+						EditorApplication.delayCall += () => {
+							AssetDatabase.MoveAsset(jsonAssetPath, newPath);
+							AssetDatabase.ImportAsset(newPath);
+							AssetDatabase.Refresh();
+							inkFile.FindCompiledJSONAsset();
+						};
+						// Debug.Log(jsonAssetPath+" to "+newPath);
 					} else {
-						Debug.Log($"Failed to move asset from path '{jsonAssetPath}' to '{newPath}'.");
+						// This will fire if the JSON file is also moved with the ink - in this case the json file will be in movedAssets.
+						// Debug.Log($"Failed to move asset from path '{jsonAssetPath}' to '{newPath}'.");
 					}
 				}
 			}
