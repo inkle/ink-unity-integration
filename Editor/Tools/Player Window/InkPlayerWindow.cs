@@ -844,7 +844,6 @@ namespace Ink.UnityIntegration {
 
 		static void PlayInternal () {
 			story = new Story(storyJSON);
-			story.allowExternalFunctionFallbacks = true;
 		}
 
 		// Loads the story, ready to be played
@@ -883,6 +882,7 @@ namespace Ink.UnityIntegration {
 
 
 		static void OnSetStory () {
+			_story.allowExternalFunctionFallbacks = true;
 			_story.onDidContinue += OnDidContinue;
 			_story.onMakeChoice += OnMakeChoice;
 			_story.onEvaluateFunction += OnEvaluateFunction;
@@ -927,6 +927,7 @@ namespace Ink.UnityIntegration {
 
 		static void PingAutomator () {
 			if(playerParams.disablePlayControls) return;
+			if(story == null) return;
             if(story.canContinue && playerOptions.continueAutomatically) {
 				TryContinue();
 			} else if(story.currentChoices.Count > 0 && playerOptions.chooseAutomatically) { 
