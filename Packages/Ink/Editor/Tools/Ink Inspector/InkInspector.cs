@@ -30,7 +30,7 @@ namespace Ink.UnityIntegration {
 			GUILayout.Space(19f);
 			GUILayout.BeginHorizontal();
 
-			GUILayoutUtility.GetRect(10f, 10f, 16f, 16f, EditorStyles.layerMaskField);
+			GUILayoutUtility.GetRect(10f, 10f, 16f, 35f, EditorStyles.layerMaskField);
 			GUILayout.FlexibleSpace();
 
 			EditorGUI.BeginDisabledGroup(inkFile == null);
@@ -98,7 +98,7 @@ namespace Ink.UnityIntegration {
 
 		void CreateIncludeList () {
 			List<DefaultAsset> includeTextAssets = inkFile.includes;
-			includesFileList = new ReorderableList(includeTextAssets, typeof(DefaultAsset), false, false, false, false);
+			includesFileList = new ReorderableList(includeTextAssets, typeof(DefaultAsset), false, true, false, false);
 			includesFileList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "Included Files");
 			};
@@ -137,7 +137,7 @@ namespace Ink.UnityIntegration {
 
 		void CreateMastersList () {
 			List<DefaultAsset> mastersTextAssets = inkFile.masterInkAssets;
-			mastersFileList = new ReorderableList(mastersTextAssets, typeof(DefaultAsset), false, false, false, false);
+			mastersFileList = new ReorderableList(mastersTextAssets, typeof(DefaultAsset), false, true, false, false);
 			mastersFileList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "Master Files");
 			};
@@ -192,11 +192,11 @@ namespace Ink.UnityIntegration {
 		}
 
 		void CreateErrorList () {
-			errorList = new ReorderableList(inkFile.errors, typeof(string), false, false, false, false);
-			errorList.elementHeight = 18;
+			errorList = new ReorderableList(inkFile.errors, typeof(string), false, true, false, false);
 			errorList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, new GUIContent(InkBrowserIcons.errorIcon), new GUIContent("Errors"));
 			};
+			errorList.elementHeight = 18;
 			errorList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
 				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
 				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
@@ -205,13 +205,13 @@ namespace Ink.UnityIntegration {
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
 				if(GUI.Button(buttonRect, openLabel)) {
-					OpenInEditor(inkFile.filePath, log.lineNumber);
+					InkEditorUtils.OpenInEditor(inkFile, log);
 				}
 			};
 		}
 
 		void CreateWarningList () {
-			warningList = new ReorderableList(inkFile.warnings, typeof(string), false, false, false, false);
+			warningList = new ReorderableList(inkFile.warnings, typeof(string), false, true, false, false);
 			warningList.elementHeight = 18;
 			warningList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, new GUIContent(InkBrowserIcons.warningIcon), new GUIContent("Warnings"));
@@ -224,13 +224,13 @@ namespace Ink.UnityIntegration {
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
 				if(GUI.Button(buttonRect, openLabel)) {
-					OpenInEditor(inkFile.filePath, log.lineNumber);
+					InkEditorUtils.OpenInEditor(inkFile, log);
 				}
 			};
 		}
 
 		void CreateTodoList () {
-			todosList = new ReorderableList(inkFile.todos, typeof(string), false, false, false, false);
+			todosList = new ReorderableList(inkFile.todos, typeof(string), false, true, false, false);
 			todosList.elementHeight = 18;
 			todosList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "To do");
@@ -243,21 +243,19 @@ namespace Ink.UnityIntegration {
 				GUI.Label(labelRect, label);
 				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
 				if(GUI.Button(buttonRect, openLabel)) {
-					OpenInEditor(inkFile.filePath, log.lineNumber);
+					InkEditorUtils.OpenInEditor(inkFile, log);
 				}
 			};
 		}
 
-		static void OpenInEditor (string filePath, int lineNumber) {
-			#if UNITY_2019_1_OR_NEWER
-			// This function replaces OpenFileAtLineExternal, but I guess it's totally internal and can't be accessed.
-			// CodeEditorUtility.Editor.Current.OpenProject(filePath, lineNumber);
-			#pragma warning disable
-			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(filePath, lineNumber);
-			#pragma warning restore
-			#else
-			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(filePath, lineNumber);
-			#endif
+		public static void DrawLayoutInkLine (InkFile inkFile, int lineNumber, string label) {
+			GUILayout.BeginHorizontal();
+			GUILayout.Label(label);
+			string openLabel = "Open"+ (lineNumber == -1 ? "" : " ("+lineNumber+")");
+			if(GUILayout.Button(openLabel, GUILayout.Width(80))) {
+				InkEditorUtils.OpenInEditor(inkFile.filePath, null, lineNumber);
+			}
+			GUILayout.EndHorizontal();
 		}
 
 		public override void OnInspectorGUI () {
@@ -272,12 +270,27 @@ namespace Ink.UnityIntegration {
 				return;
 			}
 
-			if(InkCompiler.GetCompilationStackItem(inkFile) != null) {
+			if(InkCompiler.IsInkFileOnCompilationStack(inkFile)) {
 				EditorGUILayout.HelpBox("File is compiling...", MessageType.Info);
 				return;
 			}
 			
-			if(inkFile.isMaster) {
+			if(!inkFile.isMaster) {
+				EditorGUI.BeginChangeCheck();
+				var newCompileAsIfMaster = EditorGUILayout.Toggle(new GUIContent("Compile As If Master File", "This file is included by another ink file. Typically, these files don't want to be compiled, but this option enables them to be for special purposes."), InkSettings.instance.includeFilesToCompileAsMasterFiles.Contains(inkFile.inkAsset));
+				if(EditorGUI.EndChangeCheck()) {
+					if(newCompileAsIfMaster) {
+						InkSettings.instance.includeFilesToCompileAsMasterFiles.Add(inkFile.inkAsset);
+						EditorUtility.SetDirty(InkSettings.instance);
+					} else {
+						InkSettings.instance.includeFilesToCompileAsMasterFiles.Remove(inkFile.inkAsset);
+						EditorUtility.SetDirty(InkSettings.instance);
+					}
+				}
+				EditorApplication.RepaintProjectWindow();
+			}
+
+			if(inkFile.compileAsMasterFile) {
 				DrawMasterFileHeader();
 				DrawEditAndCompileDates(inkFile);
 				if(inkFile.hasUnhandledCompileErrors) {
@@ -292,16 +305,17 @@ namespace Ink.UnityIntegration {
 				if(inkFile.requiresCompile && GUILayout.Button("Compile")) {
 					InkCompiler.CompileInk(inkFile);
 				}
-				DrawIncludedFiles();
 
 				DrawCompileErrors();
 				DrawErrors();
 				DrawWarnings();
 				DrawTODOList();
 			} else {
-				DrawSubFileHeader();
+				EditorGUILayout.LabelField("Include File", EditorStyles.boldLabel);
 			}
 
+			DrawListOfMasterFiles();
+			DrawIncludedFiles();
 			DrawFileContents ();
 			
 
@@ -309,9 +323,20 @@ namespace Ink.UnityIntegration {
 		}
 
 		void DrawMasterFileHeader () {
-			EditorGUILayout.LabelField("Master File", EditorStyles.boldLabel);
-			if(!InkSettings.instance.compileAutomatically) {
-				inkFile.compileAutomatically = EditorGUILayout.Toggle("Compile Automatially", inkFile.compileAutomatically);
+			if(inkFile.isMaster) EditorGUILayout.LabelField("Master File", EditorStyles.boldLabel);
+			if(!inkFile.isMaster) EditorGUILayout.LabelField("Include treated as Master", EditorStyles.boldLabel);
+			if(!InkSettings.instance.compileAllFilesAutomatically) {
+				EditorGUI.BeginChangeCheck();
+				var newCompileAutomatically = EditorGUILayout.Toggle(new GUIContent("Compile Automatially", "If true, this file recompiles automatically when any changes are detected."), InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile));
+				if(EditorGUI.EndChangeCheck()) {
+					if(newCompileAutomatically) {
+						InkSettings.instance.filesToCompileAutomatically.Add(inkFile.inkAsset);
+						EditorUtility.SetDirty(InkSettings.instance);
+					} else {
+						InkSettings.instance.filesToCompileAutomatically.Remove(inkFile.inkAsset);
+						EditorUtility.SetDirty(InkSettings.instance);
+					}
+				}
 				EditorApplication.RepaintProjectWindow();
 			}
 			EditorGUI.BeginDisabledGroup(true);
@@ -335,8 +360,7 @@ namespace Ink.UnityIntegration {
 //				}
 		}
 
-		void DrawSubFileHeader() {
-			EditorGUILayout.LabelField("Include File", EditorStyles.boldLabel);
+		void DrawListOfMasterFiles() {
 			if(mastersFileList != null && mastersFileList.count > 0) {
 				mastersFileList.DoLayoutList();
 			}

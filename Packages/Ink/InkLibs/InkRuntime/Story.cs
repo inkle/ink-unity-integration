@@ -300,7 +300,10 @@ namespace Ink.Runtime
             ResetGlobals ();
         }
 
-        void ResetErrors()
+        /// <summary>
+        /// Reset the runtime error and warning list within the state.
+        /// </summary>
+        public void ResetErrors()
         {
             _state.ResetErrors ();
         }
@@ -1790,7 +1793,18 @@ namespace Ink.Runtime
         /// </summary>
         public bool allowExternalFunctionFallbacks { get; set; }
 
-        public void CallExternalFunction(string funcName, int numberOfArguments)
+        public bool TryGetExternalFunction(string functionName, out ExternalFunction externalFunction) {
+            ExternalFunctionDef externalFunctionDef;
+            if(_externals.TryGetValue (functionName, out externalFunctionDef)) {
+                externalFunction = externalFunctionDef.function;
+                return true;
+            } else {
+                externalFunction = null;
+                return false;
+            }
+        }
+
+        private void CallExternalFunction(string funcName, int numberOfArguments)
         {
             ExternalFunctionDef funcDef;
             Container fallbackFunctionContainer = null;

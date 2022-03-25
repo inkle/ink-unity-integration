@@ -164,7 +164,7 @@ namespace Ink.UnityIntegration {
 					GUI.DrawTexture(new Rect(rect.x, rect.y, unknownFileIcon.width, unknownFileIcon.height), unknownFileIcon);
 				}
 			} else {
-				if(!InkSettings.instance.compileAutomatically && !inkFile.compileAutomatically && inkFile.isMaster)
+				if(inkFile.isMaster && !InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile))
 					GUI.DrawTexture(new Rect(rect.x, rect.y + rect.size.y * 0.5f, rect.size.x * 0.5f, rect.size.y * 0.5f), manualIcon);
 
 				Rect miniRect = new Rect(rect.center, rect.size * 0.5f);

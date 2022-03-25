@@ -1,19 +1,21 @@
 using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
 using Debug = UnityEngine.Debug;
 
 /// <summary>
 /// Holds a reference to an InkFile object for every .ink file detected in the Assets folder.
 /// Provides helper functions to easily obtain these files.
+/// ScriptableSingleton doesn't reload when the backing file changes, which means if you pull changes via source control you need to make unity recompile before it'll load the change.
 /// </summary>
 namespace Ink.UnityIntegration {
-    #if UNITY_2020_1_OR_NEWER
-    [FilePath("ProjectSettings/InkSettings.asset", FilePathAttribute.Location.ProjectFolder)]
-	public class InkSettings : ScriptableSingleton<InkSettings> {
-    #else
+    // #if UNITY_2020_1_OR_NEWER
+    // [FilePath("ProjectSettings/InkSettings.asset", FilePathAttribute.Location.ProjectFolder)]
+	// public class InkSettings : ScriptableSingleton<InkSettings> {
+    // #else
 	public class InkSettings : ScriptableObject {
-    #endif
-        #if !UNITY_2020_1_OR_NEWER
+    // #endif
+        // #if !UNITY_2020_1_OR_NEWER
 		public static bool created {
 			get {
                 // If it's null, there's just no InkSettings asset in the project
@@ -51,11 +53,7 @@ namespace Ink.UnityIntegration {
 				_instance = value;
 			}
 		}
-        #else
-		public static void SaveStatic (bool saveAsText) {
-			instance.Save(saveAsText);
-		}
-        #endif
+		// #endif
 
         public class AssetSaver : UnityEditor.AssetModificationProcessor {
             static string[] OnWillSaveAssets(string[] paths) {
@@ -76,8 +74,10 @@ namespace Ink.UnityIntegration {
 
 
         public DefaultAsset defaultJsonAssetPath;
-
-        public bool compileAutomatically = true;
+		[UnityEngine.Serialization.FormerlySerializedAs("compileAutomatically")]
+        public bool compileAllFilesAutomatically = true;
+        public List<DefaultAsset> includeFilesToCompileAsMasterFiles = new List<DefaultAsset>();
+        public List<DefaultAsset> filesToCompileAutomatically = new List<DefaultAsset>();
 		public bool delayInPlayMode = true;
 		public bool handleJSONFilesAutomatically = true;
 
@@ -96,8 +96,26 @@ namespace Ink.UnityIntegration {
 		}
 		#endif
         
-		// Deletes the persistent version of this asset that we used to use prior to 0.9.71
+		public bool ShouldCompileInkFileAutomatically (InkFile inkFile) {
+			return compileAllFilesAutomatically || (inkFile.compileAsMasterFile && filesToCompileAutomatically.Contains(inkFile.inkAsset));
+		}
+
+		
 		void OnEnable () {
+			// Validate the includeFilesToCompileAsMasterFiles list.
+            for (int i = includeFilesToCompileAsMasterFiles.Count - 1; i >= 0; i--) {
+                if(includeFilesToCompileAsMasterFiles[i] == null) {
+					includeFilesToCompileAsMasterFiles.RemoveAt(i);
+					Debug.LogError("REMOVE "+includeFilesToCompileAsMasterFiles.Count);
+				}
+            }
+			// Validate the filesToCompileAutomatically list.
+            for (int i = filesToCompileAutomatically.Count - 1; i >= 0; i--) {
+                if(filesToCompileAutomatically[i] == null) {
+					filesToCompileAutomatically.RemoveAt(i);
+				}
+            }
+			// Deletes the persistent version of this asset that we used to use prior to 0.9.71
 			if(!Application.isPlaying && EditorUtility.IsPersistent(this)) {
 				var path = AssetDatabase.GetAssetPath(this);
 				if(!string.IsNullOrEmpty(path)) {

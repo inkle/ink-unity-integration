@@ -11,8 +11,8 @@ namespace Ink.UnityIntegration {
 	// Helper class for ink files that maintains INCLUDE connections between ink files
 	[System.Serializable]
 	public class InkFile {
-		
-		public bool compileAutomatically = false;
+		public bool compileAsMasterFile => isMaster || InkSettings.instance.includeFilesToCompileAsMasterFiles.Contains(inkAsset);
+		public bool compileAutomatically => InkSettings.instance.filesToCompileAutomatically.Contains(inkAsset);
 		// A reference to the ink file
 		public DefaultAsset inkAsset;
 
@@ -122,8 +122,8 @@ namespace Ink.UnityIntegration {
 
 		public bool requiresCompile {
 			get {
-				if(!isMaster) return false;
-				return jsonAsset == null || lastEditDate > lastCompileDate || hasUnhandledCompileErrors;
+				if(!compileAsMasterFile) return false;
+				return jsonAsset == null || hasUnhandledCompileErrors || lastEditDate > lastCompileDate;
 			}
 		}
 
@@ -133,7 +133,10 @@ namespace Ink.UnityIntegration {
 		/// <value>The last compile date of the story.</value>
 		public DateTime lastCompileDate {
 			get {
-				if(isMaster) {
+				if(compileAsMasterFile) {
+					if(jsonAsset == null)
+						return default(DateTime);
+				
 					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(jsonAsset));
 					return File.GetLastWriteTime(fullJSONFilePath);
 				} else {
@@ -153,7 +156,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		// File that contains this file as an include, if one exists.
-		public List<DefaultAsset> parents;
+		public List<DefaultAsset> parents = new List<DefaultAsset>();
 		public IEnumerable<InkFile> parentInkFiles {
 			get {
 				if(parents != null && parents.Count != 0) {
@@ -170,13 +173,11 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		public List<DefaultAsset> masterInkAssets;
+		public List<DefaultAsset> masterInkAssets = new List<DefaultAsset>();
 		public IEnumerable<InkFile> masterInkFiles {
 			get {
-				if(masterInkAssets != null && masterInkAssets.Count != 0) {
-					foreach(var masterInkAsset in masterInkAssets) {
-						yield return InkLibrary.GetInkFileWithFile(masterInkAsset);
-					}
+				foreach(var masterInkAsset in masterInkAssets) {
+					yield return InkLibrary.GetInkFileWithFile(masterInkAsset);
 				}
 			}
 		}
@@ -190,12 +191,11 @@ namespace Ink.UnityIntegration {
 				}
 			}
 		}
-		public DefaultAsset masterInkAsset;
 
 		// Is this ink file a master file?
 		public bool isMaster {
 			get {
-				return masterInkAssets == null || masterInkAssets.Count == 0;
+				return masterInkAssets.Count == 0;
 			}
 		}
 		
@@ -241,6 +241,7 @@ namespace Ink.UnityIntegration {
 			this.inkAsset = inkAsset;
 			
 			ParseContent();
+			// Should we run FindCompiledJSONAsset here?
 		}
 
 		public void FindCompiledJSONAsset () {
@@ -266,6 +267,8 @@ namespace Ink.UnityIntegration {
 			return File.ReadAllText(absoluteFilePath);
 		}
 
+		// Parses the ink file to get any info we need.
+		// Currently this only scans for includePaths, which are later used by FindIncludedFiles.
 		public void ParseContent () {
 			includePaths.Clear();
 			includePaths.AddRange(InkIncludeParser.ParseIncludes(GetFileContents()));

@@ -26,7 +26,7 @@ namespace Ink.UnityIntegration {
 			GUILayout.FlexibleSpace();
 
 
-            EditorGUI.BeginDisabledGroup(InkCompiler.compiling);
+            EditorGUI.BeginDisabledGroup(InkCompiler.executingCompilationStack);
 			if (GUILayout.Button(new GUIContent("Rebuild Library", "Rebuilds the ink library. Do this if you're getting unusual errors"), EditorStyles.miniButton)) {
 				InkLibrary.Rebuild();
 			}
@@ -54,23 +54,13 @@ namespace Ink.UnityIntegration {
 		public override void OnInspectorGUI() {
 			serializedObject.Update();
 
-			EditorGUI.BeginDisabledGroup(InkCompiler.compiling);
+			EditorGUI.BeginDisabledGroup(InkCompiler.executingCompilationStack);
 			if (GUILayout.Button(new GUIContent("Rebuild Library", "Rebuilds the ink library. Do this if you're getting unusual errors"), EditorStyles.miniButton)) {
 				InkLibrary.Rebuild();
 			}
 			EditorGUI.EndDisabledGroup();
 
-			EditorGUILayout.Toggle("HasLockedUnityCompilation", InkCompiler.hasLockedUnityCompilation);
-			if(GUILayout.Button("Unlock")) {
-				EditorApplication.UnlockReloadAssemblies();
-			}
-			#if UNITY_2019_4_OR_NEWER
-			if(GUILayout.Button("AllowAutoRefresh")) {
-				AssetDatabase.AllowAutoRefresh();
-			}
-			#endif
-
-			if(InkCompiler.compiling) {
+			if(InkCompiler.executingCompilationStack) {
 				Rect r = EditorGUILayout.BeginVertical();
 				EditorGUI.ProgressBar(r, InkCompiler.GetEstimatedCompilationProgress(), "Compiling...");
 				GUILayout.Space(EditorGUIUtility.singleLineHeight);
@@ -89,7 +79,7 @@ namespace Ink.UnityIntegration {
 					EditorGUILayout.HelpBox("All Ink files marked to compile automatically are compiled", MessageType.Info);
 				}
 			}
-			EditorGUI.BeginDisabledGroup(InkCompiler.compiling);
+			EditorGUI.BeginDisabledGroup(InkCompiler.executingCompilationStack);
 			if (GUILayout.Button(new GUIContent("Recompile All", "Recompiles all files marked to compile automatically."))) {
 				InkEditorUtils.RecompileAll();
 			}
@@ -108,13 +98,8 @@ namespace Ink.UnityIntegration {
 
 			EditorGUI.BeginDisabledGroup(true);
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("inkLibrary"), true);
-			EditorGUILayout.PropertyField(serializedObject.FindProperty("pendingCompilationStack"), true);
-			EditorGUILayout.PropertyField(serializedObject.FindProperty("compilationStack"), true);
 			EditorGUI.EndDisabledGroup();
 			
-            if (GUILayout.Button(new GUIContent("Clear Compilation Stacks"))) {
-                InkCompiler.ClearCompilationStacks();
-            }
 			if(GUI.changed && target != null)         
 				EditorUtility.SetDirty(target);
 			serializedObject.ApplyModifiedProperties();

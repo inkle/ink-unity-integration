@@ -14,7 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   templateFile: {fileID: 0}
   defaultJsonAssetPath: {fileID: 0}
-  compileAutomatically: 1
+  compileAllFilesAutomatically: 0
+  includeFilesToCompileAsMasterFiles: []
+  filesToCompileAutomatically:
+  - {fileID: 102900000, guid: 3e5ed74be0cff49df988d051cb893be0, type: 3}
+  - {fileID: 102900000, guid: 5233dd6e01e0a4e92b7a73ce190d89ef, type: 3}
+  - {fileID: 102900000, guid: f2d117f0c0de84db2bbaeb8b290cdb3f, type: 3}
   delayInPlayMode: 1
   handleJSONFilesAutomatically: 1
   compileTimeout: 30
