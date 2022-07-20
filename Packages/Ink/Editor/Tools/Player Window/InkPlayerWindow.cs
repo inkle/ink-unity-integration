@@ -1006,7 +1006,9 @@ namespace Ink.UnityIntegration {
 				storyName = storyJSONTextAsset.name;
 			}
 
-			storyStateTextAsset = InkEditorUtils.CreateStoryStateTextFile(storyStateJSON, dirPath, storyName+"_SaveState");
+			var newStateAsset = InkEditorUtils.CreateStoryStateTextFile(storyStateJSON, dirPath, storyName+"_SaveState");
+			if(!playerParams.disableStateLoading)
+				storyStateTextAsset = newStateAsset;
 		}
 
 		static void LoadStoryState (string storyStateJSON) {
@@ -1853,7 +1855,7 @@ namespace Ink.UnityIntegration {
 			}
 			EditorGUI.BeginDisabledGroup(GUIUtility.systemCopyBuffer == currentStateJSON);
 			if (GUILayout.Button("Copy To Clipboard")) {
-				GUIUtility.systemCopyBuffer = currentStateJSON;
+				GUIUtility.systemCopyBuffer = InkEditorUtils.FormatJson(currentStateJSON);
 			}
 			EditorGUI.EndDisabledGroup();
 			if (GUILayout.Button("Save As...")) {
