@@ -147,17 +147,22 @@ namespace Ink.UnityIntegration {
 		}
 
 		public static TextAsset CreateStoryStateTextFile (string jsonStoryState, string defaultPath = "Assets/Ink", string defaultName = "storyState") {
-			string name = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(defaultPath, defaultName+".json")).Substring(defaultPath.Length+1);
+			string name = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(defaultPath, defaultName+".json"));
+			if(!string.IsNullOrEmpty(defaultPath)) name = name.Substring(defaultPath.Length+1);
 			string fullPathName = EditorUtility.SaveFilePanel("Save Story State", defaultPath, name, "json");
 			if(fullPathName == "") 
 				return null;
 			using (StreamWriter outfile = new StreamWriter(fullPathName)) {
 				outfile.Write(jsonStoryState);
 			}
-			string relativePath = AbsoluteToUnityRelativePath(fullPathName);
-			AssetDatabase.ImportAsset(relativePath);
-			TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(relativePath);
-			return textAsset;
+			
+			if(fullPathName.StartsWith(Application.dataPath)) {
+				string relativePath = AbsoluteToUnityRelativePath(fullPathName);
+				AssetDatabase.ImportAsset(relativePath);
+				TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(relativePath);
+				return textAsset;
+			}
+			else return null;
 		}
 
 		public static bool StoryContainsVariables (Story story) {
@@ -305,6 +310,29 @@ namespace Ink.UnityIntegration {
 			#else
 			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(masterFilePath, lineNumber);
 			#endif
+		}
+
+
+
+
+		public static string FormatJson(string json) {
+			const string INDENT_STRING = "	";
+
+			int indentation = 0;
+			int quoteCount = 0;
+			var result = 
+				from ch in json
+				let quotes = ch == '"' ? quoteCount++ : quoteCount
+				let lineBreak = ch == ',' && quotes % 2 == 0 ? ch + Environment.NewLine +  String.Concat(Enumerable.Repeat(INDENT_STRING, indentation)) : null
+				let openChar = ch == '{' || ch == '[' ? ch + Environment.NewLine + String.Concat(Enumerable.Repeat(INDENT_STRING, ++indentation)) : ch.ToString()
+				let closeChar = ch == '}' || ch == ']' ? Environment.NewLine + String.Concat(Enumerable.Repeat(INDENT_STRING, --indentation)) + ch : ch.ToString()
+				select lineBreak == null    
+							? openChar.Length > 1 
+								? openChar 
+								: closeChar
+							: lineBreak;
+
+			return String.Concat(result);
 		}
 	}
 }
