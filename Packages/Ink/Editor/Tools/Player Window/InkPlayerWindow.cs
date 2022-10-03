@@ -1828,6 +1828,11 @@ namespace Ink.UnityIntegration {
 			else EditorGUILayout.LabelField("(Always blank when story.canContinue is false)");
 			EditorGUILayout.EndHorizontal();
 
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.PrefixLabel("Current Container Path String");
+			EditorGUILayout.LabelField(story.state.currentContainerPathString);
+			EditorGUILayout.EndHorizontal();
+
 			GUILayout.EndVertical();
 		}
 		#endregion
