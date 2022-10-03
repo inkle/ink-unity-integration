@@ -70,7 +70,8 @@ namespace Ink.UnityIntegration {
 			InkCompiler.OnCompileInk -= OnCompileInk;
 		}
 
-		void OnCompileInk (InkFile inkFile) {
+		void OnCompileInk (InkFile[] inkFiles) {
+			// We could probably be smarter about when we rebuild - only rebuilding if the file that's shown in the inspector is in the list - but it's not frequent or expensive so it's not important!
 			Rebuild();
 		}
 
