@@ -14,26 +14,35 @@ This Unity package allows you to integrate inkle's [ink narrative scripting lang
 
 # Getting started
 
-## :inbox_tray: Downloading the package
+## :inbox_tray: Installation
+There are 4 different ways to install this plugin:
 
-### :star:As a UPM Package (Recommended):star:
-* Navigate to [OpenUPM](https://openupm.com/packages/com.inklestudios.ink-unity-integration/) and click "Get installer.unitypackage".
-* Open the downloaded file. The installer will do the rest!
-* The project will have installed at Packages > Ink Unity Integration.
-* Demo projects can be imported from Packages > Ink Unity Integration > Examples
-
-### As a .UnityPackage
+### :star:As a .UnityPackage:star:
 This will import the source into your Assets folder. This is a good option if you intend to edit the source for your own needs.
 * [Download the latest .UnityPackage](https://github.com/inkle/ink-unity-integration/releases).
 * Open the downloaded file to import it into your Unity project.
+
+### From GitHub
+* You can clone/download/fork the project on [GitHub](https://github.com/inkle/ink-unity-integration).
+* The easiest way to download it is to click the green Code button and select Download ZIP
+* Install by moving the folder Packages/Ink to anywhere in your Unity project's Assets folder
+
+### As a UPM Package
+<!---
+To add once we've set this up.
+#### Via Package Manager
+* Add the following line to Packages/manifest.json:
+`"com.inkle.ink-unity-integration": "https://github.com/inkle/com.inkle.ink-unity-integration.git"`
+-->
+#### OpenUPM
+* Navigate to [OpenUPM](https://openupm.com/packages/com.inklestudios.ink-unity-integration/) and follow their instructions
+* The project will have installed at Packages > Ink Unity Integration.
+* Demo projects can be imported from Packages > Ink Unity Integration > Examples
 
 ### Via the Asset Store
 For convinience a .UnityPackage is hosted at the [Unity Asset Store](https://assetstore.unity.com/packages/tools/integration/ink-unity-integration-60055).
 **This version is updated rarely, and so is not recommended.**
 This will import the source into your Assets folder. This is a good option if you intend to edit the source for your own needs.
-
-### From GitHub
-You can fork the project on [GitHub](https://github.com/inkle/ink-unity-integration).
 
 
 
