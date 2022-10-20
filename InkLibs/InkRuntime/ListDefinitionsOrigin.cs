@@ -43,8 +43,7 @@ namespace Ink.Runtime
         public ListValue FindSingleItemListWithName (string name)
         {
 			ListValue val = null;
-            if (!string.IsNullOrWhiteSpace(name))
-			    _allUnambiguousListValueCache.TryGetValue(name, out val);
+			_allUnambiguousListValueCache.TryGetValue(name, out val);
 			return val;
         }
 
