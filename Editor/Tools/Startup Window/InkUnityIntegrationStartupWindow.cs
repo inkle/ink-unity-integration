@@ -71,7 +71,18 @@ namespace Ink.UnityIntegration {
 			{
 				scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 				{
-                    // 1.0.2
+					
+					// 1.1.1
+					EditorGUILayout.BeginVertical(GUI.skin.box);
+					EditorGUILayout.LabelField("Updates ink to 1.1.1.", EditorStyles.boldLabel);
+					EditorGUILayout.LabelField("The InkCompiler.OnCompileInk event now fires once when the compilation stack completes and returns an array of compiled files", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("Fixes some async threading issues when compiling", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("Adds JSON formatting for save states copied or saved via the Ink Player Window", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("Use the Unity Progress API to show compilation. Useful for large ink projects!", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("Included files now show their own included files in the Inspector", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("Various optimisations", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.EndVertical();
+					// 1.0.2
 					EditorGUILayout.BeginVertical(GUI.skin.box);
 					EditorGUILayout.LabelField("Version 1.0.2:", EditorStyles.boldLabel);
 					EditorGUILayout.LabelField("• Fix a very rare but quite nasty compilation bug.", EditorStyles.wordWrappedLabel);
