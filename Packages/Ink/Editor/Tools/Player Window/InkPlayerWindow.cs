@@ -1770,7 +1770,19 @@ namespace Ink.UnityIntegration {
 				EditorGUI.BeginDisabledGroup(playerOptions.chooseAutomatically);
 				foreach(Choice choice in story.currentChoices) {
 					GUILayout.BeginHorizontal();
-					if(GUILayout.Button(new GUIContent(choice.text.Trim(), "Index: "+choice.index.ToString()+"\nSourcePath: "+choice.sourcePath.Trim()))) {
+					StringBuilder sb = new StringBuilder();
+					sb.Append("Index: ");
+					sb.AppendLine(choice.index.ToString());
+					sb.Append("Tags: ");
+					for (var index = 0; index < choice.tags.Count; index++) {
+						var tag = choice.tags[index];
+						sb.Append(tag);
+						if (index < choice.tags.Count - 1) sb.Append(", ");
+						else sb.AppendLine();
+					}
+					sb.Append("SourcePath: ");
+					sb.Append(choice.sourcePath.Trim());
+					if(GUILayout.Button(new GUIContent(choice.text.Trim(), sb.ToString()))) {
 						MakeChoice(choice);
 					}
 					GUILayout.EndHorizontal();
