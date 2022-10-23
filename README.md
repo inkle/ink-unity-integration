@@ -22,22 +22,20 @@ This will import the source into your Assets folder. This is a good option if yo
 * [Download the latest .UnityPackage](https://github.com/inkle/ink-unity-integration/releases).
 * Open the downloaded file to import it into your Unity project.
 
-### From GitHub
-* You can clone/download/fork the project on [GitHub](https://github.com/inkle/ink-unity-integration).
-* The easiest way to download it is to click the green Code button and select Download ZIP
-* Install by moving the folder Packages/Ink to anywhere in your Unity project's Assets folder
-
 ### As a UPM Package
-<!---
-To add once we've set this up.
+Installing via a package allows you to easily update via Unity's Package Manager window. This is best if you don't need to edit the source.
 #### Via Package Manager
-* Add the following line to Packages/manifest.json:
+* Add the following line to PROJECT ROOT/Packages/manifest.json:
 `"com.inkle.ink-unity-integration": "https://github.com/inkle/com.inkle.ink-unity-integration.git"`
--->
 #### OpenUPM
 * Navigate to [OpenUPM](https://openupm.com/packages/com.inklestudios.ink-unity-integration/) and follow their instructions
 * The project will have installed at Packages > Ink Unity Integration.
 * Demo projects can be imported from Packages > Ink Unity Integration > Examples
+
+### From GitHub
+* You can clone/download/fork the project on [GitHub](https://github.com/inkle/ink-unity-integration).
+* The easiest way to download it is to click the green Code button and select Download ZIP
+* Install by moving the folder Packages/Ink to anywhere in your Unity project's Assets folder
 
 ### Via the Asset Store
 For convinience a .UnityPackage is hosted at the [Unity Asset Store](https://assetstore.unity.com/packages/tools/integration/ink-unity-integration-60055).
