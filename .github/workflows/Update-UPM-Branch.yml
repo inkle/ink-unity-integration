@@ -23,3 +23,4 @@ jobs:
         with:
           git-tag: ${{ steps.tag.outputs.name }}
           pkg-root-dir-path: Packages/Ink
+          samples-dir: Packages/Ink/Demos
