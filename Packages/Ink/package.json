@@ -1,7 +1,7 @@
 {
   "name": "com.inklestudios.ink-unity-integration",
   "version": "1.1.1",
-  "displayName": "Ink Unity Integration",
+  "displayName": "Ink",
   "description": "Unity integration for the open source ink narrative scripting language.",
   "unity": "2018.4",
   "keywords": [
