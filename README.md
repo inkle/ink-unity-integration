@@ -24,13 +24,15 @@ This will import the source into your Assets folder. This is a good option if yo
 
 ### As a UPM Package
 Installing via a package allows you to easily update via Unity's Package Manager window. This is best if you don't need to edit the source.
+* When installed via UPM, demo projects can be imported from Packages > Ink Unity Integration > Demos
+
 #### Via Package Manager
 * Add the following line to PROJECT ROOT/Packages/manifest.json:
 `"com.inkle.ink-unity-integration": "https://github.com/inkle/com.inkle.ink-unity-integration.git"`
 #### OpenUPM
 * Navigate to [OpenUPM](https://openupm.com/packages/com.inklestudios.ink-unity-integration/) and follow their instructions
 * The project will have installed at Packages > Ink Unity Integration.
-* Demo projects can be imported from Packages > Ink Unity Integration > Examples
+
 
 ### From GitHub
 * You can clone/download/fork the project on [GitHub](https://github.com/inkle/ink-unity-integration).
@@ -47,7 +49,7 @@ This will import the source into your Assets folder. This is a good option if yo
 ## :video_game: Demos
 This project includes a demo scene, providing a simple example of how to control an ink story with C# code using Unity UI.
 
-(If you imported this package as a UPM (recommended), then you must first import the demos from Packages > Ink Unity Integration > Examples)
+(If you imported this package as a UPM, then you must first import the demos from Packages > Ink Unity Integration > Demos)
 
 To run a demo, double-click the scene file at the root of the demo folder to open it, and press the Play button at the top of the screen to start it.
 
