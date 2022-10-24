@@ -22,22 +22,22 @@ This will import the source into your Assets folder. This is a good option if yo
 * [Download the latest .UnityPackage](https://github.com/inkle/ink-unity-integration/releases).
 * Open the downloaded file to import it into your Unity project.
 
+### As a UPM Package
+Installing via a package allows you to easily update via Unity's Package Manager window. This is best if you don't need to edit the source.
+* When installed via UPM, demo projects can be imported from Packages > Ink Unity Integration > Demos
+
+#### Via Package Manager
+* Add the following line to PROJECT ROOT/Packages/manifest.json:
+`"com.inkle.ink-unity-integration": "https://github.com/inkle/com.inkle.ink-unity-integration.git"`
+#### OpenUPM
+* Navigate to [OpenUPM](https://openupm.com/packages/com.inklestudios.ink-unity-integration/) and follow their instructions
+* The project will have installed at Packages > Ink Unity Integration.
+
+
 ### From GitHub
 * You can clone/download/fork the project on [GitHub](https://github.com/inkle/ink-unity-integration).
 * The easiest way to download it is to click the green Code button and select Download ZIP
 * Install by moving the folder Packages/Ink to anywhere in your Unity project's Assets folder
-
-### As a UPM Package
-<!---
-To add once we've set this up.
-#### Via Package Manager
-* Add the following line to Packages/manifest.json:
-`"com.inkle.ink-unity-integration": "https://github.com/inkle/com.inkle.ink-unity-integration.git"`
--->
-#### OpenUPM
-* Navigate to [OpenUPM](https://openupm.com/packages/com.inklestudios.ink-unity-integration/) and follow their instructions
-* The project will have installed at Packages > Ink Unity Integration.
-* Demo projects can be imported from Packages > Ink Unity Integration > Examples
 
 ### Via the Asset Store
 For convinience a .UnityPackage is hosted at the [Unity Asset Store](https://assetstore.unity.com/packages/tools/integration/ink-unity-integration-60055).
@@ -49,7 +49,7 @@ This will import the source into your Assets folder. This is a good option if yo
 ## :video_game: Demos
 This project includes a demo scene, providing a simple example of how to control an ink story with C# code using Unity UI.
 
-(If you imported this package as a UPM (recommended), then you must first import the demos from Packages > Ink Unity Integration > Examples)
+(If you imported this package as a UPM, then you must first import the demos from Packages > Ink Unity Integration > Demos)
 
 To run a demo, double-click the scene file at the root of the demo folder to open it, and press the Play button at the top of the screen to start it.
 
@@ -146,7 +146,8 @@ If your game doesn't require compiling ink at runtime we recommend adding a .asm
 
 * What versions of Unity are supported?
 
-  We officially support 2018 LTS and above, but it should work going back to at least Unity 5.
+  We support 2020 LTS and above.
+  Until version 1.1.1 we supported 2018 LTS, which should also work going back to at least Unity 5.
 
 # Support us!:heart:
 
@@ -156,12 +157,4 @@ If you're able to give back, generous donations at our [Patreon](https://www.pat
 # License
 
 **ink** and this package is released under the MIT license. Although we don't require attribution, we'd love to know if you decide to use **ink** a project! Let us know on [Twitter](http://www.twitter.com/inkleStudios) or [by email](mailto:info@inklestudios.com).
-
-### The MIT License (MIT)
-Copyright (c) 2016 inkle Ltd.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+View the full licence [Here](https://github.com/inkle/ink-unity-integration/blob/master/LICENCE.md)
