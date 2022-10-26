@@ -569,7 +569,8 @@ namespace Ink.UnityIntegration {
 			public List<string> expandedVariables = new List<string>();
 		}
 		public class ObservedVariablesPanelState : BaseStoryPanelState {
-			public List<string> observedVariableNames = new List<string>();
+			// The cache is used to restore observed variables when the user exits play mode.
+			public List<string> restorableObservedVariableNames = new List<string>();
 			public Dictionary<string, ObservedVariable> observedVariables = new Dictionary<string, ObservedVariable>();
 		}
 
@@ -871,7 +872,7 @@ namespace Ink.UnityIntegration {
 			_story.onCompleteEvaluateFunction -= OnCompleteEvaluateFunction;
 			_story.onChoosePathString -= OnChoosePathString;
 			_story.state.onDidLoadState -= OnLoadState;
-			foreach(var observedVariableName in InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames) {
+			foreach(var observedVariableName in InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames) {
 				UnobserveVariable(observedVariableName, false);
 			}
 			InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Clear();
@@ -902,9 +903,9 @@ namespace Ink.UnityIntegration {
 			}
 			
 			// Reobserve variables
-			var variablesToObserve = new List<string>(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames);
+			var variablesToObserve = new List<string>(InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames);
 			InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Clear();
-			InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Clear();
+			InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Clear();
 			foreach(var observedVariableName in variablesToObserve) {
 				if(_story.variablesState.Contains(observedVariableName)) {
 					var observedVariable = ObserveVariable(observedVariableName, true);
@@ -952,8 +953,14 @@ namespace Ink.UnityIntegration {
 			Stop();
 			if(storyJSONTextAsset != null)
 				Play(storyJSONTextAsset);
-			else
+			else if(storyJSON != null)
 				Play(storyJSON);
+			else
+				Debug.LogError("Can't restart because no text asset or cached JSON exists");
+		}
+
+		static bool CanRestart() {
+			return storyJSONTextAsset != null || storyJSON != null;
 		}
 		
 		static void ContinueStory () {
@@ -1143,7 +1150,7 @@ namespace Ink.UnityIntegration {
 						Play(storyJSONTextAsset);
 					}
 				}
-				if(storyJSONTextAsset != null && storyJSON != null) {
+				if(CanRestart()) {
 					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(storyJSONTextAsset));
 					var updatedStoryJSONLastEditDateTime = File.GetLastWriteTime(fullJSONFilePath);
 					if (currentStoryJSONLastEditDateTime != updatedStoryJSONLastEditDateTime ) {
@@ -1186,9 +1193,11 @@ namespace Ink.UnityIntegration {
 				if(GUILayout.Button(new GUIContent("Stop", stopIcon, "Stop the story"), EditorStyles.toolbarButton)) {
 					Stop();
 				}
+				EditorGUI.BeginDisabledGroup(!CanRestart());
 				if(GUILayout.Button(new GUIContent("Restart", restartIcon, "Restarts the story"), EditorStyles.toolbarButton)) {
 					Restart();
 				}
+				EditorGUI.EndDisabledGroup();
 				EditorGUI.EndDisabledGroup();
 			}
 
@@ -1770,7 +1779,23 @@ namespace Ink.UnityIntegration {
 				EditorGUI.BeginDisabledGroup(playerOptions.chooseAutomatically);
 				foreach(Choice choice in story.currentChoices) {
 					GUILayout.BeginHorizontal();
-					if(GUILayout.Button(new GUIContent(choice.text.Trim(), "Index: "+choice.index.ToString()+"\nSourcePath: "+choice.sourcePath.Trim()))) {
+					StringBuilder sb = new StringBuilder();
+					sb.Append("Index: ");
+					sb.AppendLine(choice.index.ToString());
+					sb.Append("Tags: ");
+					if (choice.tags == null) {
+						sb.Append("NONE");
+					} else {
+						for (var index = 0; index < choice.tags.Count; index++) {
+							var tag = choice.tags[index];
+							sb.Append(tag);
+							if (index < choice.tags.Count - 1) sb.Append(", ");
+							else sb.AppendLine();
+						}
+					}
+					sb.Append("SourcePath: ");
+					sb.Append(choice.sourcePath.Trim());
+					if(GUILayout.Button(new GUIContent(choice.text.Trim(), sb.ToString()))) {
 						MakeChoice(choice);
 					}
 					GUILayout.EndHorizontal();
@@ -2286,11 +2311,11 @@ namespace Ink.UnityIntegration {
             }
 
             if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.ContainsKey(variable)) {
-                if(GUILayout.Button(new GUIContent("<-", "Un-observe this variable"), GUILayout.Width(24))) {
+                if(GUILayout.Button(new GUIContent(unobserveIcon, "Un-observe this variable"), GUILayout.Width(24))) {
                     UnobserveVariable(variable, true);
                 }
             } else {
-                if(GUILayout.Button(new GUIContent("->", "Click to observe this variable, tracking changes"), GUILayout.Width(24))) {
+                if(GUILayout.Button(new GUIContent(observeIcon, "Click to observe this variable, tracking changes"), GUILayout.Width(24))) {
                     var observedVariable = ObserveVariable(variable, true);
                     observedVariable.AddValueState(variableValue);
                 }
@@ -2307,16 +2332,17 @@ namespace Ink.UnityIntegration {
 			story.ObserveVariable(variableName, observedVariable.variableObserver);
 			InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Add(variableName, observedVariable);
 			if(alsoAddToCache) {
-				InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Add(variableName);
-				if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count != InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Count) {
-					Debug.LogError(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count +" "+ InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Count);
-					InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Clear();
+				InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Add(variableName);
+				if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count != InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Count) {
+					Debug.LogError(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count +" "+ InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Count);
+					InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Clear();
 					InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Clear();
 				}
 			}
 			return observedVariable;
 		}
-
+		
+		// The cache is used to restore observed variables when the user exits play mode.
 		static void UnobserveVariable (string variableName, bool alsoRemoveFromCache) {
 			if(!InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.ContainsKey(variableName)) return;
 			
@@ -2324,10 +2350,10 @@ namespace Ink.UnityIntegration {
 			story.RemoveVariableObserver(observedVariable.variableObserver, variableName);
 			InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Remove(variableName);
 			if(alsoRemoveFromCache) {
-				InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Remove(variableName);
-				if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count != InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Count) {
-					Debug.LogError(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count +" "+ InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Count);
-					InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Clear();
+				InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Remove(variableName);
+				if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count != InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Count) {
+					Debug.LogError(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count +" "+ InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Count);
+					InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Clear();
 					InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Clear();
 				}
 			}
@@ -2426,7 +2452,7 @@ namespace Ink.UnityIntegration {
 		bool DrawObservedVariable (ObservedVariable observedVariable) {
 			GUILayout.BeginHorizontal();
 			observedVariable.expanded = EditorGUILayout.Foldout(observedVariable.expanded, observedVariable.variable, true);
-			if(GUILayout.Button("<-", GUILayout.Width(24))) {
+			if(GUILayout.Button(new GUIContent(unobserveIcon, "Un-observe this variable"), GUILayout.Width(24))) {
 				return true;
 			}
 			GUILayout.EndHorizontal();
@@ -2841,11 +2867,28 @@ namespace Ink.UnityIntegration {
 		static Texture _timeIntervalIcon;
 		static Texture timeIntervalIcon {
 			get {
-
 				if(_timeIntervalIcon == null) {
 					_timeIntervalIcon = EditorGUIUtility.IconContent("UnityEditor.AnimationWindow").image;
 				}
 				return _timeIntervalIcon;
+			}
+		}
+		static Texture _observeIcon;
+		static Texture observeIcon {
+			get {
+				if(_observeIcon == null) {
+					_observeIcon = EditorGUIUtility.IconContent("d_animationvisibilitytoggleon").image;
+				}
+				return _observeIcon;
+			}
+		}
+		static Texture _unobserveIcon;
+		static Texture unobserveIcon {
+			get {
+				if(_unobserveIcon == null) {
+					_unobserveIcon = EditorGUIUtility.IconContent("d_animationvisibilitytoggleoff").image;
+				}
+				return _unobserveIcon;
 			}
 		}
 	}
