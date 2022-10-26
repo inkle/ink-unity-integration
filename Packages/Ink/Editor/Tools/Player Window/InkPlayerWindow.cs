@@ -2297,11 +2297,11 @@ namespace Ink.UnityIntegration {
             }
 
             if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.ContainsKey(variable)) {
-                if(GUILayout.Button(new GUIContent("<-", "Un-observe this variable"), GUILayout.Width(24))) {
+                if(GUILayout.Button(new GUIContent(unobserveIcon, "Un-observe this variable"), GUILayout.Width(24))) {
                     UnobserveVariable(variable, true);
                 }
             } else {
-                if(GUILayout.Button(new GUIContent("->", "Click to observe this variable, tracking changes"), GUILayout.Width(24))) {
+                if(GUILayout.Button(new GUIContent(observeIcon, "Click to observe this variable, tracking changes"), GUILayout.Width(24))) {
                     var observedVariable = ObserveVariable(variable, true);
                     observedVariable.AddValueState(variableValue);
                 }
@@ -2437,7 +2437,7 @@ namespace Ink.UnityIntegration {
 		bool DrawObservedVariable (ObservedVariable observedVariable) {
 			GUILayout.BeginHorizontal();
 			observedVariable.expanded = EditorGUILayout.Foldout(observedVariable.expanded, observedVariable.variable, true);
-			if(GUILayout.Button("<-", GUILayout.Width(24))) {
+			if(GUILayout.Button(new GUIContent(unobserveIcon, "Un-observe this variable"), GUILayout.Width(24))) {
 				return true;
 			}
 			GUILayout.EndHorizontal();
@@ -2852,11 +2852,28 @@ namespace Ink.UnityIntegration {
 		static Texture _timeIntervalIcon;
 		static Texture timeIntervalIcon {
 			get {
-
 				if(_timeIntervalIcon == null) {
 					_timeIntervalIcon = EditorGUIUtility.IconContent("UnityEditor.AnimationWindow").image;
 				}
 				return _timeIntervalIcon;
+			}
+		}
+		static Texture _observeIcon;
+		static Texture observeIcon {
+			get {
+				if(_observeIcon == null) {
+					_observeIcon = EditorGUIUtility.IconContent("d_animationvisibilitytoggleon").image;
+				}
+				return _observeIcon;
+			}
+		}
+		static Texture _unobserveIcon;
+		static Texture unobserveIcon {
+			get {
+				if(_unobserveIcon == null) {
+					_unobserveIcon = EditorGUIUtility.IconContent("d_animationvisibilitytoggleoff").image;
+				}
+				return _unobserveIcon;
 			}
 		}
 	}
