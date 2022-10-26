@@ -569,7 +569,8 @@ namespace Ink.UnityIntegration {
 			public List<string> expandedVariables = new List<string>();
 		}
 		public class ObservedVariablesPanelState : BaseStoryPanelState {
-			public List<string> observedVariableNames = new List<string>();
+			// The cache is used to restore observed variables when the user exits play mode.
+			public List<string> restorableObservedVariableNames = new List<string>();
 			public Dictionary<string, ObservedVariable> observedVariables = new Dictionary<string, ObservedVariable>();
 		}
 
@@ -871,7 +872,7 @@ namespace Ink.UnityIntegration {
 			_story.onCompleteEvaluateFunction -= OnCompleteEvaluateFunction;
 			_story.onChoosePathString -= OnChoosePathString;
 			_story.state.onDidLoadState -= OnLoadState;
-			foreach(var observedVariableName in InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames) {
+			foreach(var observedVariableName in InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames) {
 				UnobserveVariable(observedVariableName, false);
 			}
 			InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Clear();
@@ -902,9 +903,9 @@ namespace Ink.UnityIntegration {
 			}
 			
 			// Reobserve variables
-			var variablesToObserve = new List<string>(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames);
+			var variablesToObserve = new List<string>(InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames);
 			InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Clear();
-			InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Clear();
+			InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Clear();
 			foreach(var observedVariableName in variablesToObserve) {
 				if(_story.variablesState.Contains(observedVariableName)) {
 					var observedVariable = ObserveVariable(observedVariableName, true);
@@ -2326,16 +2327,17 @@ namespace Ink.UnityIntegration {
 			story.ObserveVariable(variableName, observedVariable.variableObserver);
 			InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Add(variableName, observedVariable);
 			if(alsoAddToCache) {
-				InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Add(variableName);
-				if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count != InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Count) {
-					Debug.LogError(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count +" "+ InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Count);
-					InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Clear();
+				InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Add(variableName);
+				if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count != InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Count) {
+					Debug.LogError(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count +" "+ InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Count);
+					InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Clear();
 					InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Clear();
 				}
 			}
 			return observedVariable;
 		}
-
+		
+		// The cache is used to restore observed variables when the user exits play mode.
 		static void UnobserveVariable (string variableName, bool alsoRemoveFromCache) {
 			if(!InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.ContainsKey(variableName)) return;
 			
@@ -2343,10 +2345,10 @@ namespace Ink.UnityIntegration {
 			story.RemoveVariableObserver(observedVariable.variableObserver, variableName);
 			InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Remove(variableName);
 			if(alsoRemoveFromCache) {
-				InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Remove(variableName);
-				if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count != InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Count) {
-					Debug.LogError(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count +" "+ InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Count);
-					InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariableNames.Clear();
+				InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Remove(variableName);
+				if(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count != InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Count) {
+					Debug.LogError(InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Count +" "+ InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Count);
+					InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Clear();
 					InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Clear();
 				}
 			}
