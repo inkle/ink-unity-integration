@@ -952,8 +952,14 @@ namespace Ink.UnityIntegration {
 			Stop();
 			if(storyJSONTextAsset != null)
 				Play(storyJSONTextAsset);
-			else
+			else if(storyJSON != null)
 				Play(storyJSON);
+			else
+				Debug.LogError("Can't restart because no text asset or cached JSON exists");
+		}
+
+		static bool CanRestart() {
+			return storyJSONTextAsset != null || storyJSON != null;
 		}
 		
 		static void ContinueStory () {
@@ -1143,7 +1149,7 @@ namespace Ink.UnityIntegration {
 						Play(storyJSONTextAsset);
 					}
 				}
-				if(storyJSONTextAsset != null && storyJSON != null) {
+				if(CanRestart()) {
 					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(storyJSONTextAsset));
 					var updatedStoryJSONLastEditDateTime = File.GetLastWriteTime(fullJSONFilePath);
 					if (currentStoryJSONLastEditDateTime != updatedStoryJSONLastEditDateTime ) {
@@ -1186,9 +1192,11 @@ namespace Ink.UnityIntegration {
 				if(GUILayout.Button(new GUIContent("Stop", stopIcon, "Stop the story"), EditorStyles.toolbarButton)) {
 					Stop();
 				}
+				EditorGUI.BeginDisabledGroup(!CanRestart());
 				if(GUILayout.Button(new GUIContent("Restart", restartIcon, "Restarts the story"), EditorStyles.toolbarButton)) {
 					Restart();
 				}
+				EditorGUI.EndDisabledGroup();
 				EditorGUI.EndDisabledGroup();
 			}
 
