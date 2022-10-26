@@ -10,6 +10,7 @@ using System.Reflection;
 using UnityEditor.Compilation;
 #endif
 
+// Should be run to update files in the package folder from the root of the repo, and to create demo and release packages.
 public static class PublishingTools {
 	static string AssetsParentDirectory => Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
 	static string IntegrationPath => Path.GetFullPath(Path.Combine(AssetsParentDirectory, "Packages", "Ink"));
