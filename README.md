@@ -40,7 +40,8 @@ Installing via a package allows you to easily update via Unity's Package Manager
 * Install by moving the folder Packages/Ink to anywhere in your Unity project's Assets folder
 
 ### Via the Asset Store
-For convinience a .UnityPackage is hosted at the [Unity Asset Store](https://assetstore.unity.com/packages/tools/integration/ink-unity-integration-60055).
+
+onvinience a .UnityPackage is hosted at the [Unity Asset Store](https://assetstore.unity.com/packages/tools/integration/ink-unity-integration-60055).
 **This version is updated rarely, and so is not recommended.**
 This will import the source into your Assets folder. This is a good option if you intend to edit the source for your own needs.
 
@@ -55,11 +56,14 @@ To run a demo, double-click the scene file at the root of the demo folder to ope
 
 ## :page_facing_up: C# API
 The C# API provides all you need to control ink stories in code; advancing your story, making choices, diverting to knots, saving and loading, and much more.
-[It is documented in the main ink repo](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#getting-started-with-the-runtime-api)
+
+[It is documented in the main ink repo](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#getting-started-with-the-runtime-api).
+
 For convenience, the package also creates an (**Help > Ink > API Documentation**) menu option.
 
 ## :pencil2: Writing ink
 For more information on writing with **ink**, see [the documentation in the main ink repo](https://github.com/inkle/ink). 
+
 For convenience, the package also creates an (**Help > Ink > Writing Tutorial**) menu option.
 
 
