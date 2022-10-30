@@ -28,7 +28,7 @@ Installing via a package allows you to easily update via Unity's Package Manager
 
 #### Via Package Manager
 * Add the following line to PROJECT ROOT/Packages/manifest.json:
-`"com.inkle.ink-unity-integration": "https://github.com/inkle/com.inkle.ink-unity-integration.git"`
+`"com.inkle.ink-unity-integration": "https://github.com/inkle/ink-unity-integration.git#upm"`
 #### OpenUPM
 * Navigate to [OpenUPM](https://openupm.com/packages/com.inkle.ink-unity-integration/) and follow their instructions
 * The project will have installed at Packages > Ink Unity Integration.
