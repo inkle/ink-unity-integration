@@ -386,6 +386,8 @@ namespace Ink.UnityIntegration {
 			public NamedContentPanelState namedContentPanelState = new NamedContentPanelState();
 			public FunctionPanelState functionPanelState = new FunctionPanelState();
 			// public FunctionPanelState.FunctionParams functionParams = new FunctionPanelState.FunctionParams();
+			public BaseStoryPanelState callstackPanelState = new BaseStoryPanelState();
+			public BaseStoryPanelState flowsPanelState = new BaseStoryPanelState();
 			public VariablesPanelState variablesPanelState = new VariablesPanelState();
 			public ObservedVariablesPanelState observedVariablesPanelState = new ObservedVariablesPanelState();
 		}
@@ -562,7 +564,7 @@ namespace Ink.UnityIntegration {
 			public DateTime testedFunctionTime;
 			public object functionReturnValue = null;
 		}
-
+		
 		[System.Serializable]
 		public class VariablesPanelState : BaseStoryPanelState {
 			public string searchString = string.Empty;
@@ -1099,6 +1101,8 @@ namespace Ink.UnityIntegration {
 				// DrawDiverts();
 				DrawFunctions();
 				DrawVariables();
+				DrawCallstack();
+				DrawFlows();
 				InkPlayerWindowState.Save();
 			} else {
 				// EditorGUILayout.BeginVertical(GUILayout.Width(position.width * 0.6f));
@@ -1852,6 +1856,11 @@ namespace Ink.UnityIntegration {
 			if(story.canContinue) EditorGUILayout.LabelField(story.state.currentPathString);
 			else EditorGUILayout.LabelField("(Always blank when story.canContinue is false)");
 			EditorGUILayout.EndHorizontal();
+			
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.PrefixLabel("Callstack Trace");
+			EditorGUILayout.LabelField(story.state.callStack.callStackTrace, EditorStyles.wordWrappedLabel);
+			EditorGUILayout.EndHorizontal();
 
 			GUILayout.EndVertical();
 		}
@@ -1871,22 +1880,30 @@ namespace Ink.UnityIntegration {
 		static void DrawSaveLoadPanel () {
 			GUILayout.BeginVertical();
 
-			EditorGUILayout.BeginHorizontal();
-			string currentStateJSON = story.state.ToJson();
-			if(currentStateJSON.Length < 20000) {
-				EditorGUILayout.TextField("Current State JSON", currentStateJSON);
-			} else {
-				EditorGUILayout.TextField("Current State JSON", "Too long to display!");
+			try {
+				EditorGUILayout.BeginHorizontal();
+				string currentStateJSON = story.state.ToJson();
+
+				if (currentStateJSON.Length < 20000) {
+					EditorGUILayout.TextField("Current State JSON", currentStateJSON);
+				} else {
+					EditorGUILayout.TextField("Current State JSON", "Too long to display!");
+				}
+
+				EditorGUI.BeginDisabledGroup(GUIUtility.systemCopyBuffer == currentStateJSON);
+				if (GUILayout.Button("Copy To Clipboard")) {
+					GUIUtility.systemCopyBuffer = InkEditorUtils.FormatJson(currentStateJSON);
+				}
+
+				EditorGUI.EndDisabledGroup();
+				if (GUILayout.Button("Save As...")) {
+					SaveStoryState(currentStateJSON);
+				}
+
+				EditorGUILayout.EndHorizontal();
+			} catch {
+				EditorGUILayout.LabelField("Current State is invalid");
 			}
-			EditorGUI.BeginDisabledGroup(GUIUtility.systemCopyBuffer == currentStateJSON);
-			if (GUILayout.Button("Copy To Clipboard")) {
-				GUIUtility.systemCopyBuffer = InkEditorUtils.FormatJson(currentStateJSON);
-			}
-			EditorGUI.EndDisabledGroup();
-			if (GUILayout.Button("Save As...")) {
-				SaveStoryState(currentStateJSON);
-			}
-			EditorGUILayout.EndHorizontal();
 
 			EditorGUI.BeginDisabledGroup(playerParams.disableStateLoading);
 			EditorGUILayout.BeginHorizontal();
@@ -2230,7 +2247,91 @@ namespace Ink.UnityIntegration {
 		#endregion
 
 
+		#region Callstack
+		void DrawCallstack () {
+            EditorGUILayout.BeginVertical();
+			DrawCallstackHeader();
+			if(InkPlayerWindowState.Instance.callstackPanelState.showing)
+				DrawCallstackPanel ();
+			EditorGUILayout.EndVertical();
+		}
 
+		void DrawCallstackHeader () {
+			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+			InkPlayerWindowState.Instance.callstackPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.callstackPanelState.showing, "Callstack", true);
+			EditorGUILayout.EndHorizontal();
+		}
+
+		void DrawCallstackPanel () {
+			GUILayout.BeginVertical(GUI.skin.box, GUILayout.ExpandHeight(true));
+			InkPlayerWindowState.Instance.callstackPanelState.scrollPosition = EditorGUILayout.BeginScrollView(InkPlayerWindowState.Instance.callstackPanelState.scrollPosition);
+			StringBuilder sb = new StringBuilder();
+			for (var i = 0; i < story.state.callStack.elements.Count; i++) {
+				var callstackElement = story.state.callStack.elements[i];
+				// var index = callstackElement.evaluationStackHeightWhenPushed;
+				sb.Clear();
+				sb.Append(i.ToString());
+				sb.Append(": ");
+				for (var j = 0; j < i; j++) sb.Append('\t');
+				if (callstackElement.currentPointer.path != null) {
+					for (int c = 0; c < callstackElement.currentPointer.path.length; c++) {
+						var component = callstackElement.currentPointer.path.GetComponent(c);
+						if (!component.isIndex) {
+							if (callstackElement.currentPointer.path.head != null) {
+								if(c != 0)
+									sb.Append(".");
+								sb.Append(component.name);
+							}
+						} else {
+							break;
+						}
+					}
+					sb.Append(" ("+callstackElement.type+")");
+				} else if (!story.canContinue && i == story.state.callStack.elements.Count - 1) {
+					sb.Append("(Always blank when story.canContinue is false)");
+				}
+				EditorGUILayout.LabelField(sb.ToString());
+			}
+
+			EditorGUILayout.EndScrollView();
+			GUILayout.EndVertical();
+		}
+		#endregion
+		
+		
+		#region Flows
+		void DrawFlows () {
+			EditorGUILayout.BeginVertical();
+			DrawFlowsHeader();
+			if(InkPlayerWindowState.Instance.flowsPanelState.showing)
+				DrawFlowsPanel ();
+			EditorGUILayout.EndVertical();
+		}
+
+		void DrawFlowsHeader () {
+			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+			InkPlayerWindowState.Instance.flowsPanelState.showing = EditorGUILayout.Foldout(InkPlayerWindowState.Instance.flowsPanelState.showing, "Flows", true);
+			EditorGUILayout.EndHorizontal();
+		}
+
+		void DrawFlowsPanel () {
+			GUILayout.BeginVertical(GUI.skin.box, GUILayout.ExpandHeight(true));
+			InkPlayerWindowState.Instance.flowsPanelState.scrollPosition = EditorGUILayout.BeginScrollView(InkPlayerWindowState.Instance.flowsPanelState.scrollPosition);
+			foreach (var aliveFlowName in story.state.aliveFlowNames) {
+				var flowString = aliveFlowName;
+				if (story.state.currentFlowName == aliveFlowName) {
+					flowString += " (current)";
+					if (story.state.currentFlowIsDefaultFlow) {
+						flowString += " (default)";
+					}
+				}
+				EditorGUILayout.LabelField(flowString);
+			}
+			EditorGUILayout.EndScrollView();
+			GUILayout.EndVertical();
+		}
+		#endregion
+		
 		
 		#region Variables
 		void DrawVariables () {
