@@ -10,7 +10,7 @@ namespace Ink.UnityIntegration {
 
 		#pragma warning disable
 		protected InkLibrary data;
-		
+		public Vector2 scrollPosition;
 		public void OnEnable() {
 			data = (InkLibrary) target;
 		}
@@ -53,6 +53,7 @@ namespace Ink.UnityIntegration {
 
 		public override void OnInspectorGUI() {
 			serializedObject.Update();
+			scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
 			EditorGUI.BeginDisabledGroup(InkCompiler.executingCompilationStack);
 			if (GUILayout.Button(new GUIContent("Rebuild Library", "Rebuilds the ink library. Do this if you're getting unusual errors"), EditorStyles.miniButton)) {
@@ -94,12 +95,43 @@ namespace Ink.UnityIntegration {
                 }
             }
 
-			EditorGUI.EndDisabledGroup();
-
-			EditorGUI.BeginDisabledGroup(true);
-			EditorGUILayout.PropertyField(serializedObject.FindProperty("inkLibrary"), true);
-			EditorGUI.EndDisabledGroup();
+			DrawSerializedProperty(serializedObject.FindProperty("inkLibrary"));
 			
+			void DrawSerializedProperty (SerializedProperty _serializedProperty) {
+				var serializedProperty = _serializedProperty.Copy();
+				int startingDepth = serializedProperty.depth;
+				EditorGUI.indentLevel = startingDepth;
+				DrawPropertyField(serializedProperty);
+				while (serializedProperty.NextVisible(serializedProperty.isExpanded/* && !EditorGUIX.PropertyTypeHasDefaultCustomDrawer(serializedProperty.propertyType) */) && serializedProperty.depth > startingDepth) {
+					EditorGUI.indentLevel = serializedProperty.depth;
+					DrawPropertyField(serializedProperty);
+				}
+				EditorGUI.indentLevel = startingDepth;
+			}
+
+			void DrawPropertyField (SerializedProperty serializedProperty) {
+				if(serializedProperty.propertyType == SerializedPropertyType.Generic) {
+					if(serializedProperty.isArray) {
+						serializedProperty.isExpanded = EditorGUILayout.Foldout(serializedProperty.isExpanded, serializedProperty.displayName, true);
+					} else {
+						if(serializedProperty.type == "InkFile") {
+							var inkFile = serializedProperty.FindPropertyRelative("inkAsset");
+							if(inkFile.objectReferenceValue != null) serializedProperty.isExpanded = EditorGUILayout.Foldout(serializedProperty.isExpanded, inkFile.objectReferenceValue.name, true);
+							else {
+								EditorGUILayout.TextArea("MISSING!");
+								Debug.LogError("Ink file missing!");
+							}
+						} else {
+							serializedProperty.isExpanded = EditorGUILayout.Foldout(serializedProperty.isExpanded, serializedProperty.displayName, true);
+						}
+					}
+				} else {
+					EditorGUILayout.PropertyField(serializedProperty);
+				}
+			}
+
+			EditorGUILayout.EndScrollView();
+
 			if(GUI.changed && target != null)         
 				EditorUtility.SetDirty(target);
 			serializedObject.ApplyModifiedProperties();
