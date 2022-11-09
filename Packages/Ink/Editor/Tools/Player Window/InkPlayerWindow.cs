@@ -1784,7 +1784,7 @@ namespace Ink.UnityIntegration {
 					sb.AppendLine(choice.index.ToString());
 					sb.Append("Tags: ");
 					if (choice.tags == null) {
-						sb.Append("NONE");
+						sb.AppendLine("NONE");
 					} else {
 						for (var index = 0; index < choice.tags.Count; index++) {
 							var tag = choice.tags[index];
