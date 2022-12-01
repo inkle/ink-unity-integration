@@ -24,3 +24,4 @@ MonoBehaviour:
   handleJSONFilesAutomatically: 1
   compileTimeout: 30
   printInkLogsInConsoleOnCompile: 0
+  suppressStartupWindow: 0
