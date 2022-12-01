@@ -133,6 +133,11 @@ namespace Ink.UnityIntegration {
 			Application.OpenURL("https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md");
 		}
 
+		[MenuItem("Help/Ink/Discord (Community + Support...")]
+		public static void OpenDiscord() {
+			Application.OpenURL("https://discord.gg/inkle");
+		}
+
 		[MenuItem("Help/Ink/Donate...")]
 		public static void Donate() {
 			Application.OpenURL("https://www.patreon.com/inkle");
