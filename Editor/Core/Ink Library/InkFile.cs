@@ -51,7 +51,7 @@ namespace Ink.UnityIntegration {
         public string jsonPath {
 			get {
                 var _filePath = filePath;
-                Debug.Assert(_filePath != null, "File path for ink file is null! The ink library requires rebuilding.");
+                Debug.Assert(!string.IsNullOrEmpty(_filePath), "File path for ink file is null! The ink library requires rebuilding. Asset: "+inkAsset);
 
                 DefaultAsset jsonFolder = jsonAssetDirectory;
                 if (jsonFolder == null) // no path specified for this specific file
@@ -69,9 +69,10 @@ namespace Ink.UnityIntegration {
                     }
                 }
 
-                Debug.Assert(jsonFolder != null, "JSON folder not found for ink file at path "+_filePath);
+                Debug.Assert(jsonFolder != null, "JSON folder not found for ink file at path. File Path: "+_filePath+". Asset: "+inkAsset);
 
                 string jsonPath = AssetDatabase.GetAssetPath(jsonFolder);
+                Debug.Assert(Directory.Exists(jsonPath), "JSON folder path is not a directory! Json Path: "+jsonPath+". Asset: "+inkAsset);
                 string strJsonAssetPath = InkEditorUtils.CombinePaths(jsonPath, Path.GetFileNameWithoutExtension(_filePath)) + ".json";
                 return strJsonAssetPath;
 			}
