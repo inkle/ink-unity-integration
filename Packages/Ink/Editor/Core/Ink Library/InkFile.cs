@@ -199,11 +199,17 @@ namespace Ink.UnityIntegration {
 				return masterInkAssets.Count == 0;
 			}
 		}
-		
 
+
+		// public IEnumerable<string> includePathsOfAllChildren {
+		// 	get {
+		// 		return includesInkFiles
+		// 	}
+		// }
 		// The files included by this file
 		// We cache the paths of the files to be included for performance, giving us more freedom to refresh the actual includes list without needing to parse all the text.
 		public List<string> includePaths = new List<string>();
+		public List<string> heirarchyIncludePaths = new List<string>();
 		public List<DefaultAsset> includes = new List<DefaultAsset>();
 		// The InkFiles of the includes of this file
 		public List<InkFile> includesInkFiles {
@@ -273,18 +279,20 @@ namespace Ink.UnityIntegration {
 		public void ParseContent () {
 			includePaths.Clear();
 			includePaths.AddRange(InkIncludeParser.ParseIncludes(GetFileContents()));
+			heirarchyIncludePaths.Clear();
+			heirarchyIncludePaths.AddRange(InkIncludeParser.ParseIncludes(GetFileContents()));
 		}
 
 		public void FindIncludedFiles (bool addMissing = false) {
 			includes.Clear();
-			foreach(string includePath in includePaths) {
+			foreach(string includePath in heirarchyIncludePaths) {
 				string localIncludePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(filePath), includePath);
 				// This enables parsing ..\ and the like. Can we use Path.GetFullPath instead?
 				var fullIncludePath = new FileInfo(localIncludePath).FullName;
 				localIncludePath = InkEditorUtils.AbsoluteToUnityRelativePath(fullIncludePath);
 				DefaultAsset includedInkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
 				if(includedInkFileAsset == null) {
-					Debug.LogError(filePath+ " expected child .ink asset at '"+localIncludePath+"' but file was not found.", inkAsset);
+					// Debug.LogError(filePath+ " expected child .ink asset at '"+localIncludePath+"' but file was not found.", inkAsset);
 				} else {
 					InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileAsset, addMissing);
 					if(includedInkFile == null) {

@@ -12,6 +12,7 @@ namespace Ink.UnityIntegration {
 
 		private InkFile inkFile;
 		private ReorderableList includesFileList;
+		private ReorderableList parentsFileList;
 		private ReorderableList mastersFileList;
 		private ReorderableList errorList;
 		private ReorderableList warningList;
@@ -85,6 +86,9 @@ namespace Ink.UnityIntegration {
 			if (inkFile.includes.Count > 0) CreateIncludeList ();
 			else includesFileList = null;
 
+			if (inkFile.parents.Count > 0) CreateParentsList ();
+			else parentsFileList = null;
+			
 			if (inkFile.masterInkAssets.Count > 0) CreateMastersList ();
 			else mastersFileList = null;
 
@@ -136,6 +140,45 @@ namespace Ink.UnityIntegration {
 			};
 		}
 
+		void CreateParentsList () {
+			List<DefaultAsset> parentsTextAssets = inkFile.parents;
+			parentsFileList = new ReorderableList(parentsTextAssets, typeof(DefaultAsset), false, true, false, false);
+			parentsFileList.drawHeaderCallback = (Rect rect) => {  
+				EditorGUI.LabelField(rect, "Parent Files");
+			};
+			parentsFileList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
+				DefaultAsset parentAssetFile = ((List<DefaultAsset>)parentsFileList.list)[index];
+				if(parentAssetFile == null) {
+					Debug.LogError("Ink file in parents list is null. This should never occur. Use Assets > Recompile Ink to fix this issue.");
+					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File in parents list is null. Use Assets > Recompile Ink to fix this issue."));
+					return;
+				}
+				InkFile parentInkFile = InkLibrary.GetInkFileWithFile(parentAssetFile);
+				if(parentInkFile == null) {
+					Debug.LogError("Ink File for parent file "+parentAssetFile+" not found. This should never occur. Use Assets > Recompile Ink to fix this issue.");
+					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File for parent file "+parentAssetFile+" not found. Use Assets > Recompile Ink to fix this issue."));
+					return;
+				}
+				Rect iconRect = new Rect(rect.x, rect.y, 0, 16);
+				if(parentInkFile.hasErrors || parentInkFile.hasWarnings) {
+					iconRect.width = 20;
+				}
+				Rect objectFieldRect = new Rect(iconRect.xMax, rect.y, rect.width - iconRect.width - 80, 16);
+				Rect selectRect = new Rect(objectFieldRect.xMax, rect.y, 80, 16);
+				if(parentInkFile.hasErrors) {
+					EditorGUI.LabelField(iconRect, new GUIContent(InkBrowserIcons.errorIcon));
+				} else if(parentInkFile.hasWarnings) {
+					EditorGUI.LabelField(iconRect, new GUIContent(InkBrowserIcons.warningIcon));
+				}
+				EditorGUI.BeginDisabledGroup(true);
+				EditorGUI.ObjectField(objectFieldRect, parentAssetFile, typeof(Object), false);
+				EditorGUI.EndDisabledGroup();
+				if(GUI.Button(selectRect, "Select")) {
+					Selection.activeObject = parentAssetFile;
+				}
+			};
+		}
+		
 		void CreateMastersList () {
 			List<DefaultAsset> mastersTextAssets = inkFile.masterInkAssets;
 			mastersFileList = new ReorderableList(mastersTextAssets, typeof(DefaultAsset), false, true, false, false);
@@ -271,6 +314,11 @@ namespace Ink.UnityIntegration {
 				return;
 			}
 
+			if(GUILayout.Button("TEst")) {
+				// InkCompiler.CompileInk(inkFile.masterInkFilesIncludingSelf.ToArray());
+				InkLibrary.RebuildInkFileConnections();
+			}
+			
 			if(InkCompiler.IsInkFileOnCompilationStack(inkFile)) {
 				EditorGUILayout.HelpBox("File is compiling...", MessageType.Info);
 				return;
@@ -315,6 +363,7 @@ namespace Ink.UnityIntegration {
 				EditorGUILayout.LabelField("Include File", EditorStyles.boldLabel);
 			}
 
+			DrawListOfParentFiles();
 			DrawListOfMasterFiles();
 			DrawIncludedFiles();
 			DrawFileContents ();
@@ -361,6 +410,12 @@ namespace Ink.UnityIntegration {
 //				}
 		}
 
+		void DrawListOfParentFiles() {
+			if(parentsFileList != null && parentsFileList.count > 0) {
+				parentsFileList.DoLayoutList();
+			}
+		}
+		
 		void DrawListOfMasterFiles() {
 			if(mastersFileList != null && mastersFileList.count > 0) {
 				mastersFileList.DoLayoutList();

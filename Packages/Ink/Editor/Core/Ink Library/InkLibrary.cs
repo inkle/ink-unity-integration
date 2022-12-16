@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
+using NUnit.Framework;
 using Debug = UnityEngine.Debug;
 
 /// <summary>
@@ -447,6 +448,12 @@ namespace Ink.UnityIntegration {
 		/// Rebuilds which files are master files and the connections between the files.
 		/// </summary>
 		public static void RebuildInkFileConnections () {
+			// INCLUDE is always relative to the master file. This means that every file should be assumed to be a master file until proven otherwise.
+			// This implementation is fairly good but has been gradually developed to allow for more complex structures, and probably wants redoing.
+			// The new implementation should traverse from each file downwards using INCLUDE file paths, using the original file as the source path when dealing with nested INCLUDES.
+			// Since not all of the files are guaranteed to be master files, we don't assert that the files actually exist at this time.
+			// Once this is done we can determine which files are master files, and then assert that any INCLUDED files actually exist.
+			
 			// Clone it because InkFile.FindIncludedFiles calls InkLibrary.GetInkFileWithFile which can cause new files to be added to the ink library.
 			var tempImmutableInkLibrary = new List<InkFile>(instance.inkLibrary);
 			foreach (InkFile inkFile in tempImmutableInkLibrary) {
@@ -456,7 +463,8 @@ namespace Ink.UnityIntegration {
 				inkFile.masterInkAssets.Clear();
 				// Gets the paths of the files to include
 				inkFile.ParseContent();
-				// Finds and adds include files from those paths
+				// Finds and adds include files from those paths.
+				// This may only find files successfully if the ink file is a master file or if the files are in the same heiararcy
 				inkFile.FindIncludedFiles(true);
 			}
 
@@ -478,22 +486,46 @@ namespace Ink.UnityIntegration {
 			// Next, we create a list of all the files owned by the actual master file, which we obtain by travelling up the parent tree from each file.
 			var masterChildRelationships = new Dictionary<InkFile, List<InkFile>>();
 			foreach (InkFile inkFile in instance.inkLibrary) {
-				foreach(var parentInkFile in inkFile.parentInkFiles) {
-					InkFile lastMasterInkFile = parentInkFile;
-					InkFile masterInkFile = parentInkFile;
-					while (masterInkFile.parents.Count != 0) {
-						// This shouldn't just pick first, but iterate the whole lot! 
-						// I didn't feel like writing a recursive algorithm until it's actually needed though - a file included by several parents is already a rare enough case!
-						masterInkFile = masterInkFile.parentInkFiles.First();
-						lastMasterInkFile = masterInkFile;
-					}
-					if(lastMasterInkFile.parents.Count > 1) {
-						Debug.LogError("The ink ownership tree has another master file that is not discovered! This is an oversight of the current implementation. If you requres this feature, please take a look at the comment in the code above - if you solve it let us know and we'll merge it in!");
-					}
-					if(!masterChildRelationships.ContainsKey(masterInkFile)) {
-						masterChildRelationships.Add(masterInkFile, new List<InkFile>());
-					}
+				List<InkFile> masterInkFiles = new List<InkFile>();
+				GetMasterFiles(inkFile, masterInkFiles);
+				foreach (var masterInkFile in masterInkFiles) {
+					if(!masterChildRelationships.ContainsKey(masterInkFile)) masterChildRelationships.Add(masterInkFile, new List<InkFile>());
 					masterChildRelationships[masterInkFile].Add(inkFile);
+				}
+				// foreach(var parentInkFile in inkFile.parentInkFiles) {
+				// 	InkFile lastMasterInkFile = parentInkFile;
+				// 	InkFile masterInkFile = parentInkFile;
+				// 	while (masterInkFile.parents.Count != 0) {
+				// 		// This shouldn't just pick first, but iterate the whole lot! 
+				// 		// I didn't feel like writing a recursive algorithm until it's actually needed though - a file included by several parents is already a rare enough case!
+				// 		masterInkFile = masterInkFile.parentInkFiles.First();
+				// 		lastMasterInkFile = masterInkFile;
+				// 	}
+				// 	if(lastMasterInkFile.parents.Count > 1) {
+				// 		Debug.LogError("The ink ownership tree has another master file that is not discovered! This is an oversight of the current implementation. If you requres this feature, please take a look at the comment in the code above - if you solve it let us know and we'll merge it in!");
+				// 	}
+				// 	if(!masterChildRelationships.ContainsKey(masterInkFile)) {
+				// 		masterChildRelationships.Add(masterInkFile, new List<InkFile>());
+				// 	}
+				// 	masterChildRelationships[masterInkFile].Add(inkFile);
+				// }
+				
+				// Traverses from the file upwards to all parents until it reaches files without parents (master files) or files marked to compile as if they were master files. 
+				void GetMasterFiles(InkFile currentFile, List<InkFile> currentMasterFiles, List<InkFile> traversedFiles = null) {
+					if (traversedFiles == null) traversedFiles = new List<InkFile>();
+					if (traversedFiles.Contains(currentFile)) {
+						Debug.LogError("Recursive INCLUDE detected "+currentFile.absoluteFilePath);
+						return;
+					}
+					traversedFiles.Add(currentFile);
+					
+					if (currentFile.inkAsset.name == "Sub Child 1") {
+						Debug.Log("HERE");
+					}
+					foreach(var parentInkFile in currentFile.parentInkFiles) {
+						if(parentInkFile.parents.Count == 0 || parentInkFile.compileAsMasterFile) currentMasterFiles.Add(parentInkFile);
+						GetMasterFiles(parentInkFile, currentMasterFiles, traversedFiles);
+					}
 				}
 
 				// if(inkFile.parent == null) 
@@ -510,6 +542,10 @@ namespace Ink.UnityIntegration {
 			// Finally, we set the master file of the children
 			foreach (var inkFileRelationship in masterChildRelationships) {
 				foreach(InkFile childInkFile in inkFileRelationship.Value) {
+					foreach (var includePath in childInkFile.includePaths) {
+						if(!inkFileRelationship.Key.heirarchyIncludePaths.Contains(includePath))
+							inkFileRelationship.Key.heirarchyIncludePaths.Add(includePath);
+					}
 					if(!childInkFile.masterInkAssets.Contains(inkFileRelationship.Key.inkAsset)) {
 						childInkFile.masterInkAssets.Add(inkFileRelationship.Key.inkAsset);
 					} else {
@@ -521,6 +557,12 @@ namespace Ink.UnityIntegration {
 						childInkFile.jsonAsset = null;
 					}
 				}
+			}
+			
+			
+
+			foreach (InkFile inkFile in tempImmutableInkLibrary) {
+				inkFile.FindIncludedFiles(true);
 			}
 		}
 	}
