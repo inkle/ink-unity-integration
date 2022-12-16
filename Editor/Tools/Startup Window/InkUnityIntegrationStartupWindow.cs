@@ -75,12 +75,13 @@ namespace Ink.UnityIntegration {
 			{
 				scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 				{
-					// 1.1.4
+					// 1.1.5
 					EditorGUILayout.BeginVertical(GUI.skin.box);
-					EditorGUILayout.LabelField("Version 1.1.4:", EditorStyles.boldLabel);
+					EditorGUILayout.LabelField("Version 1.1.5:", EditorStyles.boldLabel);
 					EditorGUILayout.LabelField("• Adds InkSettings.suppressStartupWindow, which can be used to prevent this window from appearing (requested for some CI/CD pipelines).", EditorStyles.wordWrappedLabel);
 					EditorGUILayout.LabelField("• Adds links to Discord for community support in help menu, startup window and setting menu.", EditorStyles.wordWrappedLabel);
 					EditorGUILayout.LabelField("• Fixes an issue where InkSettings ScriptableObjects wouldn't be unloaded.", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Updates build documentation for this plugin.", EditorStyles.wordWrappedLabel);
 					EditorGUILayout.EndVertical();
 					// 1.1.1
 					EditorGUILayout.BeginVertical(GUI.skin.box);
