@@ -149,7 +149,7 @@ namespace Ink.UnityIntegration {
 				} else if(inkFile.hasTodos && todoIcon != null) {
 					GUI.DrawTexture(miniRect, todoIcon);
 				}
-				if(!inkFile.isMaster && childIcon != null) {
+				if(inkFile.isIncludeFile && childIcon != null) {
 					GUI.DrawTexture(new Rect(rect.x, rect.y, rect.width * 0.5f, rect.height * 0.5f), childIconLarge);
 				}
 			}
@@ -164,18 +164,23 @@ namespace Ink.UnityIntegration {
 					GUI.DrawTexture(new Rect(rect.x, rect.y, unknownFileIcon.width, unknownFileIcon.height), unknownFileIcon);
 				}
 			} else {
-				if(inkFile.isMaster && !InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile))
-					GUI.DrawTexture(new Rect(rect.x, rect.y + rect.size.y * 0.5f, rect.size.x * 0.5f, rect.size.y * 0.5f), manualIcon);
-
-				Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
-				if(inkFile.hasErrors && errorIcon != null) {
-					GUI.DrawTexture(miniRect, errorIcon);
-				} else if(inkFile.hasWarnings && warningIcon != null) {
-					GUI.DrawTexture(miniRect, warningIcon);
-				} else if(inkFile.hasTodos && todoIcon != null) {
-					GUI.DrawTexture(miniRect, todoIcon);
+				if (inkFile.isMaster) {
+					if (!InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile)) {
+						GUI.DrawTexture(new Rect(rect.x, rect.y + rect.size.y * 0.5f, rect.size.x * 0.5f, rect.size.y * 0.5f), manualIcon);
+						
+					}
+					
+					Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
+					if(inkFile.hasErrors && errorIcon != null) {
+						GUI.DrawTexture(miniRect, errorIcon);
+					} else if(inkFile.hasWarnings && warningIcon != null) {
+						GUI.DrawTexture(miniRect, warningIcon);
+					} else if(inkFile.hasTodos && todoIcon != null) {
+						GUI.DrawTexture(miniRect, todoIcon);
+					}
 				}
-				if(!inkFile.isMaster && childIcon != null) {
+
+				if(inkFile.isIncludeFile && childIcon != null) {
 					GUI.DrawTexture(new Rect(rect.x, rect.y, childIcon.width, childIcon.height), childIcon);
 				}
 			}

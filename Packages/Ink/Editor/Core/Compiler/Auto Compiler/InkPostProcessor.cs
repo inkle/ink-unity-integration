@@ -57,7 +57,7 @@ namespace Ink.UnityIntegration {
 				// If this file was deleted...
 				if(inkFile.inkAsset == null) {
 					// Mark the master files to be recompiled (note that those files might also have been deleted)
-					if(!inkFile.compileAsMasterFile) {
+					if(!inkFile.isMaster) {
 						foreach(var masterInkAsset in inkFile.masterInkAssets) {
 							if(masterInkAsset != null) {
 								var masterInkFile = InkLibrary.GetInkFileWithFile(masterInkAsset);
@@ -79,9 +79,8 @@ namespace Ink.UnityIntegration {
 			}
 
 			// After deleting files, we might have broken some include references, so we rebuild them. There's probably a faster way to do this, or we could probably just remove any null references, but this is a bit more robust.
-			foreach(InkFile inkFile in InkLibrary.instance.inkLibrary) {
-				inkFile.FindIncludedFiles();
-			}
+			InkLibrary.RebuildInkFileConnections();
+			
 			foreach(var masterInkFile in masterFilesAffected) {
 				if(InkSettings.instance.ShouldCompileInkFileAutomatically(masterInkFile)) {
 					InkCompiler.CompileInk(masterInkFile);
@@ -155,7 +154,7 @@ namespace Ink.UnityIntegration {
 
                 // If rebuilding connections caused a file that was previously considered a master file to no longer be, then we remove it.
 				for (int i = filesToCompile.Count - 1; i >= 0; i--)
-                    if(!filesToCompile[i].compileAsMasterFile) 
+                    if(!filesToCompile[i].isMaster) 
 						filesToCompile.RemoveAt(i);
 
 				// Add the new file to be recompiled

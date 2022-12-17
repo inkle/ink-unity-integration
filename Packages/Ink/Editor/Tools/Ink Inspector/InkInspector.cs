@@ -51,7 +51,7 @@ namespace Ink.UnityIntegration {
 			Rect childIconRect = new Rect(iconRect.x, iconRect.y, 16f, 16f);
 			if(inkFile == null) {
 				GUI.DrawTexture(childIconRect, InkBrowserIcons.unknownFileIcon, ScaleMode.ScaleToFit);
-			} else if(!inkFile.isMaster) {
+			} else if(inkFile.isIncludeFile) {
 				GUI.DrawTexture(childIconRect, InkBrowserIcons.childIconLarge, ScaleMode.ScaleToFit);
 			}
 
@@ -88,9 +88,10 @@ namespace Ink.UnityIntegration {
 			if (inkFile.masterInkAssets.Count > 0) CreateMastersList ();
 			else mastersFileList = null;
 
-			CreateErrorList();
-			CreateWarningList();
-			CreateTodoList();
+			errorList = CreateErrorList();
+			warningList = CreateWarningList();
+			todosList = CreateTodoList();
+			
 			cachedTrimmedFileContents = inkFile.GetFileContents();
 			cachedTrimmedFileContents = cachedTrimmedFileContents.Substring(0, Mathf.Min(cachedTrimmedFileContents.Length, maxCharacters));
 			if(cachedTrimmedFileContents.Length >= maxCharacters)
@@ -135,7 +136,7 @@ namespace Ink.UnityIntegration {
 				}
 			};
 		}
-
+		
 		void CreateMastersList () {
 			List<DefaultAsset> mastersTextAssets = inkFile.masterInkAssets;
 			mastersFileList = new ReorderableList(mastersTextAssets, typeof(DefaultAsset), false, true, false, false);
@@ -192,61 +193,57 @@ namespace Ink.UnityIntegration {
 			};
 		}
 
-		void CreateErrorList () {
-			errorList = new ReorderableList(inkFile.errors, typeof(string), false, true, false, false);
-			errorList.drawHeaderCallback = (Rect rect) => {  
+		ReorderableList CreateErrorList () {
+			var reorderableList = new ReorderableList(inkFile.errors, typeof(string), false, true, false, false);
+			reorderableList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, new GUIContent(InkBrowserIcons.errorIcon), new GUIContent("Errors"));
 			};
-			errorList.elementHeight = 18;
-			errorList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
-				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
-				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
-				InkCompilerLog log = ((List<InkCompilerLog>)errorList.list)[index];
-				string label = log.content;
-				GUI.Label(labelRect, label);
-				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
-				if(GUI.Button(buttonRect, openLabel)) {
-					InkEditorUtils.OpenInEditor(inkFile, log);
-				}
-			};
+			reorderableList.elementHeight = 26;
+			reorderableList.drawElementCallback = (rect, index, isActive, isFocused) => DrawLogItem(rect, index, isActive, isFocused, (List<InkCompilerLog>)reorderableList.list);
+			return reorderableList;
 		}
 
-		void CreateWarningList () {
-			warningList = new ReorderableList(inkFile.warnings, typeof(string), false, true, false, false);
-			warningList.elementHeight = 18;
-			warningList.drawHeaderCallback = (Rect rect) => {  
+		ReorderableList CreateWarningList () {
+			var reorderableList = new ReorderableList(inkFile.warnings, typeof(string), false, true, false, false);
+			reorderableList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, new GUIContent(InkBrowserIcons.warningIcon), new GUIContent("Warnings"));
 			};
-			warningList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
-				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
-				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
-				InkCompilerLog log = ((List<InkCompilerLog>)warningList.list)[index];
-				string label = log.content;
-				GUI.Label(labelRect, label);
-				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
-				if(GUI.Button(buttonRect, openLabel)) {
-					InkEditorUtils.OpenInEditor(inkFile, log);
-				}
-			};
+			reorderableList.elementHeight = 26;
+			reorderableList.drawElementCallback = (rect, index, isActive, isFocused) => DrawLogItem(rect, index, isActive, isFocused, (List<InkCompilerLog>)reorderableList.list);
+			return reorderableList;
 		}
 
-		void CreateTodoList () {
-			todosList = new ReorderableList(inkFile.todos, typeof(string), false, true, false, false);
-			todosList.elementHeight = 18;
-			todosList.drawHeaderCallback = (Rect rect) => {  
+		ReorderableList CreateTodoList () {
+			var reorderableList = new ReorderableList(inkFile.todos, typeof(string), false, true, false, false);
+			reorderableList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "To do");
 			};
-			todosList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
-				Rect labelRect = new Rect(rect.x, rect.y, rect.width - 80, rect.height);
-				Rect buttonRect = new Rect(labelRect.xMax, rect.y, 80, rect.height-2);
-				InkCompilerLog log = ((List<InkCompilerLog>)todosList.list)[index];
-				string label = log.content;
-				GUI.Label(labelRect, label);
-				string openLabel = "Open"+ (log.lineNumber == -1 ? "" : " ("+log.lineNumber+")");
-				if(GUI.Button(buttonRect, openLabel)) {
-					InkEditorUtils.OpenInEditor(inkFile, log);
+			reorderableList.elementHeight = 26;
+			reorderableList.drawElementCallback = (rect, index, isActive, isFocused) => DrawLogItem(rect, index, isActive, isFocused, (List<InkCompilerLog>)reorderableList.list);
+			return reorderableList;
+		}
+		
+		void DrawLogItem (Rect rect, int index, bool isActive, bool isFocused, List<InkCompilerLog> logsList) {
+			Rect logRect = new Rect(rect.x, rect.y, rect.width - 80, 16);
+			Rect locationRect = new Rect(rect.x, rect.y+16, rect.width - 80, 10);
+			Rect buttonRect = new Rect(logRect.xMax, rect.y, 80, rect.height-2);
+			InkCompilerLog log = logsList[index];
+			GUI.Label(logRect, log.content);
+			GUI.Label(locationRect, "("+log.relativeFilePath+":"+log.lineNumber+")", filePathAndLineNumberStyle);
+			string openLabel = "Open";
+			if(GUI.Button(buttonRect, openLabel)) {
+				InkEditorUtils.OpenInEditor(inkFile, log);
+			}
+		}
+		static GUIStyle _filePathAndLineNumberStyle;
+		static GUIStyle filePathAndLineNumberStyle {
+			get {
+				if(_filePathAndLineNumberStyle == null) {
+					_filePathAndLineNumberStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel);
+					_filePathAndLineNumberStyle.alignment = TextAnchor.MiddleLeft;
 				}
-			};
+				return _filePathAndLineNumberStyle;
+			}
 		}
 
 		public static void DrawLayoutInkLine (InkFile inkFile, int lineNumber, string label) {
@@ -270,15 +267,16 @@ namespace Ink.UnityIntegration {
 				}
 				return;
 			}
-
+			
+			
 			if(InkCompiler.IsInkFileOnCompilationStack(inkFile)) {
 				EditorGUILayout.HelpBox("File is compiling...", MessageType.Info);
 				return;
 			}
 			
-			if(!inkFile.isMaster) {
+			if(inkFile.isIncludeFile) {
 				EditorGUI.BeginChangeCheck();
-				var newCompileAsIfMaster = EditorGUILayout.Toggle(new GUIContent("Compile As If Master File", "This file is included by another ink file. Typically, these files don't want to be compiled, but this option enables them to be for special purposes."), InkSettings.instance.includeFilesToCompileAsMasterFiles.Contains(inkFile.inkAsset));
+				var newCompileAsIfMaster = EditorGUILayout.Toggle(new GUIContent("Should also be Master File", "This file is included by another ink file. Typically, these files don't want to be compiled, but this option enables them to be for special purposes."), InkSettings.instance.includeFilesToCompileAsMasterFiles.Contains(inkFile.inkAsset));
 				if(EditorGUI.EndChangeCheck()) {
 					if(newCompileAsIfMaster) {
 						InkSettings.instance.includeFilesToCompileAsMasterFiles.Add(inkFile.inkAsset);
@@ -291,32 +289,50 @@ namespace Ink.UnityIntegration {
 				EditorApplication.RepaintProjectWindow();
 			}
 
-			if(inkFile.compileAsMasterFile) {
+			if(inkFile.isMaster) {
+				EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 				DrawMasterFileHeader();
-				DrawEditAndCompileDates(inkFile);
-				if(inkFile.hasUnhandledCompileErrors) {
-					EditorGUILayout.HelpBox("Last compiled failed", MessageType.Error);
-				} if(inkFile.hasErrors) {
-					EditorGUILayout.HelpBox("Last compiled had errors", MessageType.Error);
-				} else if(inkFile.hasWarnings) {
-					EditorGUILayout.HelpBox("Last compile had warnings", MessageType.Warning);
-				} else if(inkFile.jsonAsset == null) {
-					EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
-				}
-				if(inkFile.requiresCompile && GUILayout.Button("Compile")) {
-					InkCompiler.CompileInk(inkFile);
+				
+				EditorGUILayout.Space();
+				
+				// There's no point letting users compile when recursive INCLUDE files exist, so hide anything else while they exist!
+				if(inkFile.hasRecursiveIncludeErrorPaths) {
+					EditorGUILayout.HelpBox("A recursive INCLUDE connection exists in this ink file's INCLUDE hierarchy.\nThe offending INCLUDE(s) can be found at the following file(s):\n"+string.Join("\n", inkFile.recursiveIncludeErrorPaths.Select(x => "• "+x)), MessageType.Error);
+				} else {
+					if(inkFile.hasUnhandledCompileErrors) {
+						EditorGUILayout.HelpBox("Last compiled failed", MessageType.Error);
+					} if(inkFile.hasErrors) {
+						EditorGUILayout.HelpBox("Last compiled had errors", MessageType.Error);
+					} else if(inkFile.hasWarnings) {
+						EditorGUILayout.HelpBox("Last compile had warnings", MessageType.Warning);
+					} else if(inkFile.jsonAsset == null) {
+						EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
+					}
+					if(inkFile.requiresCompile && GUILayout.Button("Compile")) {
+						InkCompiler.CompileInk(inkFile);
+					}
+					
+					DrawCompileErrors();
+					DrawErrors();
+					DrawWarnings();
+					DrawTODOList();
 				}
 
-				DrawCompileErrors();
-				DrawErrors();
-				DrawWarnings();
-				DrawTODOList();
-			} else {
-				EditorGUILayout.LabelField("Include File", EditorStyles.boldLabel);
+				DrawIncludedFiles();
+				EditorGUILayout.EndVertical();
+				
+				EditorGUILayout.Space();
 			}
 
-			DrawListOfMasterFiles();
-			DrawIncludedFiles();
+			if (inkFile.isIncludeFile) {
+				EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+				EditorGUILayout.LabelField(new GUIContent("Include File", InkBrowserIcons.childIconLarge, "This file is included by at least one other file"), EditorStyles.boldLabel);
+				DrawListOfMasterFiles();
+				EditorGUILayout.EndVertical();
+				
+				EditorGUILayout.Space();
+			}
+			
 			DrawFileContents ();
 			
 
@@ -324,8 +340,18 @@ namespace Ink.UnityIntegration {
 		}
 
 		void DrawMasterFileHeader () {
-			if(inkFile.isMaster) EditorGUILayout.LabelField("Master File", EditorStyles.boldLabel);
-			if(!inkFile.isMaster) EditorGUILayout.LabelField("Include treated as Master", EditorStyles.boldLabel);
+			EditorGUILayout.LabelField(new GUIContent("Master File", "This file is a master file and can be compiled"), EditorStyles.boldLabel);
+			
+			if(inkFile.jsonAsset != null && inkFile.errors.Count == 0 && GUILayout.Button("Play")) {
+				InkPlayerWindow.LoadAndPlay(inkFile.jsonAsset);
+			}
+			
+			EditorGUILayout.Space();
+			
+			EditorGUI.BeginDisabledGroup(true);
+			EditorGUILayout.ObjectField("JSON Asset", inkFile.jsonAsset, typeof(TextAsset), false);
+			EditorGUI.EndDisabledGroup();
+			DrawEditAndCompileDates(inkFile);
 			if(!InkSettings.instance.compileAllFilesAutomatically) {
 				EditorGUI.BeginChangeCheck();
 				var newCompileAutomatically = EditorGUILayout.Toggle(new GUIContent("Compile Automatially", "If true, this file recompiles automatically when any changes are detected."), InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile));
@@ -340,13 +366,6 @@ namespace Ink.UnityIntegration {
 				}
 				EditorApplication.RepaintProjectWindow();
 			}
-			EditorGUI.BeginDisabledGroup(true);
-			EditorGUILayout.ObjectField("JSON Asset", inkFile.jsonAsset, typeof(TextAsset), false);
-			EditorGUI.EndDisabledGroup();
-
-			if(inkFile.jsonAsset != null && inkFile.errors.Count == 0 && GUILayout.Button("Play")) {
-				InkPlayerWindow.LoadAndPlay(inkFile.jsonAsset);
-			}
 
 //				if(!checkedStoryForErrors) {
 //					if(GUILayout.Button("Check for errors")) {
@@ -360,7 +379,7 @@ namespace Ink.UnityIntegration {
 //					}
 //				}
 		}
-
+		
 		void DrawListOfMasterFiles() {
 			if(mastersFileList != null && mastersFileList.count > 0) {
 				mastersFileList.DoLayoutList();
