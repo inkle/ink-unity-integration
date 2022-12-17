@@ -105,7 +105,7 @@ namespace Ink.UnityIntegration {
 		#endif
         
 		public bool ShouldCompileInkFileAutomatically (InkFile inkFile) {
-			return compileAllFilesAutomatically || (inkFile.compileAsMasterFile && filesToCompileAutomatically.Contains(inkFile.inkAsset));
+			return compileAllFilesAutomatically || (inkFile.isMaster && filesToCompileAutomatically.Contains(inkFile.inkAsset));
 		}
 
 		

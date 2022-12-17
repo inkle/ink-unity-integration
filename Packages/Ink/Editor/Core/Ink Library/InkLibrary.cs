@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using NUnit.Framework;
 using Debug = UnityEngine.Debug;
 
@@ -15,7 +16,7 @@ using Debug = UnityEngine.Debug;
 /// </summary>
 namespace Ink.UnityIntegration {
     #if UNITY_2020_1_OR_NEWER
-    [FilePath("Library/InkLibrary.asset", FilePathAttribute.Location.ProjectFolder)]
+    [FilePath("Library/asset", FilePathAttribute.Location.ProjectFolder)]
 	public class InkLibrary : ScriptableSingleton<InkLibrary>, IEnumerable<InkFile> {
     #else
 	public class InkLibrary : ScriptableObject, IEnumerable<InkFile> {
@@ -26,7 +27,7 @@ namespace Ink.UnityIntegration {
 
 		static string absoluteSavePath {
 			get {
-				return System.IO.Path.GetFullPath(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(),"Library","InkLibrary.asset"));
+				return System.IO.Path.GetFullPath(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(),"Library","asset"));
 			}
 		}
 		
@@ -194,9 +195,9 @@ namespace Ink.UnityIntegration {
 		public static bool Clean () {
             bool wasDirty = false;
 			for (int i = instance.Count - 1; i >= 0; i--) {
-				InkFile inkFile = InkLibrary.instance[i];
+				InkFile inkFile = instance[i];
 				if (inkFile.inkAsset == null) {
-					InkLibrary.RemoveAt(i);
+					RemoveAt(i);
                     wasDirty = true;
                 }
 			}
@@ -257,7 +258,7 @@ namespace Ink.UnityIntegration {
 					}
 					inkFile = new InkFile(inkFileAsset);
 				}
-				newInkLibrary.Add(inkFile);
+                newInkLibrary.Add(inkFile);
 			}
 			if(inkLibraryChanged) {
 				instance.inkLibrary = newInkLibrary;
@@ -268,6 +269,9 @@ namespace Ink.UnityIntegration {
 			RebuildInkFileConnections();
 
 			foreach (InkFile inkFile in instance.inkLibrary) inkFile.FindCompiledJSONAsset();
+
+			// if(InkSettings.instance.handleJSONFilesAutomatically) DeleteUnwantedCompiledJSONAssets();
+			
 			instance.Save(true);
 			
 			// Re-enable the ink asset post processor
@@ -296,7 +300,7 @@ namespace Ink.UnityIntegration {
 		public static void CreateOrReadUpdatedInkFiles (List<string> importedInkAssets) {
             for (int i = 0; i < importedInkAssets.Count; i++) {
                 string importedAssetPath = importedInkAssets[i];
-                InkFile inkFile = InkLibrary.GetInkFileWithPath(importedAssetPath);
+                InkFile inkFile = GetInkFileWithPath(importedAssetPath);
 				if(inkFile == null) {
 					DefaultAsset asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(importedAssetPath);
 					if(asset == null) {
@@ -340,14 +344,14 @@ namespace Ink.UnityIntegration {
 		public static IEnumerable<InkFile> GetInkFilesMarkedToCompileAsMasterFiles () {
 			if(instance.inkLibrary == null) yield break;
 			foreach (InkFile inkFile in instance.inkLibrary) {
-				if(inkFile.compileAsMasterFile) 
+				if(inkFile.isMaster) 
 					yield return inkFile;
 			}
 		}
 
 		// All the master files which are dirty and are set to compile
 		public static IEnumerable<InkFile> GetFilesRequiringRecompile () {
-			foreach(InkFile inkFile in InkLibrary.GetInkFilesMarkedToCompileAsMasterFiles ()) {
+			foreach(InkFile inkFile in GetInkFilesMarkedToCompileAsMasterFiles ()) {
 				if(InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile) && inkFile.requiresCompile) 
 					yield return inkFile;
 			}
@@ -355,7 +359,7 @@ namespace Ink.UnityIntegration {
 
 		// All the master files which are set to compile
 		public static IEnumerable<InkFile> FilesCompiledByRecompileAll () {
-			foreach(InkFile inkFile in InkLibrary.GetInkFilesMarkedToCompileAsMasterFiles ()) {
+			foreach(InkFile inkFile in GetInkFilesMarkedToCompileAsMasterFiles ()) {
 				if(InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile)) 
 					yield return inkFile;
 			}
@@ -443,126 +447,109 @@ namespace Ink.UnityIntegration {
 			return null;
 		}
 
-
 		/// <summary>
 		/// Rebuilds which files are master files and the connections between the files.
+		/// INCLUDE is always relative to the master file. This means that every file should be assumed to be a master file until proven otherwise.
 		/// </summary>
+		/// We might consider updating this to allow rebuilding connections for specific files, since the most common case this is called is when a single file changes.
+		/// The upside is that we wouldn't trigger warnings/errors that this function throws, for unrelated files. It's a bit risky so I've not done it yet.
 		public static void RebuildInkFileConnections () {
-			// INCLUDE is always relative to the master file. This means that every file should be assumed to be a master file until proven otherwise.
-			// This implementation is fairly good but has been gradually developed to allow for more complex structures, and probably wants redoing.
-			// The new implementation should traverse from each file downwards using INCLUDE file paths, using the original file as the source path when dealing with nested INCLUDES.
-			// Since not all of the files are guaranteed to be master files, we don't assert that the files actually exist at this time.
-			// Once this is done we can determine which files are master files, and then assert that any INCLUDED files actually exist.
-			
-			// Clone it because InkFile.FindIncludedFiles calls InkLibrary.GetInkFileWithFile which can cause new files to be added to the ink library.
-			var tempImmutableInkLibrary = new List<InkFile>(instance.inkLibrary);
-			foreach (InkFile inkFile in tempImmutableInkLibrary) {
-			// foreach (InkFile inkFile in instance.inkLibrary) {
-				// Resets the connections between files
-				inkFile.parents.Clear();
-				inkFile.masterInkAssets.Clear();
-				// Gets the paths of the files to include
-				inkFile.ParseContent();
-				// Finds and adds include files from those paths.
-				// This may only find files successfully if the ink file is a master file or if the files are in the same heiararcy
-				inkFile.FindIncludedFiles(true);
-			}
-
-			// We now set the master file for ink files. As a file can be in an include hierarchy, we need to do this in two passes.
-			// First, we set the master file to the file that includes an ink file.
+			// Resets the connections between files
 			foreach (InkFile inkFile in instance.inkLibrary) {
-				if(inkFile.includes.Count == 0) 
-					continue;
-				foreach (InkFile otherInkFile in instance.inkLibrary) {
-					if(inkFile == otherInkFile) 
-						continue;
-					if(inkFile.includes.Contains(otherInkFile.inkAsset)) {
-						if(!otherInkFile.parents.Contains(inkFile.inkAsset)) {
-							otherInkFile.parents.Add(inkFile.inkAsset);
+				inkFile.recursiveIncludeErrorPaths.Clear();
+				inkFile.ClearAllHierarchyConnections();
+			}
+			
+			
+			// A dictionary which contains a list of all the ink files that INCLUDE a given ink file.
+			// Once this is done we can determine which files are master files, and then assert that any INCLUDED files actually exist.
+			Dictionary<InkFile, List<InkFile>> includedFileOwnerDictionary = new Dictionary<InkFile, List<InkFile>>();
+			Dictionary<InkFile, List<InkFile>> recursiveIncludeLogs = new Dictionary<InkFile, List<InkFile>>();
+			// Traverses each file to any file paths referenced using INCLUDE, using the original file as the source path when dealing with nested INCLUDES. 
+			// Since not all of the files are guaranteed to be master files, we don't assert that the files actually exist at this time.
+			foreach (InkFile inkFile in instance.inkLibrary) {
+				BuildIncludeHierarchyAsIfMasterFile(inkFile, inkFile, recursiveIncludeLogs);
+				// Recurse ink file includes for a (potential) master ink file, adding them to the file's list of includes if they exist
+				static void BuildIncludeHierarchyAsIfMasterFile(InkFile potentialMasterInkFile, InkFile currentInkFile, Dictionary<InkFile, List<InkFile>> recursiveIncludeLogs) {
+					if(currentInkFile.localIncludePaths.Count == 0) 
+						return;
+					foreach (var includePath in currentInkFile.localIncludePaths) {
+						var includedFile = FindIncludedFile(potentialMasterInkFile.filePath, includePath);
+						// Assets may not actually exist.
+						// A typical and expected example is when an included file in a subfolder from it's master file has an INCLUDE, since file paths are always relative to the master file. 
+						if (includedFile != null) {
+							// We probably only need to show this error for files that are later proved to be master files
+							if (potentialMasterInkFile == includedFile || potentialMasterInkFile.includes.Contains(includedFile.inkAsset)) {
+								if(!recursiveIncludeLogs.ContainsKey(potentialMasterInkFile)) recursiveIncludeLogs.Add(potentialMasterInkFile, new List<InkFile>());
+								recursiveIncludeLogs[potentialMasterInkFile].Add(currentInkFile); 
+								continue;
+							}
+							Debug.Assert(includedFile.inkAsset != null);
+							potentialMasterInkFile.includes.Add(includedFile.inkAsset);
+							BuildIncludeHierarchyAsIfMasterFile(potentialMasterInkFile, includedFile, recursiveIncludeLogs);
 						}
 					}
-				}
-			}
-			// Next, we create a list of all the files owned by the actual master file, which we obtain by travelling up the parent tree from each file.
-			var masterChildRelationships = new Dictionary<InkFile, List<InkFile>>();
-			foreach (InkFile inkFile in instance.inkLibrary) {
-				List<InkFile> masterInkFiles = new List<InkFile>();
-				GetMasterFiles(inkFile, masterInkFiles);
-				foreach (var masterInkFile in masterInkFiles) {
-					if(!masterChildRelationships.ContainsKey(masterInkFile)) masterChildRelationships.Add(masterInkFile, new List<InkFile>());
-					masterChildRelationships[masterInkFile].Add(inkFile);
-				}
-				// foreach(var parentInkFile in inkFile.parentInkFiles) {
-				// 	InkFile lastMasterInkFile = parentInkFile;
-				// 	InkFile masterInkFile = parentInkFile;
-				// 	while (masterInkFile.parents.Count != 0) {
-				// 		// This shouldn't just pick first, but iterate the whole lot! 
-				// 		// I didn't feel like writing a recursive algorithm until it's actually needed though - a file included by several parents is already a rare enough case!
-				// 		masterInkFile = masterInkFile.parentInkFiles.First();
-				// 		lastMasterInkFile = masterInkFile;
-				// 	}
-				// 	if(lastMasterInkFile.parents.Count > 1) {
-				// 		Debug.LogError("The ink ownership tree has another master file that is not discovered! This is an oversight of the current implementation. If you requres this feature, please take a look at the comment in the code above - if you solve it let us know and we'll merge it in!");
-				// 	}
-				// 	if(!masterChildRelationships.ContainsKey(masterInkFile)) {
-				// 		masterChildRelationships.Add(masterInkFile, new List<InkFile>());
-				// 	}
-				// 	masterChildRelationships[masterInkFile].Add(inkFile);
-				// }
-				
-				// Traverses from the file upwards to all parents until it reaches files without parents (master files) or files marked to compile as if they were master files. 
-				void GetMasterFiles(InkFile currentFile, List<InkFile> currentMasterFiles, List<InkFile> traversedFiles = null) {
-					if (traversedFiles == null) traversedFiles = new List<InkFile>();
-					if (traversedFiles.Contains(currentFile)) {
-						Debug.LogError("Recursive INCLUDE detected "+currentFile.absoluteFilePath);
-						return;
-					}
-					traversedFiles.Add(currentFile);
 					
-					if (currentFile.inkAsset.name == "Sub Child 1") {
-						Debug.Log("HERE");
-					}
-					foreach(var parentInkFile in currentFile.parentInkFiles) {
-						if(parentInkFile.parents.Count == 0 || parentInkFile.compileAsMasterFile) currentMasterFiles.Add(parentInkFile);
-						GetMasterFiles(parentInkFile, currentMasterFiles, traversedFiles);
+					static InkFile FindIncludedFile(string masterFilePath, string includePath) {
+						string localIncludePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(masterFilePath), includePath);
+						// This enables parsing ..\ and the like. Can we use Path.GetFullPath instead?
+						var fullIncludePath = new FileInfo(localIncludePath).FullName;
+						localIncludePath = InkEditorUtils.AbsoluteToUnityRelativePath(fullIncludePath);
+						DefaultAsset includedInkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
+						if(includedInkFileAsset != null) {
+							return GetInkFileWithFile(includedInkFileAsset);
+						}
+						return null;
 					}
 				}
-
-				// if(inkFile.parent == null) 
-				// 	continue;
-				// InkFile parent = inkFile.parentInkFile;
-				// while (parent.metaInfo.parent != null) {
-				// 	parent = parent.metaInfo.parentInkFile;
-				// }
-				// if(!masterChildRelationships.ContainsKey(parent)) {
-				// 	masterChildRelationships.Add(parent, new List<InkFile>());
-				// }
-				// masterChildRelationships[parent].Add(inkFile);
+				
+				foreach (var includedFile in inkFile.includes) {
+					var includedInkFile = GetInkFileWithFile(includedFile);
+					if(!includedFileOwnerDictionary.ContainsKey(includedInkFile)) includedFileOwnerDictionary.Add(includedInkFile, new List<InkFile>());
+					includedFileOwnerDictionary[includedInkFile].Add(inkFile);
+				}
 			}
-			// Finally, we set the master file of the children
-			foreach (var inkFileRelationship in masterChildRelationships) {
-				foreach(InkFile childInkFile in inkFileRelationship.Value) {
-					foreach (var includePath in childInkFile.includePaths) {
-						if(!inkFileRelationship.Key.heirarchyIncludePaths.Contains(includePath))
-							inkFileRelationship.Key.heirarchyIncludePaths.Add(includePath);
-					}
-					if(!childInkFile.masterInkAssets.Contains(inkFileRelationship.Key.inkAsset)) {
-						childInkFile.masterInkAssets.Add(inkFileRelationship.Key.inkAsset);
-					} else {
-						Debug.LogWarning("Child file already contained master file reference! This is weird!");
-					}
-					// If the child file is compiled but shouldn't be, delete the compiled json for it.
-					if(InkSettings.instance.handleJSONFilesAutomatically && !childInkFile.compileAsMasterFile && childInkFile.jsonAsset != null) {
-						AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(childInkFile.jsonAsset));
-						childInkFile.jsonAsset = null;
+			
+			// Now we've established which files are INCLUDED we can tidy up by detecting and removing non-master files.
+			// It's not a master file then we remove all references to it as a master file in the includedFileOwnerDictionary.
+			// We don't clear the includes list for those files (even though referenced files may be null), because the user may mark isMarkedToCompileAsMasterFile true at a later date.
+			foreach (InkFile inkFile in instance.inkLibrary) {
+				var isMasterFile = !includedFileOwnerDictionary.ContainsKey(inkFile) || includedFileOwnerDictionary[inkFile].Count == 0 || inkFile.isMarkedToCompileAsMasterFile;
+				if (!isMasterFile) {
+					foreach (var includedFileOwners in includedFileOwnerDictionary) {
+						if(includedFileOwners.Key != inkFile) includedFileOwners.Value.Remove(inkFile);
 					}
 				}
 			}
 			
-			
+			// Master ink files and includedFileOwnerDictionary are now valid collections denoting master files and their includes. The final step is to add the masters in any included files.
+			foreach (InkFile inkFile in instance.inkLibrary) {
+				if (!includedFileOwnerDictionary.ContainsKey(inkFile) || includedFileOwnerDictionary[inkFile].Count == 0 || inkFile.isMarkedToCompileAsMasterFile) {
+					foreach (var includedFile in inkFile.includes) {
+						var includedInkFile = GetInkFileWithFile(includedFile);
+						includedInkFile.masterInkAssets.Add(inkFile.inkAsset);
+					}
 
-			foreach (InkFile inkFile in tempImmutableInkLibrary) {
-				inkFile.FindIncludedFiles(true);
+				}
+			}
+			
+			// Error logs for any master files that wanted to add recursive includes
+			foreach (var recursiveIncludeLog in recursiveIncludeLogs) {
+				if (recursiveIncludeLog.Key.isMaster) {
+					recursiveIncludeLog.Key.recursiveIncludeErrorPaths.AddRange(recursiveIncludeLog.Value.Select(x => x.filePath));
+					var files = string.Join("\n", recursiveIncludeLog.Key.recursiveIncludeErrorPaths);
+					Debug.LogError("Recursive INCLUDE found in "+recursiveIncludeLog.Key.filePath+" at "+(recursiveIncludeLog.Value.Count == 1 ? "file:\n" : "files:\n")+files);
+				}
+			}
+		}
+		
+		// Deletes any JSON ink assets that aren't expected to exist because their ink files aren't expected to be compiled
+		public static void DeleteUnwantedCompiledJSONAssets() {
+			foreach (InkFile inkFile in instance.inkLibrary) {
+				if(!inkFile.isMaster && inkFile.jsonAsset != null) {
+					AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(inkFile.jsonAsset));
+					inkFile.jsonAsset = null;
+				}
 			}
 		}
 	}
