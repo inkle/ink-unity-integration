@@ -1,9 +1,14 @@
 # CHANGELOG.md
 
-## Version 1.1.4 (1st December 2022):
+## Version 1.1.6 (X December 2022):
+- Rework of the plugin's INCLUDE hierarchy system, allowing for previously unhandled valid setups.
+- Changes the OpenInEditor function to use AssetDatabase.OpenAsset, which correctly uses the OS file editor.
+
+## Version 1.1.5 (2nd December 2022):
 - Adds InkSettings.suppressStartupWindow, which can be used to prevent this window from appearing (requested for some CI/CD pipelines).
 - Adds links to Discord for community support in help menu, startup window and setting menu.
 - Fixes an issue where InkSettings ScriptableObjects wouldn't be unloaded.
+- Updates build documentation for this plugin.
 
 ## Version 1.1.1 (20th October 2022):
 - Updates ink to 1.1.1.
