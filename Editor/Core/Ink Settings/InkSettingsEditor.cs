@@ -19,8 +19,10 @@ namespace Ink.UnityIntegration {
 
 			DrawSettings(serializedObject);
 
-			if(GUI.changed && target != null)
+			if (GUI.changed && target != null) {
 				EditorUtility.SetDirty(target);
+				((InkSettings) target).Save(true);
+			}
 			serializedObject.ApplyModifiedProperties();
 	    }
 
@@ -47,7 +49,9 @@ namespace Ink.UnityIntegration {
 		#endif
 
         static void DrawSettings (InkSettings settings) {
-			EditorGUI.indentLevel++;
+	        EditorGUI.BeginChangeCheck();
+	        
+	        EditorGUI.indentLevel++;
 			DrawVersions();
 			EditorGUILayout.Separator();
 
@@ -57,7 +61,7 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.LabelField(new GUIContent("Settings"), EditorStyles.boldLabel);
 			if(settings.templateFile == null) 
 				DrawTemplateMissingWarning();
-      settings.templateFile = (DefaultAsset)EditorGUILayout.ObjectField(new GUIContent("Ink Template", "Optional. The default content of files created via Assets > Create > Ink."), settings.templateFile, typeof(DefaultAsset));
+			settings.templateFile = (DefaultAsset)EditorGUILayout.ObjectField(new GUIContent("Ink Template", "Optional. The default content of files created via Assets > Create > Ink."), settings.templateFile, typeof(DefaultAsset));
       
 			settings.defaultJsonAssetPath = (DefaultAsset)EditorGUILayout.ObjectField(new GUIContent("New JSON Path", "By default, story JSON files are placed next to the ink. Drag a folder here to place new JSON files there instead."), settings.defaultJsonAssetPath, typeof(DefaultAsset));
             settings.compileAllFilesAutomatically = EditorGUILayout.Toggle(new GUIContent("Compile All Ink Automatically", "When disabled, automatic compilation can be enabled on a per-story basis via the inspector for a master story file. This can be helpful when you have several stories in a single project."), settings.compileAllFilesAutomatically);
@@ -65,11 +69,21 @@ namespace Ink.UnityIntegration {
             settings.printInkLogsInConsoleOnCompile = EditorGUILayout.Toggle(new GUIContent("Print ink TODOs in console on compile", "When enabled, ink lines starting with TODO are printed in the console."), settings.printInkLogsInConsoleOnCompile);
             settings.handleJSONFilesAutomatically = EditorGUILayout.Toggle(new GUIContent("Handle JSON Automatically", "Whether JSON files are moved, renamed and deleted along with their ink files."), settings.handleJSONFilesAutomatically);
 			settings.compileTimeout = EditorGUILayout.IntField(new GUIContent("Compile Timeout", "The max time the compiler will attempt to compile for in case of unhanded errors. You may need to increase this for very large ink projects."), settings.compileTimeout);
+			settings.suppressStartupWindow = EditorGUILayout.Toggle(new GUIContent("Suppress Startup Window", "Prevent the \"what's new\" (the one that appears if you click the \"Show changelog\" button above) appearing when the version of this plugin has changed and Unity is opened. This can be useful for CI/CD pipelines, where auto-launching editor windows can fail to load due to a Unity bug."), settings.suppressStartupWindow);
 
 			EditorGUIUtility.labelWidth = cachedLabelWidth;
+			
+			EditorGUILayout.Separator();
+			DrawRequestButton();
 
 			EditorGUI.indentLevel--;
+			
+			if (EditorGUI.EndChangeCheck()) {
+				EditorUtility.SetDirty(settings);
+				settings.Save(true);
+			}
 		}
+        
 		static void DrawSettings (SerializedObject settings) {
 			DrawVersions();
 			EditorGUILayout.Separator();
@@ -89,11 +103,15 @@ namespace Ink.UnityIntegration {
             EditorGUILayout.PropertyField(settings.FindProperty("printInkLogsInConsoleOnCompile"), new GUIContent("Print ink TODOs in console on compile", "When enabled, ink lines starting with TODO are printed in the console."));
             EditorGUILayout.PropertyField(settings.FindProperty("handleJSONFilesAutomatically"), new GUIContent("Handle JSON Automatically", "Whether JSON files are moved, renamed and deleted along with their ink files."));
 			EditorGUILayout.PropertyField(settings.FindProperty("compileTimeout"), new GUIContent("Compile Timeout", "The max time the compiler will attempt to compile for in case of unhanded errors. You may need to increase this for very large ink projects."));
+			EditorGUILayout.PropertyField(settings.FindProperty("suppressStartupWindow"), new GUIContent("Suppress Startup Window", "Prevent the \"what's new\" (the one that appears if you click the \"Show changelog\" button above) appearing when the version of this plugin has changed and Unity is opened. This can be useful for CI/CD pipelines, where auto-launching editor windows can fail to load due to a Unity bug."));
             
             if(EditorGUI.EndChangeCheck()) {
 				settings.ApplyModifiedProperties();
-			}
+            }
 			EditorGUIUtility.labelWidth = cachedLabelWidth;
+			
+			EditorGUILayout.Separator();
+			DrawRequestButton();
 		}
 
 
@@ -105,9 +123,25 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.TextField(new GUIContent("Ink story format version", "Significant changes to the Ink runtime are recorded by the story format version.\nCompatibility between different versions is limited; see comments at Ink.Runtime.Story.inkVersionCurrent for more details."), Ink.Runtime.Story.inkVersionCurrent.ToString());
 			EditorGUILayout.TextField(new GUIContent("Ink save format version", "Version of the ink save/load system.\nCompatibility between different versions is limited; see comments at Ink.Runtime.StoryState.kInkSaveStateVersion for more details."), Ink.Runtime.StoryState.kInkSaveStateVersion.ToString());
 			EditorGUI.EndDisabledGroup();
-            if(GUILayout.Button("Show changelog")) {
-                InkUnityIntegrationStartupWindow.ShowWindow();
+			if (GUILayout.Button("Show changelog", GUILayout.Width(140))) {
+				InkUnityIntegrationStartupWindow.ShowWindow();
+			}
+		}
+
+		static void DrawRequestButton() {
+			EditorGUILayout.LabelField(new GUIContent("Support + Requests"), EditorStyles.boldLabel);
+			
+			EditorGUILayout.LabelField("Is there a setting you'd like? Or a feature you'd like to request?");
+			// EditorGUILayout.BeginVertical(GUILayout.Width(220));
+			EditorGUILayout.BeginHorizontal();
+            if(GUILayout.Button("Reach us on Discord", GUILayout.Width(220))) {
+                Application.OpenURL("https://discord.gg/inkle");
             }
+            if(GUILayout.Button("Submit an issue on GitHub", GUILayout.Width(220))) {
+                Application.OpenURL("https://github.com/inkle/ink-unity-integration/issues/new");
+            }
+			EditorGUILayout.EndHorizontal();
+			// EditorGUILayout.EndVertical();
 		}
 
 		static void DrawTemplateMissingWarning () {

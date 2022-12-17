@@ -11,10 +11,11 @@ namespace Ink.UnityIntegration {
 		static int announcementVersionPreviouslySeen;
 
 		static InkUnityIntegrationStartupWindow () {
-			UnityEditor.EditorApplication.delayCall += TryCreateWindow;      
+			UnityEditor.EditorApplication.delayCall += TryCreateWindow;
 		}
 
 		static void TryCreateWindow() {
+			if (InkSettings.instance.suppressStartupWindow) return;
 			announcementVersionPreviouslySeen = EditorPrefs.GetInt(editorPrefsKeyForVersionSeen, -1);
 			if(announcementVersion != announcementVersionPreviouslySeen) {
 				ShowWindow();
@@ -60,6 +61,9 @@ namespace Ink.UnityIntegration {
 				if (GUILayout.Button("❤️Support Us!❤️")) {
 					Application.OpenURL("https://www.patreon.com/inkle");
 				}
+				if (GUILayout.Button("Discord Community+Support")) {
+					Application.OpenURL("https://discord.gg/inkle");
+				}
 				if (GUILayout.Button("Close")) {
 					Close();
 				}
@@ -71,16 +75,24 @@ namespace Ink.UnityIntegration {
 			{
 				scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 				{
-					
+					// 1.1.5
+					EditorGUILayout.BeginVertical(GUI.skin.box);
+					EditorGUILayout.LabelField("Version 1.1.5:", EditorStyles.boldLabel);
+					EditorGUILayout.LabelField("• Adds InkSettings.suppressStartupWindow, which can be used to prevent this window from appearing (requested for some CI/CD pipelines).", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Adds links to Discord for community support in help menu, startup window and setting menu.", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Fixes an issue where InkSettings ScriptableObjects wouldn't be unloaded.", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Updates build documentation for this plugin.", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.EndVertical();
 					// 1.1.1
 					EditorGUILayout.BeginVertical(GUI.skin.box);
-					EditorGUILayout.LabelField("Updates ink to 1.1.1.", EditorStyles.boldLabel);
-					EditorGUILayout.LabelField("The InkCompiler.OnCompileInk event now fires once when the compilation stack completes and returns an array of compiled files", EditorStyles.wordWrappedLabel);
-					EditorGUILayout.LabelField("Fixes some async threading issues when compiling", EditorStyles.wordWrappedLabel);
-					EditorGUILayout.LabelField("Adds JSON formatting for save states copied or saved via the Ink Player Window", EditorStyles.wordWrappedLabel);
-					EditorGUILayout.LabelField("Use the Unity Progress API to show compilation. Useful for large ink projects!", EditorStyles.wordWrappedLabel);
-					EditorGUILayout.LabelField("Included files now show their own included files in the Inspector", EditorStyles.wordWrappedLabel);
-					EditorGUILayout.LabelField("Various optimisations", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("Version 1.1.1:", EditorStyles.boldLabel);
+					EditorGUILayout.LabelField("• Updates ink to 1.1.1.", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• The InkCompiler.OnCompileInk event now fires once when the compilation stack completes and returns an array of compiled files", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Fixes some async threading issues when compiling", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Adds JSON formatting for save states copied or saved via the Ink Player Window", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Use the Unity Progress API to show compilation. Useful for large ink projects!", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Included files now show their own included files in the Inspector", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Various optimisations", EditorStyles.wordWrappedLabel);
 					EditorGUILayout.EndVertical();
 					// 1.0.2
 					EditorGUILayout.BeginVertical(GUI.skin.box);

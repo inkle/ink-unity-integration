@@ -151,7 +151,7 @@ namespace Ink.UnityIntegration {
         public static void RemoveFromPendingCompilationStack (InkFile inkFile) {
             bool anyChange = false;
 			anyChange = instance.pendingCompilationStack.Remove(inkFile.filePath) || anyChange;
-            foreach(var includeFile in inkFile.inkFilesInIncludeHierarchy) {
+            foreach(var includeFile in inkFile.includesInkFiles) {
                 anyChange = instance.pendingCompilationStack.Remove(includeFile.filePath) || anyChange;
             }
 			if(anyChange)
@@ -302,7 +302,7 @@ namespace Ink.UnityIntegration {
 				inkFile.warnings.Clear();
 				inkFile.todos.Clear();
 
-				foreach(var childInkFile in inkFile.inkFilesInIncludeHierarchy) {
+				foreach(var childInkFile in inkFile.includesInkFiles) {
 					childInkFile.unhandledCompileErrors.Clear();
 					childInkFile.errors.Clear();
 					childInkFile.warnings.Clear();
@@ -444,7 +444,7 @@ namespace Ink.UnityIntegration {
 				Debug.LogError("Tried to compile ink file but input was null.");
 				return;
 			}
-			if(!inkFile.compileAsMasterFile)
+			if(!inkFile.isMaster)
 				Debug.LogWarning("Compiling InkFile which is an include. Any file created is likely to be invalid. Did you mean to call CompileInk on inkFile.master?");
 
 			// If we've not yet locked C# compilation do so now
@@ -654,7 +654,7 @@ namespace Ink.UnityIntegration {
                         compilingFile.SetOutputLog();
                         bool errorsInEntireStory = false;
                         bool warningsInEntireStory = false;
-                        foreach(var inkFile in compilingFile.inkFile.inkFilesInIncludeHierarchy) {
+                        foreach(var inkFile in compilingFile.inkFile.includesInkFiles) {
                             if(inkFile.hasErrors) {
                                 errorsInEntireStory = true;
                             }

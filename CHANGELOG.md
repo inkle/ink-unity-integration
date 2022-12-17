@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## Version 1.1.4 (1st December 2022):
+- Adds InkSettings.suppressStartupWindow, which can be used to prevent this window from appearing (requested for some CI/CD pipelines).
+- Adds links to Discord for community support in help menu, startup window and setting menu.
+- Fixes an issue where InkSettings ScriptableObjects wouldn't be unloaded.
+
 ## Version 1.1.1 (20th October 2022):
 - Updates ink to 1.1.1.
 - The InkCompiler.OnCompileInk event now fires once when the compilation stack completes and returns an array of compiled files
