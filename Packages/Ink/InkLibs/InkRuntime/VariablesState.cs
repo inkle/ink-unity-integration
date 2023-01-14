@@ -167,7 +167,8 @@ namespace Ink.Runtime
                 if(dontSaveDefaultValues) {
                     // Don't write out values that are the same as the default global values
                     Runtime.Object defaultVal;
-                    if (_defaultGlobalVariables.TryGetValue(name, out defaultVal))
+                    
+                    if (_defaultGlobalVariables!=null && _defaultGlobalVariables.TryGetValue(name, out defaultVal))
                     {
                         if (RuntimeObjectsEqual(val, defaultVal))
                             continue;
