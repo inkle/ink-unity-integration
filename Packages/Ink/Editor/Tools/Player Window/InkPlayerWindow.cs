@@ -50,12 +50,11 @@ namespace Ink.UnityIntegration {
 		// Create or get the window. If creating, dock it on the same panel as the inspector.
 		[MenuItem("Window/Ink Player %#i", false, 2300)]
 		public static InkPlayerWindow GetWindow () {
-			System.Type windowType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.InspectorWindow");
-			return GetWindow<InkPlayerWindow>(windowTitle, true, windowType);
+			return GetWindow(true);
 		}
 
 		public static InkPlayerWindow GetWindow (bool focus) {
-			System.Type windowType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.InspectorWindow");
+			Type windowType = typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow");
 			return GetWindow<InkPlayerWindow>(windowTitle, focus, windowType);
 		}
 		
@@ -64,8 +63,8 @@ namespace Ink.UnityIntegration {
 		
 
 		// Entry point for loading and playing a story.
-		public static void LoadAndPlay (TextAsset storyJSONTextAsset) {
-			GetWindow();
+		public static void LoadAndPlay (TextAsset storyJSONTextAsset, bool focusWindow = true) {
+			GetWindow(focusWindow);
 			if(InkPlayerWindow.story != null) {
 				if(EditorUtility.DisplayDialog("Story in progress", "The Ink Player Window is already playing a story. Would you like to stop it and load the new story?", "Stop and load", "Cancel")) {
 					InkPlayerWindow.Stop();
@@ -76,8 +75,8 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		public static void LoadAndPlay (string storyJSON) {
-			GetWindow();
+		public static void LoadAndPlay (string storyJSON, bool focusWindow = true) {
+			GetWindow(focusWindow);
 			if(InkPlayerWindow.story != null) {
 				if(EditorUtility.DisplayDialog("Story in progress", "The Ink Player Window is already playing a story. Would you like to stop it and load the new story?", "Stop and load", "Cancel")) {
 					InkPlayerWindow.Stop();
@@ -98,7 +97,7 @@ namespace Ink.UnityIntegration {
 
 		// Loads an existing story to the player window. Handy for debugging stories running in games in editor.
 		public static void Attach (Story story) {
-			Attach(story, InkPlayerWindow.InkPlayerParams.ForAttachedStories);
+			Attach(story, InkPlayerWindow.InkPlayerParams.DisableInteraction);
 		}
 		public static void Attach (Story story, InkPlayerParams inkPlayerParams) {
 			Clear();
@@ -133,7 +132,7 @@ namespace Ink.UnityIntegration {
 		/// <param name="story">Story.</param>
 		/// <param name="label">Label.</param>
 		public static void DrawStoryPropertyField (Story story, ref bool expanded, GUIContent label) {
-			DrawStoryPropertyField(story, InkPlayerParams.ForAttachedStories, ref expanded, label);
+			DrawStoryPropertyField(story, InkPlayerParams.DisableInteraction, ref expanded, label);
 		}
 		public static void DrawStoryPropertyField (Story story, InkPlayerParams playerParams, ref bool expanded, GUIContent label, bool interactable = false) {
 			EditorGUILayout.BeginHorizontal();
@@ -254,7 +253,7 @@ namespace Ink.UnityIntegration {
 					return new InkPlayerParams();
 				}
 			} 
-			public static InkPlayerParams ForAttachedStories {
+			public static InkPlayerParams DisableInteraction {
 				get {
 					var inkPlayerParams = new InkPlayerParams();
 					inkPlayerParams.disablePlayControls = true;
@@ -417,8 +416,9 @@ namespace Ink.UnityIntegration {
 
 
 
-
+		// This tracks the story state each time the user advances the story so that we can undo/redo
 		static UndoHistory<InkPlayerHistoryItem> storyStateHistory = new UndoHistory<InkPlayerHistoryItem>();
+		// This tracks the story output so we can view it in the content panel
 		static List<InkHistoryContentItem> storyHistory = new List<InkHistoryContentItem>();
 
 		
@@ -642,7 +642,7 @@ namespace Ink.UnityIntegration {
 		void OnEnable () {
 			if(isOpen) return;
 			isOpen = true;
-
+			
 			InkPlayerWindowState.OnCreateOrLoad += () => {
 				// InkPlayerWindowState.Instance.functionPanelState.functionParams = InkPlayerWindowState.Instance.functionParams;
 				BuildFunctionInputList();
@@ -656,7 +656,7 @@ namespace Ink.UnityIntegration {
 				var lastLoadedStory = InkPlayerWindowState.Instance.TryGetLastStoryJSONAsset();
 				if(lastLoadedStory != null) {
 					if(InkPlayerWindowState.Instance.lastStoryWasPlaying) {
-						LoadAndPlay(lastLoadedStory);
+						LoadAndPlay(lastLoadedStory, false);
 					} else {
 						TryPrepareInternal(lastLoadedStory);
 					}
@@ -682,6 +682,7 @@ namespace Ink.UnityIntegration {
 			
 		void OnDestroy () {
 			isOpen = false;
+			Clear();
 		}
 
 		private static void Update () {
@@ -866,24 +867,36 @@ namespace Ink.UnityIntegration {
 		}
 
 		static void OnUnsetStory () {
+			// Unsubscribe from all story events we subscribed to
 			_story.onDidContinue -= OnDidContinue;
 			_story.onMakeChoice -= OnMakeChoice;
 			_story.onEvaluateFunction -= OnEvaluateFunction;
 			_story.onCompleteEvaluateFunction -= OnCompleteEvaluateFunction;
 			_story.onChoosePathString -= OnChoosePathString;
 			_story.state.onDidLoadState -= OnLoadState;
-			foreach(var observedVariableName in InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames) {
+			
+			// Clear any exceptions related to the story we were storing
+			playStoryException = null;
+			
+			// Clear the history 
+			ClearStoryHistory();
+			
+			// Unobserve all observed variables.
+			foreach(var observedVariableName in InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames)
 				UnobserveVariable(observedVariableName, false);
-			}
 			InkPlayerWindowState.Instance.observedVariablesPanelState.observedVariables.Clear();
-
+			
 			InkPlayerWindowState.Instance.lastStoryWasPlaying = false;
+
 			InkPlayerWindowState.Save();
 		}
 
 
 		static void OnSetStory () {
+			// Allow function fallbacks so we can subscribe to them and avoid throwing errors.
 			_story.allowExternalFunctionFallbacks = true;
+			
+			// Subscribe to all story events we'll use
 			_story.onDidContinue += OnDidContinue;
 			_story.onMakeChoice += OnMakeChoice;
 			_story.onEvaluateFunction += OnEvaluateFunction;
@@ -940,13 +953,15 @@ namespace Ink.UnityIntegration {
 		static void Stop () {
 			Clear ();
 		}
-
+		
+		// This function's role isn't clear. It's used both when restarting a story and when clearing it entirely. We should probably have two separate functions.
 		static void Clear () {
-			if(storyStateHistory != null) storyStateHistory.Clear();
-			if(storyHistory != null) storyHistory.Clear();
+			// InkPlayerWindowState.Instance.observedVariablesPanelState.restorableObservedVariableNames.Clear();
+			
+			// Clear the variable panel search
+			RefreshVisibleVariables();
+			
 			story = null;
-            RefreshVisibleHistory();
-            RefreshVisibleVariables();
 		}
 		
 		static void Restart () {
@@ -984,6 +999,27 @@ namespace Ink.UnityIntegration {
 			storyStateHistory.AddToUndoHistory(historyItem);
 		}
 		
+		static void ClearStoryHistory () {
+			storyHistory.Clear();
+			storyStateHistory.Clear();
+			RefreshVisibleHistory();
+			ScrollToBottom();
+		}
+
+		static void CopyStoryHistoryToClipboard () {
+			StringBuilder sb = new StringBuilder("Story Log\n");
+			foreach(InkHistoryContentItem content in storyHistory) {
+				sb.AppendLine();
+				sb.Append(content.time.ToShortDateString());
+				sb.Append(" ");
+				sb.Append(content.time.ToLongTimeString());
+				sb.Append(" (");
+				sb.Append(content.contentType.ToString());
+				sb.Append(") ");
+				sb.Append(content.content);
+			}
+			GUIUtility.systemCopyBuffer = sb.ToString();
+		}
 		static void Undo () {
 			InkPlayerHistoryItem item = storyStateHistory.Undo();
 			story.state.LoadJson(item.inkStateJSON);
@@ -1143,8 +1179,6 @@ namespace Ink.UnityIntegration {
 				if(EditorGUI.EndChangeCheck()) {
 					if(storyJSONTextAsset == null) {
 						story = null;
-        
-						playStoryException = null;
 					} else {
 						Stop();
 						Play(storyJSONTextAsset);
@@ -1334,27 +1368,6 @@ namespace Ink.UnityIntegration {
 			}
 
 			EditorGUILayout.EndHorizontal();
-		}
-
-        void ClearStoryHistory () {
-            storyHistory.Clear();
-            RefreshVisibleHistory();
-            ScrollToBottom();
-        }
-
-		void CopyStoryHistoryToClipboard () {
-			StringBuilder sb = new StringBuilder("Story Log\n");
-			foreach(InkHistoryContentItem content in storyHistory) {
-				sb.AppendLine();
-				sb.Append(content.time.ToShortDateString());
-				sb.Append(" ");
-				sb.Append(content.time.ToLongTimeString());
-				sb.Append(" (");
-				sb.Append(content.contentType.ToString());
-				sb.Append(") ");
-				sb.Append(content.content);
-			}
-			GUIUtility.systemCopyBuffer = sb.ToString();
 		}
 
 		static bool ShouldShowContentWithSearchString (string contentString, string searchString) {
