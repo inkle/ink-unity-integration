@@ -1,8 +1,9 @@
 # CHANGELOG.md
 
-## Version 1.1.6 (X December 2022):
+## Version 1.1.7 (20th Feb 2022):
 - Rework of the plugin's INCLUDE hierarchy system, allowing for previously unhandled valid setups.
 - Changes the OpenInEditor function to use AssetDatabase.OpenAsset, which correctly uses the OS file editor.
+- Prevents the Ink Player Window from showing itself when scripts are recompiled.
 
 ## Version 1.1.5 (2nd December 2022):
 - Adds InkSettings.suppressStartupWindow, which can be used to prevent this window from appearing (requested for some CI/CD pipelines).

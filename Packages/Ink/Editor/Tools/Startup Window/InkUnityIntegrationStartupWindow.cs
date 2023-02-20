@@ -77,6 +77,13 @@ namespace Ink.UnityIntegration {
 				{
 					// 1.1.5
 					EditorGUILayout.BeginVertical(GUI.skin.box);
+					EditorGUILayout.LabelField("Version 1.1.7:", EditorStyles.boldLabel);
+					EditorGUILayout.LabelField("• Rework of the plugin's INCLUDE hierarchy system, allowing for previously unhandled valid setups.", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Changes the OpenInEditor function to use AssetDatabase.OpenAsset, which correctly uses the OS file editor.", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.LabelField("• Prevents the Ink Player Window from showing itself when scripts are recompiled.", EditorStyles.wordWrappedLabel);
+					EditorGUILayout.EndVertical();
+					// 1.1.5
+					EditorGUILayout.BeginVertical(GUI.skin.box);
 					EditorGUILayout.LabelField("Version 1.1.5:", EditorStyles.boldLabel);
 					EditorGUILayout.LabelField("• Adds InkSettings.suppressStartupWindow, which can be used to prevent this window from appearing (requested for some CI/CD pipelines).", EditorStyles.wordWrappedLabel);
 					EditorGUILayout.LabelField("• Adds links to Discord for community support in help menu, startup window and setting menu.", EditorStyles.wordWrappedLabel);
