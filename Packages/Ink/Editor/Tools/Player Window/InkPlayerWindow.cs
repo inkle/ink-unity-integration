@@ -598,8 +598,8 @@ namespace Ink.UnityIntegration {
 
 		static GUIStyle searchTextFieldStyle;
 		static GUIStyle searchCancelButtonStyle;
-		
-		static DateTime dateTimeNow;
+
+		internal static DateTime dateTimeNow;
 
 
 		static float lastOnGUITime = -1f;
@@ -1092,7 +1092,7 @@ namespace Ink.UnityIntegration {
 			if(searchTextFieldStyle == null) searchTextFieldStyle = GUI.skin.FindStyle("ToolbarSeachTextField");
 			if(searchCancelButtonStyle == null) searchCancelButtonStyle = GUI.skin.FindStyle("ToolbarSeachCancelButton");
 
-			dateTimeNow = System.DateTime.Now;
+			dateTimeNow = DateTime.Now;
 			var time = Time.realtimeSinceStartup;
 			var deltaTime = 0f;
 			if(lastOnGUITime != -1)
@@ -1730,6 +1730,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		void DisplayLine (Rect rect, InkHistoryContentItem content) {
+			if (content.content.Length == 0) return;
 			float timeSinceLastWrite = (float)(dateTimeNow - content.time).TotalSeconds;
 			var revealTime = 0.8f;
 			var l = Mathf.InverseLerp(revealTime, 0, timeSinceLastWrite);
@@ -1743,6 +1744,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		void DisplayTags (Rect rect, InkHistoryContentItem content) {
+			if (content.tags == null || content.tags.Count == 0) return;
 			float timeSinceLastWrite = (float)(dateTimeNow - content.time).TotalSeconds;
 			var revealTime = 0.8f;
 			var l = Mathf.InverseLerp(revealTime, 0, timeSinceLastWrite);
@@ -1885,19 +1887,11 @@ namespace Ink.UnityIntegration {
 			GUILayout.BeginVertical();
 
 			EditorGUILayout.BeginHorizontal();
-			string currentStateJSON = story.state.ToJson();
-			if(currentStateJSON.Length < 20000) {
-				EditorGUILayout.TextField("Current State JSON", currentStateJSON);
-			} else {
-				EditorGUILayout.TextField("Current State JSON", "Too long to display!");
-			}
-			EditorGUI.BeginDisabledGroup(GUIUtility.systemCopyBuffer == currentStateJSON);
 			if (GUILayout.Button("Copy To Clipboard")) {
-				GUIUtility.systemCopyBuffer = InkEditorUtils.FormatJson(currentStateJSON);
+				GUIUtility.systemCopyBuffer = InkEditorUtils.FormatJson(story.state.ToJson());
 			}
-			EditorGUI.EndDisabledGroup();
 			if (GUILayout.Button("Save As...")) {
-				SaveStoryState(currentStateJSON);
+				SaveStoryState(InkEditorUtils.FormatJson(story.state.ToJson()));
 			}
 			EditorGUILayout.EndHorizontal();
 
@@ -2916,7 +2910,7 @@ namespace Ink.UnityIntegration {
 				// Make sure to clone any object ref types! (just InkList at time of writing)
 				if(state is InkList) state = new InkList((InkList)state);
 				this.state = state;
-				dateTime = DateTime.Now;
+				dateTime = InkPlayerWindow.dateTimeNow;
 			}
 		}
 

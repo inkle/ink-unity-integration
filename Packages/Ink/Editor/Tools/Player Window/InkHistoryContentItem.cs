@@ -21,13 +21,20 @@ namespace Ink.UnityIntegration.Debugging {
         public string content;
         public List<string> tags;
         public ContentType contentType;
-        [SerializeField]
-        JsonDateTime _time;
+        // Creating a datetime from a long is slightly expensive (it can happen many times in a frame). To fix this we cache the result once converted. 
+        [SerializeField] JsonDateTime _serializableTime;
+        [NonSerialized] bool hasDeserializedTime;
+        [NonSerialized] DateTime _time;
         public DateTime time {
             get {
+                if (!hasDeserializedTime) {
+                    _time = _serializableTime;
+                    hasDeserializedTime = true;
+                }
                 return _time;
             } private set {
                 _time = value;
+                _serializableTime = value;
             }
         }
 
