@@ -1089,8 +1089,8 @@ namespace Ink.UnityIntegration {
 		}
         void OnGUI () {
 			HandleDragAndDrop();
-			if(searchTextFieldStyle == null) searchTextFieldStyle = GUI.skin.FindStyle("ToolbarSeachTextField");
-			if(searchCancelButtonStyle == null) searchCancelButtonStyle = GUI.skin.FindStyle("ToolbarSeachCancelButton");
+			if(searchTextFieldStyle == null) searchTextFieldStyle = GUI.skin.FindStyle("ToolbarSearchTextField");
+			if(searchCancelButtonStyle == null) searchCancelButtonStyle = GUI.skin.FindStyle("ToolbarSearchCancelButton");
 
 			dateTimeNow = DateTime.Now;
 			var time = Time.realtimeSinceStartup;
