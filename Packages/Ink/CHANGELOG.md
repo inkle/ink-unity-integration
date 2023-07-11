@@ -1,15 +1,19 @@
-# CHANGELOG.md
+## Version 1.1.8 (11th July 2023):
+- Update the demo scene to Unity 2020.3.25f1 to improve compatibility with more recent versions
+- Fixes a missing GUIStyle in the Ink Player Window in recent versions of Unity
+- Optimise the Ink Player Window for large projects
+- Automatically populate the changelog on the startup window
 
-## Version 1.1.7 (20th Feb 2022):
-- Rework of the plugin's INCLUDE hierarchy system, allowing for previously unhandled valid setups.
-- Changes the OpenInEditor function to use AssetDatabase.OpenAsset, which correctly uses the OS file editor.
-- Prevents the Ink Player Window from showing itself when scripts are recompiled.
+## Version 1.1.7 (20th Feb 2023):
+- Rework of the plugin's INCLUDE hierarchy system, allowing for previously unhandled valid setups
+- Changes the OpenInEditor function to use AssetDatabase.OpenAsset, which correctly uses the OS file editor
+- Prevents the Ink Player Window from showing itself when scripts are recompiled
 
 ## Version 1.1.5 (2nd December 2022):
-- Adds InkSettings.suppressStartupWindow, which can be used to prevent this window from appearing (requested for some CI/CD pipelines).
-- Adds links to Discord for community support in help menu, startup window and setting menu.
-- Fixes an issue where InkSettings ScriptableObjects wouldn't be unloaded.
-- Updates build documentation for this plugin.
+- Adds InkSettings.suppressStartupWindow, which can be used to prevent this window from appearing (requested for some CI/CD pipelines)
+- Adds links to Discord for community support in help menu, startup window and setting menu
+- Fixes an issue where InkSettings ScriptableObjects wouldn't be unloaded
+- Updates build documentation for this plugin
 
 ## Version 1.1.1 (20th October 2022):
 - Updates ink to 1.1.1.
@@ -36,14 +40,14 @@
 - Use Unity's new ScriptableSingleton for InkLibrary, InkSettings and InkCompiler on 2020+
 
 ## Version 0.9.71:
-- Resolves some compilation issues.
+- Resolves some compilation issues
 
 ## Version 0.9.60:
-- Moved InkLibrary and InkSettings from Assets into Library and ProjectSettings.
-   - InkLibrary should no longer be tracked in source control.
-   - Changes to InkSettings must be migrated manually.
-   - The InkLibrary and InkSettings files in your project folder should be deleted.
-- Added a divertable list of knots, stitches and other named content to the Ink Editor Window, replacing the Diverts subpanel.
+- Moved InkLibrary and InkSettings from Assets into Library and ProjectSettings
+   - InkLibrary should no longer be tracked in source control
+   - Changes to InkSettings must be migrated manually
+   - The InkLibrary and InkSettings files in your project folder should be deleted
+- Added a divertable list of knots, stitches and other named content to the Ink Editor Window, replacing the Diverts subpanel
 
 ## Version 0.9.4
 Bug fixes
@@ -94,11 +98,11 @@ Bug fixes
 
 ## Version 0.7.1
 - Update to Unity 5.6
-- Reduced the amount of data saved in InkLibrary by storing metadata in EditorPrefs.
-- Split some parts of InkLibrary into InkSettings ScriptableObject.
+- Reduced the amount of data saved in InkLibrary by storing metadata in EditorPrefs
+- Split some parts of InkLibrary into InkSettings ScriptableObject
 
-## VersionAdded in 0.7
+## VersionAdded in 0.7.0
 - Update Ink to 0.7
 - New icon for manually compiled
 - Improved ink library editor
-- Improved the ease of tethering your game's Story object to the Ink Player Window via an Editor GUI field and improvements to player window.
+- Improved the ease of tethering your game's Story object to the Ink Player Window via an Editor GUI field and improvements to player window
