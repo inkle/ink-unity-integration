@@ -19,7 +19,7 @@ namespace Ink.UnityIntegration {
     #endif
         // Ink version. This should really come from the core ink code.
 		public static System.Version inkVersionCurrent = new System.Version(1,1,1);
-		public static System.Version unityIntegrationVersionCurrent = new System.Version(1,1,7);
+		public static System.Version unityIntegrationVersionCurrent = new System.Version(1,1,8);
 
 		static string absoluteSavePath {
 			get {
