@@ -1,15 +1,14 @@
-using UnityEngine;
-using UnityEditor;
-using System.IO;
-using Debug = UnityEngine.Debug;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using UnityEditor;
+using UnityEngine;
 
 namespace Ink.UnityIntegration {
 	// Helper class for ink files that maintains INCLUDE connections between ink files
-	[System.Serializable]
+	[Serializable]
 	public class InkFile {
 		// Master files are those that can be compiled
 		public bool isMaster => !isIncludeFile || isMarkedToCompileAsMasterFile;
