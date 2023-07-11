@@ -133,6 +133,11 @@ namespace Ink.UnityIntegration {
 			Application.OpenURL("https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md");
 		}
 
+		[MenuItem("Help/Ink/Discord (Community + Support...")]
+		public static void OpenDiscord() {
+			Application.OpenURL("https://discord.gg/inkle");
+		}
+
 		[MenuItem("Help/Ink/Donate...")]
 		public static void Donate() {
 			Application.OpenURL("https://www.patreon.com/inkle");
@@ -282,15 +287,19 @@ namespace Ink.UnityIntegration {
 		/// </summary>
 		public static void OpenInEditor (InkFile inkFile, InkCompilerLog log) {
 			var targetFilePath = log.GetAbsoluteFilePath(inkFile);
-			#if UNITY_2019_1_OR_NEWER
+			// EditorUtility.OpenWithDefaultApp(targetFilePath);
+			AssetDatabase.OpenAsset(inkFile.inkAsset, log.lineNumber);
+			// Unity.CodeEditor.CodeEditor.OSOpenFile();
+#if UNITY_2019_1_OR_NEWER
+
 			// This function replaces OpenFileAtLineExternal, but I guess it's totally internal and can't be accessed.
 			// CodeEditorUtility.Editor.Current.OpenProject(targetFilePath, lineNumber);
-			#pragma warning disable
+			// #pragma warning disable
+			// UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(targetFilePath, log.lineNumber);
+			// #pragma warning restore
+#else
 			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(targetFilePath, log.lineNumber);
-			#pragma warning restore
-			#else
-			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(targetFilePath, log.lineNumber);
-			#endif
+#endif
 		}
 		/// <summary>
 		/// Opens an ink file in the associated editor at the correct line number.

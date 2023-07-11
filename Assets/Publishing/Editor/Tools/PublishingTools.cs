@@ -1,14 +1,9 @@
-using Ink.UnityIntegration;
+using UnityEngine;
+using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
-using UnityEditor;
-using UnityEngine;
-using System.Reflection;
-#if UNITY_2019_3_OR_NEWER
-using UnityEditor.Compilation;
-#endif
+using Ink.UnityIntegration;
 
 // Should be run to update files in the package folder from the root of the repo, and to create demo and release packages.
 public static class PublishingTools {

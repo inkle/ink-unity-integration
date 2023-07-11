@@ -1,7 +1,5 @@
-using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
-using System.Linq;
+using UnityEngine;
 
 namespace Ink.UnityIntegration {
 	public class InkCompilerEditorWindow : EditorWindow {
@@ -11,7 +9,7 @@ namespace Ink.UnityIntegration {
 
 		[MenuItem("Window/Ink Compiler Editor Window")]
 		static void Init() {
-			var window = (InkCompilerEditorWindow)EditorWindow.GetWindow(typeof(InkCompilerEditorWindow));
+			var window = (InkCompilerEditorWindow)GetWindow(typeof(InkCompilerEditorWindow));
 			window.titleContent = new GUIContent("Ink Compiler Window");
 			window.Show();
 		}

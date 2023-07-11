@@ -1,9 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
+﻿using Ink.Runtime;
 using Ink.UnityIntegration;
-using Ink.Runtime;
+using UnityEditor;
+using UnityEngine;
 
 [CustomEditor(typeof(BasicInkExample))]
 [InitializeOnLoad]

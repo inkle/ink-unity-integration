@@ -1,7 +1,7 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using System;
+﻿using System;
 using Ink.Runtime;
+using UnityEngine;
+using UnityEngine.UI;
 
 // This is a super bare bones example of how to play and display a ink story in Unity.
 public class BasicInkExample : MonoBehaviour {
@@ -91,7 +91,7 @@ public class BasicInkExample : MonoBehaviour {
 	void RemoveChildren () {
 		int childCount = canvas.transform.childCount;
 		for (int i = childCount - 1; i >= 0; --i) {
-			GameObject.Destroy (canvas.transform.GetChild (i).gameObject);
+			Destroy (canvas.transform.GetChild (i).gameObject);
 		}
 	}
 

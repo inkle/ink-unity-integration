@@ -1,17 +1,19 @@
-using UnityEngine;
-using UnityEditor;
-using System.IO;
-using Debug = UnityEngine.Debug;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using UnityEditor;
+using UnityEngine;
 
 namespace Ink.UnityIntegration {
 	// Helper class for ink files that maintains INCLUDE connections between ink files
-	[System.Serializable]
+	[Serializable]
 	public class InkFile {
-		public bool compileAsMasterFile => isMaster || InkSettings.instance.includeFilesToCompileAsMasterFiles.Contains(inkAsset);
+		// Master files are those that can be compiled
+		public bool isMaster => !isIncludeFile || isMarkedToCompileAsMasterFile;
+		// Typically master files are simply those that aren't INCLUDED by another file, but they can also be marked to master files.
+		public bool isMarkedToCompileAsMasterFile => InkSettings.instance.includeFilesToCompileAsMasterFiles.Contains(inkAsset);
 		public bool compileAutomatically => InkSettings.instance.filesToCompileAutomatically.Contains(inkAsset);
 		// A reference to the ink file
 		public DefaultAsset inkAsset;
@@ -51,7 +53,7 @@ namespace Ink.UnityIntegration {
         public string jsonPath {
 			get {
                 var _filePath = filePath;
-                Debug.Assert(_filePath != null, "File path for ink file is null! The ink library requires rebuilding.");
+                Debug.Assert(!string.IsNullOrEmpty(_filePath), "File path for ink file is null! The ink library requires rebuilding. Asset: "+inkAsset);
 
                 DefaultAsset jsonFolder = jsonAssetDirectory;
                 if (jsonFolder == null) // no path specified for this specific file
@@ -69,9 +71,10 @@ namespace Ink.UnityIntegration {
                     }
                 }
 
-                Debug.Assert(jsonFolder != null, "JSON folder not found for ink file at path "+_filePath);
+                Debug.Assert(jsonFolder != null, "JSON folder not found for ink file at path. File Path: "+_filePath+". Asset: "+inkAsset);
 
                 string jsonPath = AssetDatabase.GetAssetPath(jsonFolder);
+                Debug.Assert(Directory.Exists(jsonPath), "JSON folder path is not a directory! Json Path: "+jsonPath+". Asset: "+inkAsset);
                 string strJsonAssetPath = InkEditorUtils.CombinePaths(jsonPath, Path.GetFileNameWithoutExtension(_filePath)) + ".json";
                 return strJsonAssetPath;
 			}
@@ -95,6 +98,13 @@ namespace Ink.UnityIntegration {
 		public bool hasUnhandledCompileErrors {
 			get {
 				return unhandledCompileErrors.Count > 0;
+			}
+		}
+		
+		public List<string> recursiveIncludeErrorPaths = new List<string>();
+		public bool hasRecursiveIncludeErrorPaths {
+			get {
+				return recursiveIncludeErrorPaths.Count > 0;
 			}
 		}
 
@@ -122,7 +132,7 @@ namespace Ink.UnityIntegration {
 
 		public bool requiresCompile {
 			get {
-				if(!compileAsMasterFile) return false;
+				if(!isMaster) return false;
 				return jsonAsset == null || hasUnhandledCompileErrors || lastEditDate > lastCompileDate;
 			}
 		}
@@ -133,7 +143,7 @@ namespace Ink.UnityIntegration {
 		/// <value>The last compile date of the story.</value>
 		public DateTime lastCompileDate {
 			get {
-				if(compileAsMasterFile) {
+				if(isMaster) {
 					if(jsonAsset == null)
 						return default(DateTime);
 				
@@ -155,24 +165,6 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		// File that contains this file as an include, if one exists.
-		public List<DefaultAsset> parents = new List<DefaultAsset>();
-		public IEnumerable<InkFile> parentInkFiles {
-			get {
-				if(parents != null && parents.Count != 0) {
-					foreach(var parentInkAsset in parents) {
-						yield return InkLibrary.GetInkFileWithFile(parentInkAsset);
-					}
-				}
-			}
-		}
-		// Is this ink file a parent file?
-		public bool isParent {
-			get {
-				return includes.Count > 0;
-			}
-		}
-
 		public List<DefaultAsset> masterInkAssets = new List<DefaultAsset>();
 		public IEnumerable<InkFile> masterInkFiles {
 			get {
@@ -183,26 +175,26 @@ namespace Ink.UnityIntegration {
 		}
 		public IEnumerable<InkFile> masterInkFilesIncludingSelf {
 			get {
+				// A file can be both a master file AND be included by many other files. Return all the master files fitting this description.
 				if(isMaster) yield return this;
-				else {
-					foreach(var masterInkFile in masterInkFiles) {
-						yield return masterInkFile;
-					}
+				foreach(var masterInkFile in masterInkFiles) {
+					yield return masterInkFile;
 				}
 			}
 		}
 
-		// Is this ink file a master file?
-		public bool isMaster {
+		// Is this ink file included by another ink file?
+		public bool isIncludeFile {
 			get {
-				return masterInkAssets.Count == 0;
+				return masterInkAssets.Count > 0;
 			}
 		}
 		
-
-		// The files included by this file
+		
+		// The files referenced by this file via the INCLUDE keyword
 		// We cache the paths of the files to be included for performance, giving us more freedom to refresh the actual includes list without needing to parse all the text.
-		public List<string> includePaths = new List<string>();
+		public List<string> localIncludePaths = new List<string>();
+		// The asset references for the included files. Unlike localIncludePaths this contains include files
 		public List<DefaultAsset> includes = new List<DefaultAsset>();
 		// The InkFiles of the includes of this file
 		public List<InkFile> includesInkFiles {
@@ -216,19 +208,6 @@ namespace Ink.UnityIntegration {
 					_includesInkFiles.Add(InkLibrary.GetInkFileWithFile(child));
 				}
 				return _includesInkFiles;
-			}
-		}
-		// The InkFiles in the include hierarchy of this file.
-		public List<InkFile> inkFilesInIncludeHierarchy {
-			get {
-				List<InkFile> _inkFilesInIncludeHierarchy = new List<InkFile>();
-				_inkFilesInIncludeHierarchy.Add(this);
-				foreach(var child in includesInkFiles) {
-					if (child == null)
-						return null;
-					_inkFilesInIncludeHierarchy.AddRange(child.inkFilesInIncludeHierarchy);
-				}
-				return _inkFilesInIncludeHierarchy;
 			}
 		}
 	    
@@ -249,7 +228,10 @@ namespace Ink.UnityIntegration {
             jsonAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(jsonPath);
 		}
 
-
+		public void ClearAllHierarchyConnections() {
+			masterInkAssets.Clear();
+			includes.Clear();
+		}
 
 		
 
@@ -257,8 +239,7 @@ namespace Ink.UnityIntegration {
 		
 
 
-//		public string content;
-		// The contents of the .ink file
+//		// Returns the contents of the .ink file.
 		public string GetFileContents () {
 			if(inkAsset == null) {
 				Debug.LogWarning("Ink file asset is null! Rebuild library using Assets > Rebuild Ink Library");
@@ -267,33 +248,11 @@ namespace Ink.UnityIntegration {
 			return File.ReadAllText(absoluteFilePath);
 		}
 
-		// Parses the ink file to get any info we need.
-		// Currently this only scans for includePaths, which are later used by FindIncludedFiles.
+		// Parses the ink file and caches any information we may want to access without incurring a performance cost.
+		// Currently this only scans for includePaths, which are later used by InkLibrary.RebuildInkFileConnections.
 		public void ParseContent () {
-			includePaths.Clear();
-			includePaths.AddRange(InkIncludeParser.ParseIncludes(GetFileContents()));
-		}
-
-		public void FindIncludedFiles (bool addMissing = false) {
-			includes.Clear();
-			foreach(string includePath in includePaths) {
-				string localIncludePath = InkEditorUtils.CombinePaths(Path.GetDirectoryName(filePath), includePath);
-				// This enables parsing ..\ and the like. Can we use Path.GetFullPath instead?
-				var fullIncludePath = new FileInfo(localIncludePath).FullName;
-				localIncludePath = InkEditorUtils.AbsoluteToUnityRelativePath(fullIncludePath);
-				DefaultAsset includedInkFileAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(localIncludePath);
-				if(includedInkFileAsset == null) {
-					Debug.LogError(filePath+ " expected child .ink asset at '"+localIncludePath+"' but file was not found.", inkAsset);
-				} else {
-					InkFile includedInkFile = InkLibrary.GetInkFileWithFile(includedInkFileAsset, addMissing);
-					if(includedInkFile == null) {
-						Debug.LogError(filePath+ " expected child InkFile from .ink asset at '"+localIncludePath+"' but file was not found.", inkAsset);
-					} else if (includedInkFile.includes.Contains(inkAsset)) {
-						Debug.LogError("Circular INCLUDE reference between '"+filePath+"' and '"+includedInkFile.filePath+"'.", inkAsset);
-					} else
-						includes.Add(includedInkFileAsset);
-				}
-			}
+			localIncludePaths.Clear();
+			localIncludePaths.AddRange(InkIncludeParser.ParseIncludes(GetFileContents()));
 		}
 
 		public static class InkIncludeParser {
