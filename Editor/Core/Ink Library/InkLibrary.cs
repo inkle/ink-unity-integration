@@ -1,13 +1,9 @@
 using UnityEngine;
 using UnityEditor;
-using UnityEditorInternal;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using NUnit.Framework;
 using Debug = UnityEngine.Debug;
 
 /// <summary>
