@@ -1,9 +1,12 @@
+using System;
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using Ink.UnityIntegration;
+using UnityEngine.Networking;
 
 // Should be run to update files in the package folder from the root of the repo, and to create demo and release packages.
 public static class PublishingTools {
@@ -16,6 +19,7 @@ public static class PublishingTools {
 		CreateDemoPackages();
 		SyncReadme();
 		CreatePackage();
+		DescribeNextSteps();
 	}
 
 	[MenuItem("Publishing/Tasks/Create .unitypackage for demos")]
@@ -134,5 +138,59 @@ public static class PublishingTools {
 		EditorApplication.UnlockReloadAssemblies();
 
 		Debug.Log("PublishingTools.CreatePackage: Created .unitypackage at "+Path.GetFullPath(Path.Combine(Application.dataPath, packageExportPath)));
+	}
+	
+	
+	
+	[MenuItem("Publishing/Show Helper Window")]
+	static void DescribeNextSteps() {
+		PublishingToolsHelperWindow.ShowWindow();
+	}
+	
+	public class PublishingToolsHelperWindow : EditorWindow {
+		// Vector2 scrollPosition;
+		
+		public static void ShowWindow () {
+			PublishingToolsHelperWindow window = GetWindow(typeof(PublishingToolsHelperWindow), true, "Ink Publishing Tools", true) as PublishingToolsHelperWindow;
+		}
+		
+		void OnGUI () {
+			EditorGUILayout.BeginVertical();
+			EditorGUILayout.LabelField("Version "+InkLibrary.unityIntegrationVersionCurrent, EditorStyles.centeredGreyMiniLabel);
+		
+			// Editor
+			// 
+			if (GUILayout.Button("Prepare for publishing (run all tasks)")) {
+				PreparePublish();
+			}
+			if (GUILayout.Button("Show Package")) {
+				EditorUtility.RevealInFinder(Path.GetFullPath(Path.Combine(Application.dataPath, "../..")));
+			}
+			if (GUILayout.Button("Draft GitHub Release")) {
+				// 1.1.7
+				var version = UnityWebRequest.EscapeURL($"v{InkLibrary.unityIntegrationVersionCurrent}");
+				
+				var title = UnityWebRequest.EscapeURL($"{InkLibrary.unityIntegrationVersionCurrent} is out!");
+				
+				var packageDirectory = InkEditorUtils.FindAbsolutePluginDirectory();
+				var changelogText = File.ReadAllText(Path.Combine(packageDirectory, "CHANGELOG.md"));
+				var versionSections = Regex.Split(changelogText, "## "); // Split markdown text into version sections
+					
+				StringBuilder sb = new StringBuilder();
+				if (versionSections.Length > 1) {
+					var section = versionSections[1];
+					var lines = section.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries); // Split each section into lines
+					for (int i = 1; i < lines.Length; i++) {
+						var bulletPoint = lines[i].TrimStart('-').TrimStart(' ');
+						sb.AppendLine($"• {bulletPoint}");
+					}
+				}
+				var body = UnityWebRequest.EscapeURL($"{sb.ToString()}");
+
+				
+				Application.OpenURL($"https://github.com/inkle/ink-unity-integration/releases/new?tag={version}&title={title}&body={body}");
+			}
+			EditorGUILayout.EndVertical();
+		}
 	}
 }

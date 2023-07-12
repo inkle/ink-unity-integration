@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -11,7 +12,7 @@ namespace Ink.UnityIntegration {
 		
 		Vector2 scrollPosition;
 		static int announcementVersionPreviouslySeen;
-		static TextAsset changelogTextAsset;
+		static string changelogText;
 
 		static InkUnityIntegrationStartupWindow () {
 			EditorApplication.delayCall += TryCreateWindow;
@@ -34,9 +35,9 @@ namespace Ink.UnityIntegration {
         }
 
         void OnEnable() {
-	        changelogTextAsset = (TextAsset) AssetDatabase.LoadAssetAtPath("Packages/com.inkle.ink-unity-integration/CHANGELOG.md", typeof(TextAsset));
+	        var packageDirectory = InkEditorUtils.FindAbsolutePluginDirectory();
+	        changelogText = File.ReadAllText(Path.Combine(packageDirectory, "CHANGELOG.md"));
         }
-
         
 		void OnGUI ()
 		{
@@ -80,27 +81,24 @@ namespace Ink.UnityIntegration {
 
 			EditorGUILayout.Space();
 			
-			if(changelogTextAsset != null) {
+			if(changelogText != null) {
 				scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
-				{
-					var versionSections = Regex.Split(changelogTextAsset.text, "## "); // Split markdown text into version sections
-					
-					foreach (var section in versionSections)
-					{
-						if (string.IsNullOrWhiteSpace(section)) continue;
+				
+				var versionSections = Regex.Split(changelogText, "## "); // Split markdown text into version sections
+				foreach (var section in versionSections) {
+					if (string.IsNullOrWhiteSpace(section)) continue;
 
-						var lines = section.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries); // Split each section into lines
-						var version = lines[0]; // First line is version
+					var lines = section.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries); // Split each section into lines
+					var version = lines[0]; // First line is version
 
-						EditorGUILayout.BeginVertical(GUI.skin.box);
-						EditorGUILayout.LabelField($"{version}", EditorStyles.boldLabel);
-						for (int i = 1; i < lines.Length; i++) {
-							var bulletPoint = lines[i].TrimStart('-').TrimStart(' ');
-							EditorGUILayout.LabelField($"• {bulletPoint}", EditorStyles.wordWrappedLabel);
-						}
-
-						EditorGUILayout.EndVertical();
+					EditorGUILayout.BeginVertical(GUI.skin.box);
+					EditorGUILayout.LabelField($"{version}", EditorStyles.boldLabel);
+					for (int i = 1; i < lines.Length; i++) {
+						var bulletPoint = lines[i].TrimStart('-').TrimStart(' ');
+						EditorGUILayout.LabelField($"• {bulletPoint}", EditorStyles.wordWrappedLabel);
 					}
+
+					EditorGUILayout.EndVertical();
 				}
 
 				EditorGUILayout.EndScrollView();

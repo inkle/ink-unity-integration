@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Linq;
@@ -342,6 +341,32 @@ namespace Ink.UnityIntegration {
 							: lineBreak;
 
 			return String.Concat(result);
+		}
+
+
+		// If this plugin is installed as a package, returns info about it.
+		public static UnityEditor.PackageManager.PackageInfo GetPackageInfo() {
+			var packageAssetPath = "Packages/com.inkle.ink-unity-integration";
+			if (AssetDatabase.IsValidFolder(packageAssetPath)) return UnityEditor.PackageManager.PackageInfo.FindForAssetPath(packageAssetPath);
+			else return null;
+		}
+		
+		// Gets the root directory of this plugin, enabling us to find assets within it.
+		// Less efficent if not installed as a package because the location/folder name is not known.
+		public static string FindAbsolutePluginDirectory() {
+			var packageInfo = GetPackageInfo();
+			if (packageInfo != null) {
+				return packageInfo.resolvedPath;
+			} else {
+				// Find the InkLibs folder. We assume that it exists in the top level of the plugin folder. We use this folder because it has a fairly unique name and is essential for the plugin to function.
+				string[] guids = AssetDatabase.FindAssets("t:DefaultAsset", new[] {"Assets"}).Where(g => AssetDatabase.GUIDToAssetPath(g).EndsWith("/InkLibs")).ToArray();
+				if (guids.Length > 0) {
+					var assetPathOfInkLibsFolder = AssetDatabase.GUIDToAssetPath(guids[0]);
+					var rootPluginFolder = assetPathOfInkLibsFolder.Substring(0, assetPathOfInkLibsFolder.Length - "/InkLibs".Length);
+					return Path.GetFullPath(Path.Combine(Application.dataPath, rootPluginFolder));
+				}
+			}
+			return null; // If no folder is found
 		}
 	}
 }
