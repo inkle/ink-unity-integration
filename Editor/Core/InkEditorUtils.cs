@@ -363,7 +363,7 @@ namespace Ink.UnityIntegration {
 				if (guids.Length > 0) {
 					var assetPathOfInkLibsFolder = AssetDatabase.GUIDToAssetPath(guids[0]);
 					var rootPluginFolder = assetPathOfInkLibsFolder.Substring(0, assetPathOfInkLibsFolder.Length - "/InkLibs".Length);
-					return Path.GetFullPath(Path.Combine(Application.dataPath, rootPluginFolder));
+					return Path.GetFullPath(Path.Combine(Application.dataPath, "..", rootPluginFolder));
 				}
 			}
 			return null; // If no folder is found
