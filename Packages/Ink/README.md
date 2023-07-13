@@ -41,7 +41,7 @@ Installing via a package allows you to easily update via Unity's Package Manager
 
 ### Via the Asset Store
 
-onvinience a .UnityPackage is hosted at the [Unity Asset Store](https://assetstore.unity.com/packages/tools/integration/ink-unity-integration-60055).
+For convenience a .UnityPackage is hosted at the [Unity Asset Store](https://assetstore.unity.com/packages/tools/integration/ink-unity-integration-60055).
 **This version is updated rarely, and so is not recommended.**
 This will import the source into your Assets folder. This is a good option if you intend to edit the source for your own needs.
 
@@ -157,6 +157,10 @@ If your game doesn't require compiling ink at runtime we recommend adding a .asm
 
 Ink is free, forever; but we'd really appreciate your support!
 If you're able to give back, generous donations at our [Patreon](https://www.patreon.com/inkle) mean the world to us. 
+
+# Discord:
+
+Looking for help or want to meet likeminded writers/developers? Come say hello on our [Discord](https://discord.gg/inkle) server! 
 
 # License
 
