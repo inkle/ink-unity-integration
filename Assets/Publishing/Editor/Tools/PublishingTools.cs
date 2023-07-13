@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using Ink.UnityIntegration;
+using UnityEditor.Compilation;
 using UnityEngine.Networking;
 
 // Should be run to update files in the package folder from the root of the repo, and to create demo and release packages.
@@ -103,27 +104,34 @@ public static class PublishingTools {
 		// AssetDatabase.DisallowAutoRefresh();
 		// #endif
 		var assetsInkPath = Path.Combine(Application.dataPath, "Ink");
-		List<KeyValuePair<DirectoryInfo, DirectoryInfo>> rootPaths = new List<KeyValuePair<DirectoryInfo, DirectoryInfo>>();
-		// Copy the plugin into assets, make a package
+		var copiedFiles = new List<(string packagesFile, string assetsFile)>();
+		var copiedDirectories = new List<(DirectoryInfo packagesDirectory, DirectoryInfo assetsDirectory)>();
+		
+		// Work out which files need to be copied into Assets for the Package
+		var files = Directory.GetFiles(IntegrationPath);
+		foreach (var filePath in files) {
+			var fileExtension = Path.GetExtension(filePath);
+			if(fileExtension == ".meta" || fileExtension == ".DS_Store") continue;
+			var fileName = Path.GetFileName(filePath);
+			if(fileName == "package.json") continue;
+			copiedFiles.Add((filePath, Path.Combine(assetsInkPath, fileName)));
+		}
+		
 		var integrationDirs = Directory.GetDirectories(IntegrationPath);
 		foreach(var dir in integrationDirs) {
 			var dirName = Path.GetFileName(dir);
 			if(dirName == "Demos") continue;
-			rootPaths.Add(new KeyValuePair<DirectoryInfo, DirectoryInfo>(new DirectoryInfo(dir), new DirectoryInfo(Path.Combine(assetsInkPath, dirName))));
+			copiedDirectories.Add((new DirectoryInfo(dir), new DirectoryInfo(Path.Combine(assetsInkPath, dirName))));
 		}
 
 		// Move files from Packages into Assets
-		foreach(var rootPath in rootPaths) {
-			MoveFilesRecursively(rootPath.Key, rootPath.Value);
-		}
-		// TODO - when we switch to 2019.4, get this working!
-		// This refresh causes errors until you alt-tab and back because it forces a script recompile but the files are moved back before it's done.
-		// To fix it, we can block recompilation (I dont think you can do this, or even if it'd work) or need to wait until compilation is done before copying the files back.
+		foreach(var rootPath in copiedFiles) 
+			new FileInfo(rootPath.packagesFile).MoveTo(rootPath.assetsFile);
+		foreach(var rootPath in copiedDirectories)
+			MoveFilesRecursively(rootPath.packagesDirectory, rootPath.assetsDirectory);
+		
+		// I believe this creates meta files but I can't recall!
 		AssetDatabase.Refresh();
-		// We can use this callback to achieve this.
-		// CompilationPipeline.compilationFinished += (object sender) => {
-			// CompilationPipeline.RequestScriptCompilation();
-		// }
 
 		// Create a .unitypackage
 		var version = InkLibrary.unityIntegrationVersionCurrent;
@@ -131,12 +139,14 @@ public static class PublishingTools {
 		AssetDatabase.ExportPackage("Assets/Ink", packageExportPath, ExportPackageOptions.Recurse);
 		
 		// Move files back to Packages
-		foreach(var rootPath in rootPaths) {
-			MoveFilesRecursively(rootPath.Value, rootPath.Key);
-		}
+		foreach (var rootPath in copiedFiles)
+			new FileInfo(rootPath.assetsFile).MoveTo(rootPath.packagesFile);
+		foreach(var rootPath in copiedDirectories) 
+			MoveFilesRecursively(rootPath.assetsDirectory, rootPath.packagesDirectory);
 		
 		EditorApplication.UnlockReloadAssemblies();
-
+		AssetDatabase.Refresh();
+		CompilationPipeline.RequestScriptCompilation();
 		Debug.Log("PublishingTools.CreatePackage: Created .unitypackage at "+Path.GetFullPath(Path.Combine(Application.dataPath, packageExportPath)));
 	}
 	
@@ -158,8 +168,9 @@ public static class PublishingTools {
 			EditorGUILayout.BeginVertical();
 			EditorGUILayout.LabelField("Version "+InkLibrary.unityIntegrationVersionCurrent, EditorStyles.centeredGreyMiniLabel);
 		
-			// Editor
-			// 
+			if (GUILayout.Button("Unlock")) {
+				EditorApplication.UnlockReloadAssemblies();
+			}
 			if (GUILayout.Button("Prepare for publishing (run all tasks)")) {
 				PreparePublish();
 			}
