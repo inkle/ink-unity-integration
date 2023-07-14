@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Linq;
@@ -347,6 +348,58 @@ namespace Ink.UnityIntegration {
 
 			return String.Concat(result);
 		}
+		
+		
+		
+ 
+		// This code works but it throws errors that can't be caught for non-installed build target groups. I've left the code for others to use but it's considered alpha for now! 
+		public static void AddGlobalDefine() {
+			foreach (BuildTargetGroup buildTargetGroup in (BuildTargetGroup[]) Enum.GetValues(typeof(BuildTargetGroup))) {
+				Add(buildTargetGroup, "INK_RUNTIME", "INK_EDITOR");
+				// if(BuildPipeline.IsBuildTargetSupported(buildTargetGroup, BuildTarget.NoTarget))
+			}
+			
+			const char DEFINE_SEPARATOR = ';';
+			static void Add(BuildTargetGroup buildTargetGroup, params string[] defines)
+			{
+				var allDefines = new List<string>();
+				string definesStr = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+				allDefines = definesStr.Split(DEFINE_SEPARATOR).ToList();
+				allDefines.AddRange(defines.Except(allDefines));
+				PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, string.Join(DEFINE_SEPARATOR.ToString(), allDefines.ToArray()));
+			}
+		}
+
+		public static void RemoveGlobalDefine() {
+			foreach (BuildTargetGroup buildTargetGroup in (BuildTargetGroup[]) Enum.GetValues(typeof(BuildTargetGroup))) {
+				Remove(buildTargetGroup, "INK_RUNTIME", "INK_EDITOR");
+				// if(BuildPipeline.IsBuildTargetSupported(buildTargetGroup, BuildTarget.NoTarget))
+			}
+			
+			const char DEFINE_SEPARATOR = ';';
+			static void Remove(BuildTargetGroup buildTargetGroup, params string[] defines)
+			{
+				string definesStr = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+				var existingDefines = definesStr.Split(DEFINE_SEPARATOR).ToList();
+				var newDefines = existingDefines.Except(defines);
+				PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, string.Join(DEFINE_SEPARATOR.ToString(), newDefines.ToArray()));
+			}
+		}
+		
+		public static bool HasGlobalDefines() {
+			foreach (BuildTargetGroup buildTargetGroup in (BuildTargetGroup[]) Enum.GetValues(typeof(BuildTargetGroup))) {
+				if (Exists(buildTargetGroup, "INK_RUNTIME", "INK_EDITOR")) return false;
+			}
+			return true;
+
+			const char DEFINE_SEPARATOR = ';';
+			static bool Exists(BuildTargetGroup buildTargetGroup, params string[] defines) {
+				string definesStr = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone);
+				var existingDefines = definesStr.Split(DEFINE_SEPARATOR).ToList();
+				return existingDefines.Contains("INK_RUNTIME") && existingDefines.Contains("INK_EDITOR");
+			}
+		}
+		
 
 
 		// If this plugin is installed as a package, returns info about it.

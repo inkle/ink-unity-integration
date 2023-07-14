@@ -73,6 +73,8 @@ namespace Ink.UnityIntegration {
 
 			EditorGUIUtility.labelWidth = cachedLabelWidth;
 			
+			// EditorGUILayout.Separator();
+			// DrawDefineManagerButtons();
 			EditorGUILayout.Separator();
 			DrawRequestButton();
 
@@ -110,6 +112,8 @@ namespace Ink.UnityIntegration {
             }
 			EditorGUIUtility.labelWidth = cachedLabelWidth;
 			
+			// EditorGUILayout.Separator();
+			// DrawDefineManagerButtons();
 			EditorGUILayout.Separator();
 			DrawRequestButton();
 		}
@@ -128,6 +132,22 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
+		static void DrawDefineManagerButtons() {
+			EditorGUILayout.LabelField(new GUIContent("Defines"), EditorStyles.boldLabel);
+			var hasDefines = InkEditorUtils.HasGlobalDefines();
+			EditorGUILayout.HelpBox("Adds INK_RUNTIME and INK_EDITOR #defines to the project for all BuildTargetGroups.", MessageType.Info);
+			EditorGUI.BeginDisabledGroup(!hasDefines);
+			if (GUILayout.Button(new GUIContent("Add Global Define", "Adds INK_RUNTIME and INK_EDITOR defines to your ProjectSettings for all BuildTargetGroups."))) {
+				InkEditorUtils.AddGlobalDefine();
+			}
+			EditorGUI.EndDisabledGroup();
+			EditorGUI.BeginDisabledGroup(hasDefines);
+			if (GUILayout.Button(new GUIContent("Remove Global Define", "Removes INK_RUNTIME and INK_EDITOR defines from your ProjectSettings for all BuildTargetGroups."))) {
+				InkEditorUtils.RemoveGlobalDefine();
+			}
+			EditorGUI.EndDisabledGroup();
+		}
+		
 		static void DrawRequestButton() {
 			EditorGUILayout.LabelField(new GUIContent("Support + Requests"), EditorStyles.boldLabel);
 			
