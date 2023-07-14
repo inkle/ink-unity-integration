@@ -43,11 +43,7 @@ namespace Ink.UnityIntegration {
 			}
 		}
 
-		public string absoluteFolderPath {
-			get {
-				return InkEditorUtils.SanitizePathString(Path.GetDirectoryName(absoluteFilePath));
-			}
-		}
+		public string absoluteFolderPath => InkEditorUtils.SanitizePathString(Path.GetDirectoryName(absoluteFilePath));
 
 		// The path of any compiled json file. Relative to assets folder.
         public string jsonPath {
@@ -73,9 +69,9 @@ namespace Ink.UnityIntegration {
 
                 Debug.Assert(jsonFolder != null, "JSON folder not found for ink file at path. File Path: "+_filePath+". Asset: "+inkAsset);
 
-                string jsonPath = AssetDatabase.GetAssetPath(jsonFolder);
-                Debug.Assert(Directory.Exists(jsonPath), "JSON folder path is not a directory! Json Path: "+jsonPath+". Asset: "+inkAsset);
-                string strJsonAssetPath = InkEditorUtils.CombinePaths(jsonPath, Path.GetFileNameWithoutExtension(_filePath)) + ".json";
+                string _jsonPath = AssetDatabase.GetAssetPath(jsonFolder);
+                Debug.Assert(Directory.Exists(_jsonPath), "JSON folder path is not a directory! Json Path: "+_jsonPath+". Asset: "+inkAsset);
+                string strJsonAssetPath = InkEditorUtils.CombinePaths(_jsonPath, Path.GetFileNameWithoutExtension(_filePath)) + ".json";
                 return strJsonAssetPath;
 			}
 		}
@@ -95,40 +91,20 @@ namespace Ink.UnityIntegration {
 
 		// Fatal unhandled errors that should be reported as compiler bugs.
 		public List<string> unhandledCompileErrors = new List<string>();
-		public bool hasUnhandledCompileErrors {
-			get {
-				return unhandledCompileErrors.Count > 0;
-			}
-		}
-		
+		public bool hasUnhandledCompileErrors => unhandledCompileErrors.Count > 0;
+
 		public List<string> recursiveIncludeErrorPaths = new List<string>();
-		public bool hasRecursiveIncludeErrorPaths {
-			get {
-				return recursiveIncludeErrorPaths.Count > 0;
-			}
-		}
+		public bool hasRecursiveIncludeErrorPaths => recursiveIncludeErrorPaths.Count > 0;
 
 		// Fatal errors caused by errors in the user's ink script.
 		public List<InkCompilerLog> errors = new List<InkCompilerLog>();
-		public bool hasErrors {
-			get {
-				return errors.Count > 0;
-			}
-		}
+		public bool hasErrors => errors.Count > 0;
 
 		public List<InkCompilerLog> warnings = new List<InkCompilerLog>();
-		public bool hasWarnings {
-			get {
-				return warnings.Count > 0;
-			}
-		}
+		public bool hasWarnings => warnings.Count > 0;
 
 		public List<InkCompilerLog> todos = new List<InkCompilerLog>();
-		public bool hasTodos {
-			get {
-				return todos.Count > 0;
-			}
-		}
+		public bool hasTodos => todos.Count > 0;
 
 		public bool requiresCompile {
 			get {
@@ -145,12 +121,12 @@ namespace Ink.UnityIntegration {
 			get {
 				if(isMaster) {
 					if(jsonAsset == null)
-						return default(DateTime);
+						return default;
 				
 					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(jsonAsset));
 					return File.GetLastWriteTime(fullJSONFilePath);
 				} else {
-					return default(DateTime);
+					return default;
 				}
 			}
 		}
@@ -159,11 +135,7 @@ namespace Ink.UnityIntegration {
 		/// Gets the last edit date of the file.
 		/// </summary>
 		/// <value>The last edit date of the file.</value>
-		public DateTime lastEditDate {
-			get {
-				return File.GetLastWriteTime(absoluteFilePath);
-			}
-		}
+		public DateTime lastEditDate => File.GetLastWriteTime(absoluteFilePath);
 
 		public List<DefaultAsset> masterInkAssets = new List<DefaultAsset>();
 		public IEnumerable<InkFile> masterInkFiles {
@@ -184,13 +156,9 @@ namespace Ink.UnityIntegration {
 		}
 
 		// Is this ink file included by another ink file?
-		public bool isIncludeFile {
-			get {
-				return masterInkAssets.Count > 0;
-			}
-		}
-		
-		
+		public bool isIncludeFile => masterInkAssets.Count > 0;
+
+
 		// The files referenced by this file via the INCLUDE keyword
 		// We cache the paths of the files to be included for performance, giving us more freedom to refresh the actual includes list without needing to parse all the text.
 		public List<string> localIncludePaths = new List<string>();
@@ -239,7 +207,7 @@ namespace Ink.UnityIntegration {
 		
 
 
-//		// Returns the contents of the .ink file.
+		// Returns the contents of the .ink file.
 		public string GetFileContents () {
 			if(inkAsset == null) {
 				Debug.LogWarning("Ink file asset is null! Rebuild library using Assets > Rebuild Ink Library");
@@ -327,7 +295,7 @@ namespace Ink.UnityIntegration {
 
 		
 		public override string ToString () {
-			return string.Format ("[InkFile: filePath={0}]", filePath);
+			return $"[InkFile: filePath={filePath}]";
 		} 
 	}
 }
