@@ -270,12 +270,17 @@ namespace Ink.UnityIntegration {
 		/// <param name="path">The path to check.</param>
 		/// <returns>True if it's an ink file, otherwise false.</returns>
 		public static bool IsInkFile(string path) {
+			if (string.IsNullOrEmpty(path)) return false;
 			string extension = Path.GetExtension(path);
 			if (extension == InkEditorUtils.inkFileExtension) {
 				return true;
-			}
-
-			return String.IsNullOrEmpty(extension) && InkLibrary.instance.inkLibrary.Exists(f => f.filePath == path);
+			} else if (String.IsNullOrEmpty(extension)) {
+				if (File.GetAttributes(path).HasFlag(FileAttributes.Directory)) return false;
+				// This check exists only in the case of ink files that lack the .ink extension.
+				// We support this mostly for legacy reasons - Inky didn't used to add .ink by default which made a this relatively common issue.
+				// This function needs to be speedy but getting all the ink file paths is a bit slow, so I'd like to remove support for missing extensions in the future.
+				return InkLibrary.instance.inkLibrary.Exists(f => f.filePath == path);
+			} else return false;
 		}
 
 
