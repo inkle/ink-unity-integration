@@ -70,17 +70,19 @@ namespace Ink.UnityIntegration {
             settings.handleJSONFilesAutomatically = EditorGUILayout.Toggle(new GUIContent("Handle JSON Automatically", "Whether JSON files are moved, renamed and deleted along with their ink files."), settings.handleJSONFilesAutomatically);
 			settings.compileTimeout = EditorGUILayout.IntField(new GUIContent("Compile Timeout", "The max time the compiler will attempt to compile for in case of unhanded errors. You may need to increase this for very large ink projects."), settings.compileTimeout);
 			settings.suppressStartupWindow = EditorGUILayout.Toggle(new GUIContent("Suppress Startup Window", "Prevent the \"what's new\" (the one that appears if you click the \"Show changelog\" button above) appearing when the version of this plugin has changed and Unity is opened. This can be useful for CI/CD pipelines, where auto-launching editor windows can fail to load due to a Unity bug."), settings.suppressStartupWindow);
-
-			EditorGUIUtility.labelWidth = cachedLabelWidth;
+			settings.automaticallyAddDefineSymbols = EditorGUILayout.Toggle(new GUIContent("Add define symbols", "If true, automatically adds INK_EDITOR and INK_RUNTIME to the define symbols in the build settings. This is handy for conditional code."), settings.automaticallyAddDefineSymbols);
+			//// DrawDefineManagerButtons();
 			
-			// EditorGUILayout.Separator();
-			// DrawDefineManagerButtons();
 			EditorGUILayout.Separator();
 			DrawRequestButton();
 
+			EditorGUIUtility.labelWidth = cachedLabelWidth;
 			EditorGUI.indentLevel--;
 			
 			if (EditorGUI.EndChangeCheck()) {
+				if (settings.automaticallyAddDefineSymbols) InkDefineSymbols.AddGlobalDefine();
+				else InkDefineSymbols.RemoveGlobalDefine();
+				
 				EditorUtility.SetDirty(settings);
 				settings.Save(true);
 			}
@@ -106,16 +108,20 @@ namespace Ink.UnityIntegration {
             EditorGUILayout.PropertyField(settings.FindProperty("handleJSONFilesAutomatically"), new GUIContent("Handle JSON Automatically", "Whether JSON files are moved, renamed and deleted along with their ink files."));
 			EditorGUILayout.PropertyField(settings.FindProperty("compileTimeout"), new GUIContent("Compile Timeout", "The max time the compiler will attempt to compile for in case of unhanded errors. You may need to increase this for very large ink projects."));
 			EditorGUILayout.PropertyField(settings.FindProperty("suppressStartupWindow"), new GUIContent("Suppress Startup Window", "Prevent the \"what's new\" (the one that appears if you click the \"Show changelog\" button above) appearing when the version of this plugin has changed and Unity is opened. This can be useful for CI/CD pipelines, where auto-launching editor windows can fail to load due to a Unity bug."));
-            
-            if(EditorGUI.EndChangeCheck()) {
-				settings.ApplyModifiedProperties();
-            }
+            EditorGUILayout.PropertyField(settings.FindProperty("automaticallyAddDefineSymbols"), new GUIContent("Add define symbols", "If true, automatically adds INK_EDITOR and INK_RUNTIME to the define symbols in the build settings. This is handy for conditional code."));
+			//DrawDefineManagerButtons();
+			
 			EditorGUIUtility.labelWidth = cachedLabelWidth;
 			
-			// EditorGUILayout.Separator();
-			// DrawDefineManagerButtons();
 			EditorGUILayout.Separator();
 			DrawRequestButton();
+            
+			if(EditorGUI.EndChangeCheck()) {
+	            if (settings.FindProperty("automaticallyAddDefineSymbols").boolValue) InkDefineSymbols.AddGlobalDefine();
+	            else InkDefineSymbols.RemoveGlobalDefine();
+	            
+				settings.ApplyModifiedProperties();
+            }
 		}
 
 
@@ -134,16 +140,16 @@ namespace Ink.UnityIntegration {
 
 		static void DrawDefineManagerButtons() {
 			EditorGUILayout.LabelField(new GUIContent("Defines"), EditorStyles.boldLabel);
-			var hasDefines = InkEditorUtils.HasGlobalDefines();
-			EditorGUILayout.HelpBox("Adds INK_RUNTIME and INK_EDITOR #defines to the project for all BuildTargetGroups.", MessageType.Info);
-			EditorGUI.BeginDisabledGroup(!hasDefines);
-			if (GUILayout.Button(new GUIContent("Add Global Define", "Adds INK_RUNTIME and INK_EDITOR defines to your ProjectSettings for all BuildTargetGroups."))) {
-				InkEditorUtils.AddGlobalDefine();
+			var hasDefines = InkDefineSymbols.HasGlobalDefines();
+			EditorGUILayout.HelpBox("Adds INK_RUNTIME and INK_EDITOR #defines to the project for the current Build Target.", MessageType.Info);
+			EditorGUI.BeginDisabledGroup(hasDefines);
+			if (GUILayout.Button(new GUIContent("Add Global Define", "Adds INK_RUNTIME and INK_EDITOR defines to your ProjectSettings for the current Build Target."))) {
+				InkDefineSymbols.AddGlobalDefine();
 			}
 			EditorGUI.EndDisabledGroup();
-			EditorGUI.BeginDisabledGroup(hasDefines);
-			if (GUILayout.Button(new GUIContent("Remove Global Define", "Removes INK_RUNTIME and INK_EDITOR defines from your ProjectSettings for all BuildTargetGroups."))) {
-				InkEditorUtils.RemoveGlobalDefine();
+			EditorGUI.BeginDisabledGroup(!hasDefines);
+			if (GUILayout.Button(new GUIContent("Remove Global Define", "Removes INK_RUNTIME and INK_EDITOR defines from your ProjectSettings for the current Build Target."))) {
+				InkDefineSymbols.RemoveGlobalDefine();
 			}
 			EditorGUI.EndDisabledGroup();
 		}

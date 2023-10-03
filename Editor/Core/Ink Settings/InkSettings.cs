@@ -92,6 +92,8 @@ namespace Ink.UnityIntegration {
 		public bool printInkLogsInConsoleOnCompile;
 		
 		public bool suppressStartupWindow;
+		
+		public bool automaticallyAddDefineSymbols = true;
 
 		#if UNITY_EDITOR && !UNITY_2018_1_OR_NEWER
 		[MenuItem("Edit/Project Settings/Ink", false, 500)]

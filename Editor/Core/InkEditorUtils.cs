@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Linq;
@@ -30,6 +29,16 @@ namespace Ink.UnityIntegration {
 		const string lastCompileTimeKey = "InkIntegrationLastCompileTime";
 
 		private static Texture2D _inkLogoIcon;
+
+		static InkEditorUtils() {
+			var isFirstLaunch = SessionState.GetBool("InkIsFirstUnityLaunch", true);
+			if (isFirstLaunch) {
+				SessionState.SetBool("InkIsFirstUnityLaunch", false);
+				if(InkSettings.instance.automaticallyAddDefineSymbols)
+					InkDefineSymbols.AddGlobalDefine();
+			}
+		}
+
 		public static Texture2D inkLogoIcon {
 			get {
 				if(_inkLogoIcon == null) {
@@ -276,6 +285,7 @@ namespace Ink.UnityIntegration {
 			if (extension == InkEditorUtils.inkFileExtension) {
 				return true;
 			} else if (String.IsNullOrEmpty(extension)) {
+				if (!File.Exists(path)) return false;
 				if (File.GetAttributes(path).HasFlag(FileAttributes.Directory)) return false;
 				// This check exists only in the case of ink files that lack the .ink extension.
 				// We support this mostly for legacy reasons - Inky didn't used to add .ink by default which made a this relatively common issue.
@@ -348,58 +358,7 @@ namespace Ink.UnityIntegration {
 
 			return String.Concat(result);
 		}
-		
-		
-		
- 
-		// This code works but it throws errors that can't be caught for non-installed build target groups. I've left the code for others to use but it's considered alpha for now! 
-		public static void AddGlobalDefine() {
-			foreach (BuildTargetGroup buildTargetGroup in (BuildTargetGroup[]) Enum.GetValues(typeof(BuildTargetGroup))) {
-				Add(buildTargetGroup, "INK_RUNTIME", "INK_EDITOR");
-				// if(BuildPipeline.IsBuildTargetSupported(buildTargetGroup, BuildTarget.NoTarget))
-			}
-			
-			const char DEFINE_SEPARATOR = ';';
-			static void Add(BuildTargetGroup buildTargetGroup, params string[] defines)
-			{
-				var allDefines = new List<string>();
-				string definesStr = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
-				allDefines = definesStr.Split(DEFINE_SEPARATOR).ToList();
-				allDefines.AddRange(defines.Except(allDefines));
-				PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, string.Join(DEFINE_SEPARATOR.ToString(), allDefines.ToArray()));
-			}
-		}
 
-		public static void RemoveGlobalDefine() {
-			foreach (BuildTargetGroup buildTargetGroup in (BuildTargetGroup[]) Enum.GetValues(typeof(BuildTargetGroup))) {
-				Remove(buildTargetGroup, "INK_RUNTIME", "INK_EDITOR");
-				// if(BuildPipeline.IsBuildTargetSupported(buildTargetGroup, BuildTarget.NoTarget))
-			}
-			
-			const char DEFINE_SEPARATOR = ';';
-			static void Remove(BuildTargetGroup buildTargetGroup, params string[] defines)
-			{
-				string definesStr = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
-				var existingDefines = definesStr.Split(DEFINE_SEPARATOR).ToList();
-				var newDefines = existingDefines.Except(defines);
-				PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, string.Join(DEFINE_SEPARATOR.ToString(), newDefines.ToArray()));
-			}
-		}
-		
-		public static bool HasGlobalDefines() {
-			foreach (BuildTargetGroup buildTargetGroup in (BuildTargetGroup[]) Enum.GetValues(typeof(BuildTargetGroup))) {
-				if (Exists(buildTargetGroup, "INK_RUNTIME", "INK_EDITOR")) return false;
-			}
-			return true;
-
-			const char DEFINE_SEPARATOR = ';';
-			static bool Exists(BuildTargetGroup buildTargetGroup, params string[] defines) {
-				string definesStr = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone);
-				var existingDefines = definesStr.Split(DEFINE_SEPARATOR).ToList();
-				return existingDefines.Contains("INK_RUNTIME") && existingDefines.Contains("INK_EDITOR");
-			}
-		}
-		
 
 
 		// If this plugin is installed as a package, returns info about it.
