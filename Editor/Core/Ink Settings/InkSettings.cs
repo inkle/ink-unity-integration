@@ -61,15 +61,6 @@ namespace Ink.UnityIntegration {
 		}
 		// #endif
 
-        public class AssetSaver : UnityEditor.AssetModificationProcessor {
-            static string[] OnWillSaveAssets(string[] paths) {
-                InkSettings.instance.Save(true);
-                return paths;
-            }
-        }
-
-		
-		
 		public DefaultAsset templateFile;
 		public string templateFilePath {
 			get {
