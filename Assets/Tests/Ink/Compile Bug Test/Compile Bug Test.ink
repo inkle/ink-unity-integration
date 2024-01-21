@@ -1,4 +1,0 @@
-﻿{lah()}
-
-=== function lah
-->

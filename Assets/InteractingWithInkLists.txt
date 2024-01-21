@@ -1,0 +1,50 @@
+
+var story = StoryController.Instance.story;
+        var originalList = (InkList)story.variablesState[listInstruction.listVariableName];
+        
+        // Ok turns out inklists are just awful to work with. 
+        // The only safe way to manipulate lists from code is to create a new list and write it to the old list - You should think of them as value types.
+        var listVar = new InkList(originalList);
+        listVar.Clear();
+        foreach(var inkListItem in originalList.all) {
+            if(originalList.ContainsKey(inkListItem.Key)) {
+                listVar.AddItem(inkListItem.Key.fullName, story);
+            }
+        }
+
+        
+        bool changed = false;
+        foreach(var item in items) {
+            if(item.isOn && !listVar.ContainsKey(item.inkListItem)) {
+                listVar.AddItem(item.inkListItem.fullName, story);
+                changed = true;
+            }
+            else if(!item.isOn && listVar.ContainsKey(item.inkListItem)) {
+                listVar.Remove(item.inkListItem);
+                changed = true;
+            }
+        }
+        if(changed) 
+            story.variablesState[listInstruction.listVariableName] = listVar;
+
+
+
+var frameworkStandaloneStory = new Story(frameworkInk.jsonAsset.text);
+            foreach(var variable in frameworkStandaloneStory.variablesState) inkVariableKeysToIgnore.Add(variable);
+            GatherNamedContent(frameworkStandaloneStory, ref inkKnotReadCountsToIgnore);
+            
+static void GatherNamedContent (Story story, ref List<string> paths) {
+        GatherNamedContent(story.mainContentContainer, ref paths);
+        void GatherNamedContent (Container container, ref List<string> paths, string currentPath = null) {
+            if(currentPath == null) {
+                currentPath = string.Empty;
+                paths.Clear();
+            }
+            if(container == null || container.namedOnlyContent == null) return;
+            foreach(var contentKVP in container.namedOnlyContent) {
+                var newPath = currentPath.Length == 0 ? contentKVP.Key : currentPath+"."+contentKVP.Key;
+                paths.Add(newPath);
+                GatherNamedContent((Container)contentKVP.Value, ref paths, newPath);
+            }
+        }
+    }
