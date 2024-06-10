@@ -447,7 +447,12 @@ namespace Ink.Runtime
                 // In this case, we only want to batch observe variable changes
                 // for the outermost call.
                 if (_recursiveContinueCount == 1)
-                    _state.variablesState.batchObservingVariableChanges = true;
+                    _state.variablesState.StartVariableObservation();
+            }
+
+            // Async was previously active, but now we want to finish synchronously
+            else if( _asyncContinueActive && !isAsyncTimeLimited ) {
+                _asyncContinueActive = false;
             }
 
             // Start timing
@@ -476,6 +481,8 @@ namespace Ink.Runtime
             } while(canContinue);
 
             durationStopwatch.Stop ();
+
+            Dictionary<string, Object> changedVariablesToObserve = null;
 
             // 4 outcomes:
             //  - got newline (so finished this line of text)
@@ -512,7 +519,7 @@ namespace Ink.Runtime
                 _sawLookaheadUnsafeFunctionAfterNewline = false;
 
                 if (_recursiveContinueCount == 1)
-                    _state.variablesState.batchObservingVariableChanges = false;
+                    changedVariablesToObserve = _state.variablesState.CompleteVariableObservation();
 
                 _asyncContinueActive = false;
                 if(onDidContinue != null) onDidContinue();
@@ -572,6 +579,11 @@ namespace Ink.Runtime
                     // 
                     throw new StoryException(sb.ToString());
                 }
+            }
+
+            // Send out variable observation events at the last second, since it might trigger new ink to be run
+            if( changedVariablesToObserve != null && changedVariablesToObserve.Count > 0 ) {
+                _state.variablesState.NotifyObservers(changedVariablesToObserve);
             }
         }
 
@@ -776,7 +788,7 @@ namespace Ink.Runtime
         void StateSnapshot()
         {
             _stateSnapshotAtLastNewline = _state;
-            _state = _state.CopyAndStartPatching();
+            _state = _state.CopyAndStartPatching(forBackgroundSave:false);
         }
 
         void RestoreStateSnapshot()
@@ -828,7 +840,7 @@ namespace Ink.Runtime
             IfAsyncWeCant("start saving on a background thread");
             if (_asyncSaving) throw new System.Exception("Story is already in background saving mode, can't call CopyStateForBackgroundThreadSave again!");
             var stateToSave = _state;
-            _state = _state.CopyAndStartPatching();
+            _state = _state.CopyAndStartPatching(forBackgroundSave:true);
             _asyncSaving = true;
             return stateToSave;
         }
@@ -1912,6 +1924,10 @@ namespace Ink.Runtime
         /// </summary>
         public bool allowExternalFunctionFallbacks { get; set; }
         
+        /// <summary>
+        /// Try to get a reference to an external function. This was originally exposed for the
+        /// Ink-Unity integration plugin so that the inspector can list them.
+        /// </summary>
         public bool TryGetExternalFunction(string functionName, out ExternalFunction externalFunction) {
             ExternalFunctionDef externalFunctionDef;
             if(_externals.TryGetValue (functionName, out externalFunctionDef)) {
@@ -1930,6 +1946,34 @@ namespace Ink.Runtime
             Container fallbackFunctionContainer = null;
 
             var foundExternal = _externals.TryGetValue (funcName, out funcDef);
+
+            if( foundExternal && !funcDef.lookaheadSafe && state.inStringEvaluation ) {
+                // 16th Jan 2023: Example ink that was failing:
+                //
+                //      A line above
+                //      ~ temp text = "{theFunc()}" 
+                //      {text} 
+                //
+                //      === function theFunc() 
+                //          { external():
+                //              Boom
+                //          }
+                //
+                //      EXTERNAL external() 
+                //
+                // What was happening: The external() call would exit out early due to
+                // _stateSnapshotAtLastNewline having a value, leaving the evaluation stack
+                // without a return value on it. When the if-statement tried to pop a value,
+                // the evaluation stack would be empty, and there would be an exception.
+                //
+                // The snapshot rewinding code is only designed to work when outside of
+                // string generation code (there's a check for that in the snapshot rewinding code),
+                // hence these things are incompatible, you can't have unsafe functions that
+                // cause snapshot rewinding in the middle of string generation.
+                //
+                Error("External function "+funcName+" could not be called because 1) it wasn't marked as lookaheadSafe when BindExternalFunction was called and 2) the story is in the middle of string generation, either because choice text is being generated, or because you have ink like \"hello {func()}\". You can work around this by generating the result of your function into a temporary variable before the string or choice gets generated: ~ temp x = "+funcName+"()");
+                return;
+            }
 
             // Should this function break glue? Abort run if we've already seen a newline.
             // Set a bool to tell it to restore the snapshot at the end of this instruction.
@@ -2500,7 +2544,6 @@ namespace Ink.Runtime
             
             VariableObserver observers = null;
             if (_variableObservers.TryGetValue (variableName, out observers)) {
-
                 if (!(newValueObj is Value)) {
                     throw new System.Exception ("Tried to get the value of a variable that isn't a standard type");
                 }

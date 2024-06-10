@@ -71,10 +71,15 @@ namespace Ink.Runtime
                         pointer.container = threadPointerResult.container;
                         pointer.index = (int)jElementObj ["idx"];
 
-                        if (threadPointerResult.obj == null)
+                        if (threadPointerResult.obj == null) {
                             throw new System.Exception ("When loading state, internal story location couldn't be found: " + currentContainerPathStr + ". Has the story changed since this save data was created?");
-                        else if (threadPointerResult.approximate)
-                            storyContext.Warning ("When loading state, exact internal story location couldn't be found: '" + currentContainerPathStr + "', so it was approximated to '"+pointer.container.path.ToString()+"' to recover. Has the story changed since this save data was created?");
+                        } else if (threadPointerResult.approximate) {
+                            if (pointer.container != null) {
+                                storyContext.Warning ("When loading state, exact internal story location couldn't be found: '" + currentContainerPathStr + "', so it was approximated to '" + pointer.container.path.ToString() + "' to recover. Has the story changed since this save data was created?");
+                            } else {
+                                storyContext.Warning ("When loading state, exact internal story location couldn't be found: '" + currentContainerPathStr + "' and it may not be recoverable. Has the story changed since this save data was created?");
+                            }
+                        }
 					}
 
                     bool inExpressionEvaluation = (bool)jElementObj ["exp"];
@@ -342,6 +347,7 @@ namespace Ink.Runtime
         // Get variable value, dereferencing a variable pointer if necessary
         public Runtime.Object GetTemporaryVariableWithName(string name, int contextIndex = -1)
         {
+            // contextIndex 0 means global, so index is actually 1-based
             if (contextIndex == -1)
                 contextIndex = currentElementIndex+1;
             
