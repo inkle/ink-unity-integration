@@ -24,8 +24,10 @@ namespace Ink
 			CharacterRange.Define('\u0600', '\u06FF', excludes: new CharacterSet());
 		public static readonly CharacterRange Korean =
 			CharacterRange.Define('\uAC00', '\uD7AF', excludes: new CharacterSet());
-	    	public static readonly CharacterRange Latin1Supplement =
+        public static readonly CharacterRange Latin1Supplement =
 			CharacterRange.Define('\u0080', '\u00FF', excludes: new CharacterSet());
+        public static readonly CharacterRange Chinese =
+			CharacterRange.Define('\u4E00', '\u9FFF', excludes: new CharacterSet());
 
         private void ExtendIdentifierCharacterRanges(CharacterSet identifierCharSet)
         {
@@ -57,6 +59,7 @@ namespace Ink
                 Hebrew,
                 Korean,
 		Latin1Supplement,
+		Chinese,
             };
         }
 	}
