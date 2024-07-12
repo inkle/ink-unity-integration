@@ -5,11 +5,11 @@ This Unity package allows you to integrate inkle's [ink narrative scripting lang
 # Overview
 
  - **Using ink in your game**: Allows running and controlling ink files in Unity via the [C# runtime API](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md).
- 	
+  
  - **ink player**: Provides a powerful [Ink Player Window](https://github.com/inkle/ink-unity-integration/blob/master/Documentation/InkPlayerWindow.md) for playing and debugging stories.
  
  - **Auto compilation**: Instantly creates and updates a JSON story file when a `.ink` is updated.
- 	
+  
  - **Inspector tools**: Provides an icon for ink files, and a custom inspector that provides information about a file.
 
 # Getting started
@@ -76,7 +76,7 @@ To keep up to date with the latest news about ink [sign up for the mailing list]
 # Features
 
 ## Compilation
-	
+  
 Ink files must be compiled to JSON before they can be used in-game. 
 **This package compiles all edited ink files automatically.**
 By default, compiled files are created next to their ink file.
@@ -153,7 +153,7 @@ If your game doesn't require compiling ink at runtime we recommend adding a .asm
   We support 2020 LTS and above.
   Until version 1.1.1 we supported 2018 LTS, which should also work going back to at least Unity 5.
 
-# Support us!:heart:
+# Support us! :heart:
 
 Ink is free, forever; but we'd really appreciate your support!
 If you're able to give back, generous donations at our [Patreon](https://www.patreon.com/inkle) mean the world to us. 

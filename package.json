@@ -1,6 +1,6 @@
 {
   "name": "com.inkle.ink-unity-integration",
-  "version": "1.1.8",
+  "version": "1.2.0",
   "displayName": "Ink",
   "description": "Unity integration for the open source ink narrative scripting language.",
   "unity": "2018.4",
