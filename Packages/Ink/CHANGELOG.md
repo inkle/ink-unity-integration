@@ -1,3 +1,11 @@
+## Version 1.2.1 (31st July 2024):
+- Fixes broken demo script
+
+## Version 1.2.0 (12th July 2024):
+- 🎉 Updated Ink to 1.2.0! See whats new!
+- Some significant editor performance improvements
+- #173 Add support for automatically adding #INK_RUNTIME and #INK_EDITOR defines. Go to Project Settings -> Ink Settings to toggle it!
+
 ## Version 1.1.8 (11th July 2023):
 - Update the demo scene to Unity 2020.3.25f1 to improve compatibility with more recent versions
 - Fixes a missing GUIStyle in the Ink Player Window in recent versions of Unity

@@ -179,7 +179,7 @@ public static class PublishingTools {
 			}
 			if (GUILayout.Button("Draft GitHub Release")) {
 				// 1.1.7
-				var version = UnityWebRequest.EscapeURL($"v{InkLibrary.unityIntegrationVersionCurrent}");
+				var version = UnityWebRequest.EscapeURL($"{InkLibrary.unityIntegrationVersionCurrent}");
 				
 				var title = UnityWebRequest.EscapeURL($"{InkLibrary.unityIntegrationVersionCurrent} is out!");
 				
