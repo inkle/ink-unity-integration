@@ -17,9 +17,7 @@ namespace Ink.UnityIntegration {
     #else
 	public class InkLibrary : ScriptableObject, IEnumerable<InkFile> {
     #endif
-        // Ink version. This should really come from the core ink code.
-		public static System.Version inkVersionCurrent = new System.Version(1,2,0);
-		public static System.Version unityIntegrationVersionCurrent = new System.Version(1,2,1);
+        
 
 		static string absoluteSavePath {
 			get {
@@ -212,7 +210,7 @@ namespace Ink.UnityIntegration {
             instance.inkLibraryDictionary.Clear();
 
 			// Reset the asset name
-			instance.name = "Ink Library "+unityIntegrationVersionCurrent.ToString();
+			instance.name = "Ink Library "+InkFile.unityIntegrationVersionCurrent.ToString();
             
 			// Add any new file connections (if any are found it replaces the old library entirely)
 			string[] inkFilePaths = GetAllInkFilePaths();

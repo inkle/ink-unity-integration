@@ -27,7 +27,7 @@ namespace Ink.UnityIntegration {
 		}
 		
         public static void ShowWindow () {
-            InkUnityIntegrationStartupWindow window = GetWindow(typeof(InkUnityIntegrationStartupWindow), true, "Ink Update "+InkLibrary.unityIntegrationVersionCurrent, true) as InkUnityIntegrationStartupWindow;
+            InkUnityIntegrationStartupWindow window = GetWindow(typeof(InkUnityIntegrationStartupWindow), true, "Ink Update "+InkFile.unityIntegrationVersionCurrent, true) as InkUnityIntegrationStartupWindow;
             window.minSize = new Vector2(200, 200);
             var size = new Vector2(520, 320);
             window.position = new Rect((Screen.currentResolution.width-size.x) * 0.5f, (Screen.currentResolution.height-size.y) * 0.5f, size.x, size.y);
@@ -47,8 +47,8 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.BeginVertical();
 			EditorGUILayout.LabelField(new GUIContent(InkEditorUtils.inkLogoIcon), GUILayout.Width(areaSize.x), GUILayout.Height(areaSize.x*((float)InkEditorUtils.inkLogoIcon.height/InkEditorUtils.inkLogoIcon.width)));
 			GUILayout.Space(5);
-			EditorGUILayout.LabelField("Version "+InkLibrary.unityIntegrationVersionCurrent, EditorStyles.centeredGreyMiniLabel);
-			EditorGUILayout.LabelField("Ink version "+InkLibrary.inkVersionCurrent, EditorStyles.centeredGreyMiniLabel);
+			EditorGUILayout.LabelField("Version "+InkFile.unityIntegrationVersionCurrent, EditorStyles.centeredGreyMiniLabel);
+			EditorGUILayout.LabelField("Ink version "+InkFile.inkVersionCurrent, EditorStyles.centeredGreyMiniLabel);
 			EditorGUILayout.EndVertical();
 			GUILayout.EndArea();
 

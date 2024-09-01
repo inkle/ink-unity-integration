@@ -128,8 +128,8 @@ namespace Ink.UnityIntegration {
 		static void DrawVersions () {
 			EditorGUILayout.LabelField(new GUIContent("Version Info"), EditorStyles.boldLabel);
 			EditorGUI.BeginDisabledGroup(true);
-			EditorGUILayout.TextField(new GUIContent("Plugin version", "The version of the Ink Unity Integration package."), InkLibrary.unityIntegrationVersionCurrent.ToString());
-			EditorGUILayout.TextField(new GUIContent("Ink version", "The version of ink that is included by the Unity package, used to compile and play ink files."), InkLibrary.inkVersionCurrent.ToString());
+			EditorGUILayout.TextField(new GUIContent("Plugin version", "The version of the Ink Unity Integration package."), InkFile.unityIntegrationVersionCurrent.ToString());
+			EditorGUILayout.TextField(new GUIContent("Ink version", "The version of ink that is included by the Unity package, used to compile and play ink files."), InkFile.inkVersionCurrent.ToString());
 			EditorGUILayout.TextField(new GUIContent("Ink story format version", "Significant changes to the Ink runtime are recorded by the story format version.\nCompatibility between different versions is limited; see comments at Ink.Runtime.Story.inkVersionCurrent for more details."), Ink.Runtime.Story.inkVersionCurrent.ToString());
 			EditorGUILayout.TextField(new GUIContent("Ink save format version", "Version of the ink save/load system.\nCompatibility between different versions is limited; see comments at Ink.Runtime.StoryState.kInkSaveStateVersion for more details."), Ink.Runtime.StoryState.kInkSaveStateVersion.ToString());
 			EditorGUI.EndDisabledGroup();

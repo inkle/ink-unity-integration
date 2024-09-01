@@ -10,6 +10,10 @@ namespace Ink.UnityIntegration {
 	// Helper class for ink files that maintains INCLUDE connections between ink files
 	[Serializable]
 	public class InkFile {
+    // Ink version. This should really come from the core ink code.
+		public static System.Version inkVersionCurrent = new System.Version(1,2,0);
+		public static System.Version unityIntegrationVersionCurrent = new System.Version(1,2,1);
+
 		// Master files are those that can be compiled
 		public bool isMaster => !isIncludeFile || isMarkedToCompileAsMasterFile;
 		// Typically master files are simply those that aren't INCLUDED by another file, but they can also be marked to master files.
