@@ -144,9 +144,11 @@ namespace Ink.UnityIntegration {
 		public List<DefaultAsset> masterInkAssets = new List<DefaultAsset>();
 		public IEnumerable<InkFile> masterInkFiles {
 			get {
-				foreach(var masterInkAsset in masterInkAssets) {
-					yield return InkLibrary.GetInkFileWithFile(masterInkAsset);
-				}
+				// FIXME
+				return new InkFile[0];
+				// foreach(var masterInkAsset in masterInkAssets) {
+				// 	yield return InkLibrary.GetInkFileWithFile(masterInkAsset);
+				// }
 			}
 		}
 		public IEnumerable<InkFile> masterInkFilesIncludingSelf {
@@ -177,7 +179,8 @@ namespace Ink.UnityIntegration {
 						Debug.LogError("Error compiling ink: Ink file include in "+filePath+" is null.", inkAsset);
 						continue;
 					}
-					_includesInkFiles.Add(InkLibrary.GetInkFileWithFile(child));
+					// FIXME:
+					// _includesInkFiles.Add(InkLibrary.GetInkFileWithFile(child));
 				}
 				return _includesInkFiles;
 			}

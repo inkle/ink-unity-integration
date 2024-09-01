@@ -63,22 +63,13 @@ namespace Ink.UnityIntegration {
 
 		public override void OnEnable () {
 			Rebuild();
-			InkCompiler.OnCompileInk += OnCompileInk;
-		}
-
-		public override void OnDisable () {
-			InkCompiler.OnCompileInk -= OnCompileInk;
-		}
-
-		void OnCompileInk (InkFile[] inkFiles) {
-			// We could probably be smarter about when we rebuild - only rebuilding if the file that's shown in the inspector is in the list - but it's not frequent or expensive so it's not important!
-			Rebuild();
 		}
 
 		void Rebuild () {
 			cachedTrimmedFileContents = "";
 			string assetPath = AssetDatabase.GetAssetPath(target);
-			inkFile = InkLibrary.GetInkFileWithPath(assetPath);
+            // FIXME:
+			// inkFile = InkLibrary.GetInkFileWithPath(assetPath);
 			if(inkFile == null) 
 				return;
 
@@ -111,7 +102,8 @@ namespace Ink.UnityIntegration {
 					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File in include list is null. Use Assets > Recompile Ink to fix this issue."));
 					return;
 				}
-				InkFile childInkFile = InkLibrary.GetInkFileWithFile(childAssetFile);
+                // FIXME:
+                InkFile childInkFile = null;//InkLibrary.GetInkFileWithFile(childAssetFile);
 				if(childInkFile == null) {
 					Debug.LogError("Ink File for included file "+childAssetFile+" not found. This should never occur. Use Assets > Recompile Ink to fix this issue.");
 					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File for included file "+childAssetFile+" not found. Use Assets > Recompile Ink to fix this issue."));
@@ -150,7 +142,8 @@ namespace Ink.UnityIntegration {
 					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File in masters list is null. Use Assets > Recompile Ink to fix this issue."));
 					return;
 				}
-				InkFile masterInkFile = InkLibrary.GetInkFileWithFile(masterAssetFile);
+                // FIXME:
+                InkFile masterInkFile = null; //InkLibrary.GetInkFileWithFile(masterAssetFile);
 				if(masterInkFile == null) {
 					Debug.LogError("Ink File for master file "+masterAssetFile+" not found. This should never occur. Use Assets > Recompile Ink to fix this issue.");
 					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File for master file "+masterAssetFile+" not found. Use Assets > Recompile Ink to fix this issue."));
@@ -259,20 +252,6 @@ namespace Ink.UnityIntegration {
 		public override void OnInspectorGUI () {
 			editor.Repaint();
 			serializedObject.Update();
-			if(inkFile == null) {
-				EditorGUILayout.HelpBox("Ink File is not in library.", MessageType.Warning);
-				if(GUILayout.Button("Rebuild Library")) {
-					InkLibrary.Rebuild();
-					Rebuild();
-				}
-				return;
-			}
-			
-			
-			if(InkCompiler.IsInkFileOnCompilationStack(inkFile)) {
-				EditorGUILayout.HelpBox("File is compiling...", MessageType.Info);
-				return;
-			}
 			
 			if(inkFile.isIncludeFile) {
 				EditorGUI.BeginChangeCheck();
@@ -307,9 +286,6 @@ namespace Ink.UnityIntegration {
 						EditorGUILayout.HelpBox("Last compile had warnings", MessageType.Warning);
 					} else if(inkFile.jsonAsset == null) {
 						EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
-					}
-					if(inkFile.requiresCompile && GUILayout.Button("Compile")) {
-						InkCompiler.CompileInk(inkFile);
 					}
 					
 					DrawCompileErrors();

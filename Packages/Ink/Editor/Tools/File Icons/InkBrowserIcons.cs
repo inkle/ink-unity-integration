@@ -112,7 +112,8 @@ namespace Ink.UnityIntegration {
 	        string path = AssetDatabase.GUIDToAssetPath(guid);
 			if (InkEditorUtils.IsInkFile(path)) {
 				DefaultAsset asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(path);
-				DrawInkFile(InkLibrary.GetInkFileWithFile(asset), rect);
+                // FIXME:
+				// DrawInkFile(InkLibrary.GetInkFileWithFile(asset), rect);
 			}
 	    }
 
