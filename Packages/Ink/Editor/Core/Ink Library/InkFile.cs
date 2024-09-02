@@ -9,15 +9,12 @@ using UnityEngine;
 namespace Ink.UnityIntegration {
 	// Helper class for ink files that maintains INCLUDE connections between ink files
 	[Serializable]
-    // FIXME: do we still need the concept of includes and master files?
 	public class InkFile : ScriptableObject {
     // Ink version. This should really come from the core ink code.
 		public static System.Version inkVersionCurrent = new System.Version(1,2,0);
 		public static System.Version unityIntegrationVersionCurrent = new System.Version(1,2,1);
 
 		public string storyJson;
-
-		public bool isMaster => !isIncludeFile;
 
 		// Fatal unhandled errors that should be reported as compiler bugs.
 		public List<string> unhandledCompileErrors = new List<string>();
@@ -41,75 +38,6 @@ namespace Ink.UnityIntegration {
 		/// </summary>
 		/// <value>The last edit date of the file.</value>
 		public DateTime lastEditDate => File.GetLastWriteTime(AssetDatabase.GetAssetPath(this));
-
-		public List<InkFile> masterInkAssets = new List<InkFile>();
-		public IEnumerable<InkFile> masterInkFiles {
-			get {
-				// FIXME
-				return new InkFile[0];
-				// foreach(var masterInkAsset in masterInkAssets) {
-				// 	yield return InkLibrary.GetInkFileWithFile(masterInkAsset);
-				// }
-			}
-		}
-		public IEnumerable<InkFile> masterInkFilesIncludingSelf {
-			get {
-				// A file can be both a master file AND be included by many other files. Return all the master files fitting this description.
-				if(isMaster) yield return this;
-				foreach(var masterInkFile in masterInkFiles) {
-					yield return masterInkFile;
-				}
-			}
-		}
-
-		// Is this ink file included by another ink file?
-		public bool isIncludeFile => masterInkAssets.Count > 0;
-
-
-		// The files referenced by this file via the INCLUDE keyword
-		// We cache the paths of the files to be included for performance, giving us more freedom to refresh the actual includes list without needing to parse all the text.
-		public List<string> localIncludePaths = new List<string>();
-		// The asset references for the included files. Unlike localIncludePaths this contains include files
-		public List<InkFile> includes = new List<InkFile>();
-		// The InkFiles of the includes of this file
-		public List<InkFile> includesInkFiles {
-			get {
-				List<InkFile> _includesInkFiles = new List<InkFile>();
-				foreach(var child in includes) {
-					if(child == null) {
-						// FIXME:
-						// Debug.LogError("Error compiling ink: Ink file include in "+filePath+" is null.", inkAsset);
-						continue;
-					}
-					// FIXME:
-					// _includesInkFiles.Add(InkLibrary.GetInkFileWithFile(child));
-				}
-				return _includesInkFiles;
-			}
-		}
-
-		public void ClearAllHierarchyConnections() {
-			masterInkAssets.Clear();
-			includes.Clear();
-		}
-
-		// Returns the contents of the .ink file.
-		public string GetFileContents () {
-			// FIXME:
-			// if(inkAsset == null) {
-			// 	Debug.LogWarning("Ink file asset is null! Rebuild library using Assets > Rebuild Ink Library");
-			// 	return "";
-			// }
-			// return File.ReadAllText(absoluteFilePath);
-			return string.Empty;
-		}
-
-		// Parses the ink file and caches any information we may want to access without incurring a performance cost.
-		// Currently this only scans for includePaths, which are later used by InkLibrary.RebuildInkFileConnections.
-		public void ParseContent () {
-			localIncludePaths.Clear();
-			localIncludePaths.AddRange(InkIncludeParser.ParseIncludes(GetFileContents()));
-		}
 
 		public static class InkIncludeParser {
 			static Regex _includeRegex;
@@ -181,11 +109,8 @@ namespace Ink.UnityIntegration {
 	        }
 		}
 
-		
 		public override string ToString () {
-			// FIXME:
-			return string.Empty;
-			// return $"[InkFile: filePath={filePath}]";
+			return $"[InkFile: name={name}]";
 		} 
 	}
 }

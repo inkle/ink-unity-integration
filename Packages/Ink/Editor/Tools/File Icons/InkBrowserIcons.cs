@@ -149,9 +149,6 @@ namespace Ink.UnityIntegration {
 				} else if(inkFile.hasTodos && todoIcon != null) {
 					GUI.DrawTexture(miniRect, todoIcon);
 				}
-				if(inkFile.isIncludeFile && childIcon != null) {
-					GUI.DrawTexture(new Rect(rect.x, rect.y, rect.width * 0.5f, rect.height * 0.5f), childIconLarge);
-				}
 			}
 		}
 
@@ -164,20 +161,14 @@ namespace Ink.UnityIntegration {
 					GUI.DrawTexture(new Rect(rect.x, rect.y, unknownFileIcon.width, unknownFileIcon.height), unknownFileIcon);
 				}
 			} else {
-				if (inkFile.isMaster) {
-					Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
-					if(inkFile.hasErrors && errorIcon != null) {
-						GUI.DrawTexture(miniRect, errorIcon);
-					} else if(inkFile.hasWarnings && warningIcon != null) {
-						GUI.DrawTexture(miniRect, warningIcon);
-					} else if(inkFile.hasTodos && todoIcon != null) {
-						GUI.DrawTexture(miniRect, todoIcon);
-					}
-				}
-
-				if(inkFile.isIncludeFile && childIcon != null) {
-					GUI.DrawTexture(new Rect(rect.x, rect.y, childIcon.width, childIcon.height), childIcon);
-				}
+                Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
+                if(inkFile.hasErrors && errorIcon != null) {
+                    GUI.DrawTexture(miniRect, errorIcon);
+                } else if(inkFile.hasWarnings && warningIcon != null) {
+                    GUI.DrawTexture(miniRect, warningIcon);
+                } else if(inkFile.hasTodos && todoIcon != null) {
+                    GUI.DrawTexture(miniRect, todoIcon);
+                }
 			}
 	    }
 	}
