@@ -90,23 +90,16 @@ namespace Ink.UnityIntegration {
 		}
 
 		void CreateIncludeList () {
-            List<DefaultAsset> includeTextAssets = inkFile.includes;
-			includesFileList = new ReorderableList(includeTextAssets, typeof(DefaultAsset), false, true, false, false);
+            List<InkFile> includeTextAssets = inkFile.includes;
+			includesFileList = new ReorderableList(includeTextAssets, typeof(InkFile), false, true, false, false);
 			includesFileList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "Included Files");
 			};
 			includesFileList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
-				DefaultAsset childAssetFile = ((List<DefaultAsset>)includesFileList.list)[index];
-				if(childAssetFile == null) {
+				InkFile childInkFile = ((List<InkFile>)includesFileList.list)[index];
+				if(childInkFile == null) {
 					Debug.LogError("Ink file in include list is null. This should never occur. Use Assets > Recompile Ink to fix this issue.");
 					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File in include list is null. Use Assets > Recompile Ink to fix this issue."));
-					return;
-				}
-                // FIXME:
-                InkFile childInkFile = null;//InkLibrary.GetInkFileWithFile(childAssetFile);
-				if(childInkFile == null) {
-					Debug.LogError("Ink File for included file "+childAssetFile+" not found. This should never occur. Use Assets > Recompile Ink to fix this issue.");
-					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File for included file "+childAssetFile+" not found. Use Assets > Recompile Ink to fix this issue."));
 					return;
 				}
 				Rect iconRect = new Rect(rect.x, rect.y, 0, 16);
@@ -121,43 +114,36 @@ namespace Ink.UnityIntegration {
 					EditorGUI.LabelField(iconRect, new GUIContent(InkBrowserIcons.warningIcon));
 				}
 				EditorGUI.BeginDisabledGroup(true);
-				EditorGUI.ObjectField(objectFieldRect, childAssetFile, typeof(Object), false);
+				EditorGUI.ObjectField(objectFieldRect, childInkFile, typeof(Object), false);
 				EditorGUI.EndDisabledGroup();
 				if(GUI.Button(selectRect, "Select")) {
-					Selection.activeObject = childAssetFile;
+					Selection.activeObject = childInkFile;
 				}
 			};
 		}
 		
 		void CreateMastersList () {
-			List<DefaultAsset> mastersTextAssets = inkFile.masterInkAssets;
-			mastersFileList = new ReorderableList(mastersTextAssets, typeof(DefaultAsset), false, true, false, false);
+			List<InkFile> mastersTextAssets = inkFile.masterInkAssets;
+			mastersFileList = new ReorderableList(mastersTextAssets, typeof(InkFile), false, true, false, false);
 			mastersFileList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "Master Files");
 			};
 			mastersFileList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
-				DefaultAsset masterAssetFile = ((List<DefaultAsset>)mastersFileList.list)[index];
+				InkFile masterAssetFile = ((List<InkFile>)mastersFileList.list)[index];
 				if(masterAssetFile == null) {
 					Debug.LogError("Ink file in masters list is null. This should never occur. Use Assets > Recompile Ink to fix this issue.");
 					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File in masters list is null. Use Assets > Recompile Ink to fix this issue."));
 					return;
 				}
-                // FIXME:
-                InkFile masterInkFile = null; //InkLibrary.GetInkFileWithFile(masterAssetFile);
-				if(masterInkFile == null) {
-					Debug.LogError("Ink File for master file "+masterAssetFile+" not found. This should never occur. Use Assets > Recompile Ink to fix this issue.");
-					EditorGUI.LabelField(rect, new GUIContent("Warning: Ink File for master file "+masterAssetFile+" not found. Use Assets > Recompile Ink to fix this issue."));
-					return;
-				}
 				Rect iconRect = new Rect(rect.x, rect.y, 0, 16);
-				if(masterInkFile.hasErrors || masterInkFile.hasWarnings) {
+				if(masterAssetFile.hasErrors || masterAssetFile.hasWarnings) {
 					iconRect.width = 20;
 				}
 				Rect objectFieldRect = new Rect(iconRect.xMax, rect.y, rect.width - iconRect.width - 80, 16);
 				Rect selectRect = new Rect(objectFieldRect.xMax, rect.y, 80, 16);
-				if(masterInkFile.hasErrors) {
+				if(masterAssetFile.hasErrors) {
 					EditorGUI.LabelField(iconRect, new GUIContent(InkBrowserIcons.errorIcon));
-				} else if(masterInkFile.hasWarnings) {
+				} else if(masterAssetFile.hasWarnings) {
 					EditorGUI.LabelField(iconRect, new GUIContent(InkBrowserIcons.warningIcon));
 				}
 				EditorGUI.BeginDisabledGroup(true);
@@ -255,8 +241,12 @@ namespace Ink.UnityIntegration {
 			
 			if(inkFile.isIncludeFile) {
 				EditorGUI.BeginChangeCheck();
-                // FIXME:
-				// var newCompileAsIfMaster = EditorGUILayout.Toggle(new GUIContent("Should also be Master File", "This file is included by another ink file. Typically, these files don't want to be compiled, but this option enables them to be for special purposes."), InkSettings.instance.includeFilesToCompileAsMasterFiles.Contains(inkFile.inkAsset));
+                // FIXME: do we still need this if all files are compiled?
+				// var newCompileAsIfMaster = EditorGUILayout.Toggle(new GUIContent(
+                //     "Should also be Master File", 
+                //     "This file is included by another ink file. Typically, these files don't want to be compiled, but this option enables them to be for special purposes."), 
+                //     InkSettings.instance.includeFilesToCompileAsMasterFiles.Contains(inkFile.inkAsset)
+                // );
                 // if(EditorGUI.EndChangeCheck()) {
 				// 	if(newCompileAsIfMaster) {
 				// 		InkSettings.instance.includeFilesToCompileAsMasterFiles.Add(inkFile);

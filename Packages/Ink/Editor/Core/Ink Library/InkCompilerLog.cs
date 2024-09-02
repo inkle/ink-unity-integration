@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using UnityEditor;
 using Debug = UnityEngine.Debug;
 
 namespace Ink.UnityIntegration
@@ -18,11 +19,8 @@ namespace Ink.UnityIntegration
 		}
 
 		public string GetAbsoluteFilePath (InkFile masterInkFile) {
-            // FIXME:
-            // Debug.Log(masterInkFile.absoluteFolderPath);
-            // Debug.Log(relativeFilePath);
-            // return System.IO.Path.Combine(masterInkFile.absoluteFolderPath, relativeFilePath);
-            return string.Empty;
+            var assetPath = AssetDatabase.GetAssetPath(masterInkFile);
+            return InkEditorUtils.UnityRelativeToAbsolutePath(assetPath);
 		}
 
 		public static bool TryParse (string rawLog, out InkCompilerLog log) {

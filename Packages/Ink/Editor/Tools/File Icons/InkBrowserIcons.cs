@@ -111,9 +111,8 @@ namespace Ink.UnityIntegration {
 	    static void OnDrawProjectWindowItem(string guid, Rect rect) {
 	        string path = AssetDatabase.GUIDToAssetPath(guid);
 			if (InkEditorUtils.IsInkFile(path)) {
-				DefaultAsset asset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(path);
-                // FIXME:
-				// DrawInkFile(InkLibrary.GetInkFileWithFile(asset), rect);
+				InkFile asset = AssetDatabase.LoadAssetAtPath<InkFile>(path);
+				DrawInkFile(asset, rect);
 			}
 	    }
 
@@ -166,12 +165,6 @@ namespace Ink.UnityIntegration {
 				}
 			} else {
 				if (inkFile.isMaster) {
-                    // FIXME:
-					// if (!InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile)) {
-					// 	GUI.DrawTexture(new Rect(rect.x, rect.y + rect.size.y * 0.5f, rect.size.x * 0.5f, rect.size.y * 0.5f), manualIcon);
-						
-					// }
-					
 					Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
 					if(inkFile.hasErrors && errorIcon != null) {
 						GUI.DrawTexture(miniRect, errorIcon);

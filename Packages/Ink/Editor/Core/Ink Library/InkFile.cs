@@ -9,6 +9,7 @@ using UnityEngine;
 namespace Ink.UnityIntegration {
 	// Helper class for ink files that maintains INCLUDE connections between ink files
 	[Serializable]
+    // FIXME: do we still need the concept of includes and master files?
 	public class InkFile : ScriptableObject {
     // Ink version. This should really come from the core ink code.
 		public static System.Version inkVersionCurrent = new System.Version(1,2,0);
@@ -41,7 +42,7 @@ namespace Ink.UnityIntegration {
 		/// <value>The last edit date of the file.</value>
 		public DateTime lastEditDate => File.GetLastWriteTime(AssetDatabase.GetAssetPath(this));
 
-		public List<DefaultAsset> masterInkAssets = new List<DefaultAsset>();
+		public List<InkFile> masterInkAssets = new List<InkFile>();
 		public IEnumerable<InkFile> masterInkFiles {
 			get {
 				// FIXME
@@ -69,7 +70,7 @@ namespace Ink.UnityIntegration {
 		// We cache the paths of the files to be included for performance, giving us more freedom to refresh the actual includes list without needing to parse all the text.
 		public List<string> localIncludePaths = new List<string>();
 		// The asset references for the included files. Unlike localIncludePaths this contains include files
-		public List<DefaultAsset> includes = new List<DefaultAsset>();
+		public List<InkFile> includes = new List<InkFile>();
 		// The InkFiles of the includes of this file
 		public List<InkFile> includesInkFiles {
 			get {
