@@ -8,8 +8,8 @@ using UnityEditorInternal;
 using Object = UnityEngine.Object;
 
 namespace Ink.UnityIntegration {
-	public class InkInspector : DefaultAssetInspector {
-
+    [CustomEditor(typeof(InkFile), true)]
+	public class InkInspector : Editor {
 		private InkFile inkFile;
 		private ReorderableList includesFileList;
 		private ReorderableList mastersFileList;
@@ -19,11 +19,11 @@ namespace Ink.UnityIntegration {
 		private string cachedTrimmedFileContents;
 		private const int maxCharacters = 16000;
 
-		public override bool IsValid(string assetPath) {
+		public bool IsValid(string assetPath) {
 			return Path.GetExtension(assetPath) == InkEditorUtils.inkFileExtension;
 		}
 
-		public override void OnHeaderGUI () {
+		protected override void OnHeaderGUI () {
 			GUILayout.BeginHorizontal();
 			GUILayout.Space(38f);
 			GUILayout.BeginVertical();
@@ -58,18 +58,17 @@ namespace Ink.UnityIntegration {
 			Rect titleRect = new Rect(rect.x + 44f, rect.y + 6f, rect.width - 44f - 38f - 4f, 16f);
 			titleRect.yMin -= 2f;
 			titleRect.yMax += 2f;
-			GUI.Label(titleRect, editor.target.name, EditorStyles.largeLabel);
+			GUI.Label(titleRect, target.name, EditorStyles.largeLabel);
 		}
 
-		public override void OnEnable () {
+		public void OnEnable () {
 			Rebuild();
 		}
 
 		void Rebuild () {
 			cachedTrimmedFileContents = "";
 			string assetPath = AssetDatabase.GetAssetPath(target);
-            // FIXME:
-			// inkFile = InkLibrary.GetInkFileWithPath(assetPath);
+			inkFile = AssetDatabase.LoadAssetAtPath<InkFile>(assetPath);
 			if(inkFile == null) 
 				return;
 
@@ -83,14 +82,15 @@ namespace Ink.UnityIntegration {
 			warningList = CreateWarningList();
 			todosList = CreateTodoList();
 			
-			cachedTrimmedFileContents = inkFile.GetFileContents();
+            var absoluteFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(assetPath);
+			cachedTrimmedFileContents = File.ReadAllText(absoluteFilePath);
 			cachedTrimmedFileContents = cachedTrimmedFileContents.Substring(0, Mathf.Min(cachedTrimmedFileContents.Length, maxCharacters));
 			if(cachedTrimmedFileContents.Length >= maxCharacters)
 				cachedTrimmedFileContents += "...\n\n<...etc...>";
 		}
 
 		void CreateIncludeList () {
-			List<DefaultAsset> includeTextAssets = inkFile.includes;
+            List<DefaultAsset> includeTextAssets = inkFile.includes;
 			includesFileList = new ReorderableList(includeTextAssets, typeof(DefaultAsset), false, true, false, false);
 			includesFileList.drawHeaderCallback = (Rect rect) => {  
 				EditorGUI.LabelField(rect, "Included Files");
@@ -250,7 +250,7 @@ namespace Ink.UnityIntegration {
 		}
 
 		public override void OnInspectorGUI () {
-			editor.Repaint();
+			Repaint();
 			serializedObject.Update();
 			
 			if(inkFile.isIncludeFile) {
@@ -318,8 +318,7 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.LabelField(new GUIContent("Master File", "This file is a master file and can be compiled"), EditorStyles.boldLabel);
 			
 			if(inkFile.errors.Count == 0 && GUILayout.Button("Play")) {
-                // FIXME:
-				// InkPlayerWindow.LoadAndPlay(inkFile.jsonAsset);
+				InkPlayerWindow.LoadAndPlay(inkFile.storyJson);
 			}
 			
 			EditorGUILayout.Space();
