@@ -9,89 +9,14 @@ using UnityEngine;
 namespace Ink.UnityIntegration {
 	// Helper class for ink files that maintains INCLUDE connections between ink files
 	[Serializable]
-	public class InkFile {
+	public class InkFile : ScriptableObject {
     // Ink version. This should really come from the core ink code.
 		public static System.Version inkVersionCurrent = new System.Version(1,2,0);
 		public static System.Version unityIntegrationVersionCurrent = new System.Version(1,2,1);
 
-		// Master files are those that can be compiled
-		public bool isMaster => !isIncludeFile || isMarkedToCompileAsMasterFile;
-		// Typically master files are simply those that aren't INCLUDED by another file, but they can also be marked to master files.
-		public bool isMarkedToCompileAsMasterFile => InkSettings.instance.includeFilesToCompileAsMasterFiles.Contains(inkAsset);
-		public bool compileAutomatically => InkSettings.instance.filesToCompileAutomatically.Contains(inkAsset);
-		// A reference to the ink file
-		public DefaultAsset inkAsset;
+		public string storyJson;
 
-        //specify json destination folder (if None, default to same folder as ink file)
-        public DefaultAsset jsonAssetDirectory;
-
-		// The compiled json file. Use this to start a story.
-		public TextAsset jsonAsset;
-
-		// The file path relative to the Assets folder (Assets/Ink/Story.ink)
-		public string filePath {
-			get {
-				if(inkAsset == null) 
-					return null;
-
-				return InkEditorUtils.SanitizePathString(AssetDatabase.GetAssetPath(inkAsset));
-			}
-		}
-
-		// The full file path (C:/Users/Inkle/HeavensVault/Assets/Ink/Story.ink)
-		public string absoluteFilePath {
-			get {
-				if(inkAsset == null) 
-					return null;
-				return InkEditorUtils.UnityRelativeToAbsolutePath(filePath);
-			}
-		}
-
-		public string absoluteFolderPath => InkEditorUtils.SanitizePathString(Path.GetDirectoryName(absoluteFilePath));
-
-		// The path of any compiled json file. Relative to assets folder.
-        public string jsonPath {
-			get {
-                var _filePath = filePath;
-                Debug.Assert(!string.IsNullOrEmpty(_filePath), "File path for ink file is null! The ink library requires rebuilding. Asset: "+inkAsset);
-
-                DefaultAsset jsonFolder = jsonAssetDirectory;
-                if (jsonFolder == null) // no path specified for this specific file
-                {
-                    if(InkSettings.instance.defaultJsonAssetPath != null) 
-                    {
-                        // use default path in InkSettings
-                        jsonFolder = InkSettings.instance.defaultJsonAssetPath;
-                    }
-
-                    if (jsonFolder == null)
-                    {
-                        //fallback to same folder as .ink file
-                        jsonFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(Path.GetDirectoryName(_filePath));
-                    }
-                }
-
-                Debug.Assert(jsonFolder != null, "JSON folder not found for ink file at path. File Path: "+_filePath+". Asset: "+inkAsset);
-
-                string _jsonPath = AssetDatabase.GetAssetPath(jsonFolder);
-                Debug.Assert(Directory.Exists(_jsonPath), "JSON folder path is not a directory! Json Path: "+_jsonPath+". Asset: "+inkAsset);
-                string strJsonAssetPath = InkEditorUtils.CombinePaths(_jsonPath, Path.GetFileNameWithoutExtension(_filePath)) + ".json";
-                return strJsonAssetPath;
-			}
-		}
-
-		public string absoluteJSONPath {
-			get {
-				if(inkAsset == null) 
-					return null;
-				return InkEditorUtils.UnityRelativeToAbsolutePath(jsonPath);
-			}
-		}
-
-
-
-
-
+		public bool isMaster => !isIncludeFile;
 
 		// Fatal unhandled errors that should be reported as compiler bugs.
 		public List<string> unhandledCompileErrors = new List<string>();
@@ -110,36 +35,11 @@ namespace Ink.UnityIntegration {
 		public List<InkCompilerLog> todos = new List<InkCompilerLog>();
 		public bool hasTodos => todos.Count > 0;
 
-		public bool requiresCompile {
-			get {
-				if(!isMaster) return false;
-				return jsonAsset == null || hasUnhandledCompileErrors || lastEditDate > lastCompileDate;
-			}
-		}
-
-		/// <summary>
-		/// Gets the last compile date of the story.
-		/// </summary>
-		/// <value>The last compile date of the story.</value>
-		public DateTime lastCompileDate {
-			get {
-				if(isMaster) {
-					if(jsonAsset == null)
-						return default;
-				
-					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(jsonAsset));
-					return File.GetLastWriteTime(fullJSONFilePath);
-				} else {
-					return default;
-				}
-			}
-		}
-
 		/// <summary>
 		/// Gets the last edit date of the file.
 		/// </summary>
 		/// <value>The last edit date of the file.</value>
-		public DateTime lastEditDate => File.GetLastWriteTime(absoluteFilePath);
+		public DateTime lastEditDate => File.GetLastWriteTime(AssetDatabase.GetAssetPath(this));
 
 		public List<DefaultAsset> masterInkAssets = new List<DefaultAsset>();
 		public IEnumerable<InkFile> masterInkFiles {
@@ -176,7 +76,8 @@ namespace Ink.UnityIntegration {
 				List<InkFile> _includesInkFiles = new List<InkFile>();
 				foreach(var child in includes) {
 					if(child == null) {
-						Debug.LogError("Error compiling ink: Ink file include in "+filePath+" is null.", inkAsset);
+						// FIXME:
+						// Debug.LogError("Error compiling ink: Ink file include in "+filePath+" is null.", inkAsset);
 						continue;
 					}
 					// FIXME:
@@ -185,42 +86,21 @@ namespace Ink.UnityIntegration {
 				return _includesInkFiles;
 			}
 		}
-	    
-
-
-
-
-		public InkFile (DefaultAsset inkAsset) {
-			Debug.Assert(inkAsset != null);
-			this.inkAsset = inkAsset;
-			
-			ParseContent();
-			// Should we run FindCompiledJSONAsset here?
-		}
-
-		public void FindCompiledJSONAsset () {
-            Debug.Assert(inkAsset != null);
-            jsonAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(jsonPath);
-		}
 
 		public void ClearAllHierarchyConnections() {
 			masterInkAssets.Clear();
 			includes.Clear();
 		}
 
-		
-
-
-		
-
-
 		// Returns the contents of the .ink file.
 		public string GetFileContents () {
-			if(inkAsset == null) {
-				Debug.LogWarning("Ink file asset is null! Rebuild library using Assets > Rebuild Ink Library");
-				return "";
-			}
-			return File.ReadAllText(absoluteFilePath);
+			// FIXME:
+			// if(inkAsset == null) {
+			// 	Debug.LogWarning("Ink file asset is null! Rebuild library using Assets > Rebuild Ink Library");
+			// 	return "";
+			// }
+			// return File.ReadAllText(absoluteFilePath);
+			return string.Empty;
 		}
 
 		// Parses the ink file and caches any information we may want to access without incurring a performance cost.
@@ -302,7 +182,9 @@ namespace Ink.UnityIntegration {
 
 		
 		public override string ToString () {
-			return $"[InkFile: filePath={filePath}]";
+			// FIXME:
+			return string.Empty;
+			// return $"[InkFile: filePath={filePath}]";
 		} 
 	}
 }

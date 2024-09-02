@@ -35,7 +35,7 @@ namespace Ink.UnityIntegration {
 
 			EditorGUI.BeginDisabledGroup(inkFile == null);
 			if (GUILayout.Button("Open", EditorStyles.miniButton)) {
-				AssetDatabase.OpenAsset(inkFile.inkAsset, 3);
+				AssetDatabase.OpenAsset(inkFile, 3);
 				GUIUtility.ExitGUI();
 			}
 			EditorGUI.EndDisabledGroup();
@@ -244,7 +244,7 @@ namespace Ink.UnityIntegration {
 			GUILayout.Label(label);
 			string openLabel = "Open"+ (lineNumber == -1 ? "" : " ("+lineNumber+")");
 			if(GUILayout.Button(openLabel, GUILayout.Width(80))) {
-				InkEditorUtils.OpenInEditor(inkFile.filePath, null, lineNumber);
+				InkEditorUtils.OpenInEditor(AssetDatabase.GetAssetPath(inkFile), null, lineNumber);
 			}
 			GUILayout.EndHorizontal();
 		}
@@ -255,16 +255,17 @@ namespace Ink.UnityIntegration {
 			
 			if(inkFile.isIncludeFile) {
 				EditorGUI.BeginChangeCheck();
-				var newCompileAsIfMaster = EditorGUILayout.Toggle(new GUIContent("Should also be Master File", "This file is included by another ink file. Typically, these files don't want to be compiled, but this option enables them to be for special purposes."), InkSettings.instance.includeFilesToCompileAsMasterFiles.Contains(inkFile.inkAsset));
-				if(EditorGUI.EndChangeCheck()) {
-					if(newCompileAsIfMaster) {
-						InkSettings.instance.includeFilesToCompileAsMasterFiles.Add(inkFile.inkAsset);
-						EditorUtility.SetDirty(InkSettings.instance);
-					} else {
-						InkSettings.instance.includeFilesToCompileAsMasterFiles.Remove(inkFile.inkAsset);
-						EditorUtility.SetDirty(InkSettings.instance);
-					}
-				}
+                // FIXME:
+				// var newCompileAsIfMaster = EditorGUILayout.Toggle(new GUIContent("Should also be Master File", "This file is included by another ink file. Typically, these files don't want to be compiled, but this option enables them to be for special purposes."), InkSettings.instance.includeFilesToCompileAsMasterFiles.Contains(inkFile.inkAsset));
+                // if(EditorGUI.EndChangeCheck()) {
+				// 	if(newCompileAsIfMaster) {
+				// 		InkSettings.instance.includeFilesToCompileAsMasterFiles.Add(inkFile);
+				// 		EditorUtility.SetDirty(InkSettings.instance);
+				// 	} else {
+				// 		InkSettings.instance.includeFilesToCompileAsMasterFiles.Remove(inkFile);
+				// 		EditorUtility.SetDirty(InkSettings.instance);
+				// 	}
+				// }
 				EditorApplication.RepaintProjectWindow();
 			}
 
@@ -284,8 +285,6 @@ namespace Ink.UnityIntegration {
 						EditorGUILayout.HelpBox("Last compiled had errors", MessageType.Error);
 					} else if(inkFile.hasWarnings) {
 						EditorGUILayout.HelpBox("Last compile had warnings", MessageType.Warning);
-					} else if(inkFile.jsonAsset == null) {
-						EditorGUILayout.HelpBox("Ink file has not been compiled", MessageType.Warning);
 					}
 					
 					DrawCompileErrors();
@@ -318,42 +317,14 @@ namespace Ink.UnityIntegration {
 		void DrawMasterFileHeader () {
 			EditorGUILayout.LabelField(new GUIContent("Master File", "This file is a master file and can be compiled"), EditorStyles.boldLabel);
 			
-			if(inkFile.jsonAsset != null && inkFile.errors.Count == 0 && GUILayout.Button("Play")) {
-				InkPlayerWindow.LoadAndPlay(inkFile.jsonAsset);
+			if(inkFile.errors.Count == 0 && GUILayout.Button("Play")) {
+                // FIXME:
+				// InkPlayerWindow.LoadAndPlay(inkFile.jsonAsset);
 			}
 			
 			EditorGUILayout.Space();
 			
-			EditorGUI.BeginDisabledGroup(true);
-			EditorGUILayout.ObjectField("JSON Asset", inkFile.jsonAsset, typeof(TextAsset), false);
-			EditorGUI.EndDisabledGroup();
 			DrawEditAndCompileDates(inkFile);
-			if(!InkSettings.instance.compileAllFilesAutomatically) {
-				EditorGUI.BeginChangeCheck();
-				var newCompileAutomatically = EditorGUILayout.Toggle(new GUIContent("Compile Automatially", "If true, this file recompiles automatically when any changes are detected."), InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile));
-				if(EditorGUI.EndChangeCheck()) {
-					if(newCompileAutomatically) {
-						InkSettings.instance.filesToCompileAutomatically.Add(inkFile.inkAsset);
-						EditorUtility.SetDirty(InkSettings.instance);
-					} else {
-						InkSettings.instance.filesToCompileAutomatically.Remove(inkFile.inkAsset);
-						EditorUtility.SetDirty(InkSettings.instance);
-					}
-				}
-				EditorApplication.RepaintProjectWindow();
-			}
-
-//				if(!checkedStoryForErrors) {
-//					if(GUILayout.Button("Check for errors")) {
-//						GetStoryErrors();
-//					}
-//				} else {
-//					if(exception != null) {
-//						EditorGUILayout.HelpBox("Story is invalid\n"+exception.ToString(), MessageType.Error);
-//					} else {
-//						EditorGUILayout.HelpBox("Story is valid", MessageType.Info);
-//					}
-//				}
 		}
 		
 		void DrawListOfMasterFiles() {
@@ -366,22 +337,7 @@ namespace Ink.UnityIntegration {
 			string editAndCompileDateString = "";
 			DateTime lastEditDate = inkFile.lastEditDate;
 			editAndCompileDateString += "Last edit date "+lastEditDate.ToString();
-			if(masterInkFile.jsonAsset != null) {
-				DateTime lastCompileDate = masterInkFile.lastCompileDate;
-				editAndCompileDateString += "\nLast compile date "+lastCompileDate.ToString();
-				if(lastEditDate > lastCompileDate) {
-                    if(EditorApplication.isPlaying && InkSettings.instance.delayInPlayMode) {
-					    editAndCompileDateString += "\nWill compile on exiting play mode";
-                        EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.Info);
-                    } else {
-					    EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.Warning);
-                    }
-				} else {
-					EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.None);
-				}
-			} else {
-				EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.None);
-			}
+            EditorGUILayout.HelpBox(editAndCompileDateString, MessageType.None);
 		}
 
 		void DrawIncludedFiles () {

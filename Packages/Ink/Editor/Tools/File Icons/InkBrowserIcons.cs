@@ -166,10 +166,11 @@ namespace Ink.UnityIntegration {
 				}
 			} else {
 				if (inkFile.isMaster) {
-					if (!InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile)) {
-						GUI.DrawTexture(new Rect(rect.x, rect.y + rect.size.y * 0.5f, rect.size.x * 0.5f, rect.size.y * 0.5f), manualIcon);
+                    // FIXME:
+					// if (!InkSettings.instance.ShouldCompileInkFileAutomatically(inkFile)) {
+					// 	GUI.DrawTexture(new Rect(rect.x, rect.y + rect.size.y * 0.5f, rect.size.x * 0.5f, rect.size.y * 0.5f), manualIcon);
 						
-					}
+					// }
 					
 					Rect miniRect = new Rect(rect.center, rect.size * 0.5f);
 					if(inkFile.hasErrors && errorIcon != null) {

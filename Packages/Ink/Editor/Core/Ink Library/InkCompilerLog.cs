@@ -18,9 +18,11 @@ namespace Ink.UnityIntegration
 		}
 
 		public string GetAbsoluteFilePath (InkFile masterInkFile) {
-			Debug.Log(masterInkFile.absoluteFolderPath);
-			Debug.Log(relativeFilePath);
-			return System.IO.Path.Combine(masterInkFile.absoluteFolderPath, relativeFilePath);
+            // FIXME:
+            // Debug.Log(masterInkFile.absoluteFolderPath);
+            // Debug.Log(relativeFilePath);
+            // return System.IO.Path.Combine(masterInkFile.absoluteFolderPath, relativeFilePath);
+            return string.Empty;
 		}
 
 		public static bool TryParse (string rawLog, out InkCompilerLog log) {

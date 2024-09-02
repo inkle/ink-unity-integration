@@ -278,7 +278,7 @@ namespace Ink.UnityIntegration {
 		public static void OpenInEditor (InkFile inkFile, InkCompilerLog log) {
 			var targetFilePath = log.GetAbsoluteFilePath(inkFile);
 			// EditorUtility.OpenWithDefaultApp(targetFilePath);
-			AssetDatabase.OpenAsset(inkFile.inkAsset, log.lineNumber);
+			AssetDatabase.OpenAsset(inkFile, log.lineNumber);
 			// Unity.CodeEditor.CodeEditor.OSOpenFile();
 #if UNITY_2019_1_OR_NEWER
 
