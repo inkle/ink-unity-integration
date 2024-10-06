@@ -74,18 +74,6 @@ namespace Ink.UnityIntegration {
 				InkPlayerWindow.Play(inkFileAsset);
 			}
 		}
-
-		public static void LoadAndPlay (string storyJSON, bool focusWindow = true) {
-			GetWindow(focusWindow);
-			if(InkPlayerWindow.story != null) {
-				if(EditorUtility.DisplayDialog("Story in progress", "The Ink Player Window is already playing a story. Would you like to stop it and load the new story?", "Stop and load", "Cancel")) {
-					InkPlayerWindow.Stop();
-					InkPlayerWindow.Play(storyJSON);
-				}
-			} else {
-				InkPlayerWindow.Play(storyJSON);
-			}
-		}
 	
 		// Handy utility for the common case of not wanting to show the ink player window when game view is maximised
 		public static bool GetGameWindowIsMaximised () {
@@ -656,7 +644,7 @@ namespace Ink.UnityIntegration {
 				var lastLoadedStory = InkPlayerWindowState.Instance.TryGetLastInkAsset();
 				if(lastLoadedStory != null) {
 					if(InkPlayerWindowState.Instance.lastStoryWasPlaying) {
-						LoadAndPlay(lastLoadedStory.storyJson, false);
+						LoadAndPlay(lastLoadedStory, false);
 					} else {
 						TryPrepareInternal(lastLoadedStory);
 					}
@@ -833,36 +821,19 @@ namespace Ink.UnityIntegration {
 				PlayInternal();
 			}
 		}
-		static void Play (string storyJSON) {
-			Play(storyJSON, InkPlayerParams.Standard);
-		}
-		static void Play (string storyJSON, InkPlayerParams inkPlayerParams) {
-			if(TryPrepareInternal(storyJSON)) {
-				InkPlayerWindow.playerParams = inkPlayerParams;
-				PlayInternal();
-			}
-		}
-
 
 		static void PlayInternal () {
 			story = new Story(storyJSON);
 		}
 
 		// Loads the story, ready to be played
-		static bool TryPrepareInternal (InkFile newStoryJSONTextAsset) {
+		static bool TryPrepareInternal (InkFile newInkFile) {
 			// This forces a refresh
 			inkFile = null;
-			inkFile = newStoryJSONTextAsset;
+			inkFile = newInkFile;
 			if(inkFile == null || !InkEditorUtils.CheckStoryIsValid(inkFile.storyJson, out playStoryException))
 				return false;
 			storyJSON = inkFile.storyJson;
-			return true;
-		}
-		static bool TryPrepareInternal (string newStoryJSON) {
-			if(!InkEditorUtils.CheckStoryIsValid(storyJSON, out playStoryException))
-				return false;
-			InkPlayerWindow.inkFile = null;
-			InkPlayerWindow.storyJSON = newStoryJSON;
 			return true;
 		}
 
@@ -968,14 +939,12 @@ namespace Ink.UnityIntegration {
 			Stop();
 			if(inkFile != null)
 				Play(inkFile);
-			else if(storyJSON != null)
-				Play(storyJSON);
 			else
 				Debug.LogError("Can't restart because no text asset or cached JSON exists");
 		}
 
 		static bool CanRestart() {
-			return inkFile != null || storyJSON != null;
+            return inkFile != null;
 		}
 		
 		static void ContinueStory () {

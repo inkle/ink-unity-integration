@@ -184,7 +184,7 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.LabelField(new GUIContent("Master File", "This file is a master file and can be compiled"), EditorStyles.boldLabel);
 			
 			if(inkFile.errors.Count == 0 && GUILayout.Button("Play")) {
-				InkPlayerWindow.LoadAndPlay(inkFile.storyJson);
+				InkPlayerWindow.LoadAndPlay(inkFile);
 			}
 			
 			EditorGUILayout.Space();
