@@ -161,6 +161,8 @@ namespace Ink.UnityIntegration {
 			try {
 				new Story(storyJSON);
 			} catch (Exception ex) {
+				// log exception to unity console so we get a stack trace
+				Debug.LogException(ex);
 				exception = ex;
 				return false;
 			}
