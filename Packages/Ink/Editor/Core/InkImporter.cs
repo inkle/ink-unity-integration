@@ -45,9 +45,9 @@ public class InkImporter : ScriptedImporter
         
         try {
             var compiledStory = compiler.Compile();
-            
+
             if (compiledStory != null)
-                inkFile.storyJson = compiledStory.ToJson();
+                inkFile.Initialize(compiledStory.ToJson());
         } catch (System.SystemException e) {
             Debug.LogException(e);
         }

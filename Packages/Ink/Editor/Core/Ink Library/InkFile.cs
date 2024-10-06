@@ -14,7 +14,13 @@ namespace Ink.UnityIntegration {
 		public static System.Version inkVersionCurrent = new System.Version(1,2,0);
 		public static System.Version unityIntegrationVersionCurrent = new System.Version(1,2,1);
 
-		public string storyJson;
+        /// <summary>
+        /// The compiled JSON story.
+        /// </summary>
+		public string storyJson => _storyJson;
+
+        [SerializeField]
+        private string _storyJson;
 
 		// Fatal unhandled errors that should be reported as compiler bugs.
 		public List<string> unhandledCompileErrors = new List<string>();
@@ -38,6 +44,15 @@ namespace Ink.UnityIntegration {
 		/// </summary>
 		/// <value>The last edit date of the file.</value>
 		public DateTime lastEditDate => File.GetLastWriteTime(AssetDatabase.GetAssetPath(this));
+
+        /// <summary>
+        /// Invoked by <see cref="InkImporter"/> to initialize the ScriptableObject. This is not intended to be used elsewhere.
+        /// </summary>
+        /// <param name="storyJson"></param>
+        public void Initialize(string storyJson)
+        {
+            _storyJson = storyJson;
+        }
 
 		public static class InkIncludeParser {
 			static Regex _includeRegex;
