@@ -26,11 +26,11 @@ public class InkImporter : ScriptedImporter
                     {
                         case ErrorType.Error: 
                             inkFile.errors.Add(log); 
-                            Debug.LogError(log.content);
+                            Debug.LogError("Ink "+log.type+" for "+Path.GetFileName(absolutePath)+": "+log.content + " (at "+log.relativeFilePath+":"+log.lineNumber+")", inkFile);
                             break;
                         case ErrorType.Warning: 
                             inkFile.warnings.Add(log); 
-                            Debug.LogWarning(log.content);
+                            Debug.LogWarning("Ink "+log.type+" for "+Path.GetFileName(absolutePath)+": "+log.content + " (at "+log.relativeFilePath+" "+log.lineNumber+")", inkFile);
                             break;
                         case ErrorType.Author: 
                             inkFile.todos.Add(log); 
