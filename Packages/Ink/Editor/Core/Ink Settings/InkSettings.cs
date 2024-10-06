@@ -68,13 +68,6 @@ namespace Ink.UnityIntegration {
 				else return AssetDatabase.GetAssetPath(templateFile);
 			}
 		}
-
-
-        public DefaultAsset defaultJsonAssetPath;
-		public bool delayInPlayMode = true;
-		public bool handleJSONFilesAutomatically = true;
-
-		public int compileTimeout = 30;
 		
 		public bool printInkLogsInConsoleOnCompile;
 		
