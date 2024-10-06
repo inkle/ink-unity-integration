@@ -33,7 +33,11 @@ public class InkImporter : ScriptedImporter
                             Debug.LogWarning("Ink "+log.type+" for "+Path.GetFileName(absolutePath)+": "+log.content + " (at "+log.relativeFilePath+" "+log.lineNumber+")", inkFile);
                             break;
                         case ErrorType.Author: 
-                            inkFile.todos.Add(log); 
+                            inkFile.todos.Add(log);
+                            if (InkSettings.instance.printInkLogsInConsoleOnCompile)
+                            {
+                                Debug.Log("Ink Log for "+Path.GetFileName(absolutePath)+": "+log.content + " (at "+log.relativeFilePath+" "+log.lineNumber+")", inkFile);
+                            }
                             break;
                     }
                     
