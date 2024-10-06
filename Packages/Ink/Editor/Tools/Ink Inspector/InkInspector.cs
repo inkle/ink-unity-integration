@@ -146,6 +146,7 @@ namespace Ink.UnityIntegration {
 			Repaint();
 			serializedObject.Update();
 			
+            GUI.enabled = true;
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             DrawMasterFileHeader();
             
