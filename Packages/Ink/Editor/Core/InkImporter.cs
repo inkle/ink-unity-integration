@@ -5,12 +5,14 @@ using Ink.UnityIntegration;
 using UnityEditor;
 using Ink;
 
+/// <summary>
+/// Automatically compiles .ink assets each time they are imported, and creates an InkFile asset.
+/// </summary>
 [ScriptedImporter(1, "ink")]
 public class InkImporter : ScriptedImporter
 {
     public override void OnImportAsset(AssetImportContext ctx)
     {
-
         var inkFile = ScriptableObject.CreateInstance<InkFile>();
         var absolutePath = InkEditorUtils.UnityRelativeToAbsolutePath(ctx.assetPath);
         var inputString = File.ReadAllText(ctx.assetPath);
