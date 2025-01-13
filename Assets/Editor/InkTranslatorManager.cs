@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UnityEditor.TerrainTools;
 
 public class InkTranslatorManager : EditorWindow
 {
