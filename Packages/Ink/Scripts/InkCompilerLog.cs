@@ -18,11 +18,6 @@ namespace Ink.UnityIntegration
 			this.lineNumber = lineNumber;
 		}
 
-		public string GetAbsoluteFilePath (InkFile masterInkFile) {
-            var assetPath = AssetDatabase.GetAssetPath(masterInkFile);
-            return InkEditorUtils.UnityRelativeToAbsolutePath(assetPath);
-		}
-
 		public static bool TryParse (string rawLog, out InkCompilerLog log) {
 			var match = _errorRegex.Match(rawLog);
 			if (match.Success) {

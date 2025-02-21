@@ -270,7 +270,9 @@ namespace Ink.UnityIntegration {
 		/// TODO - If the editor is inky, this code should load the master file, but immediately show the correct child file at the correct line.
 		/// </summary>
 		public static void OpenInEditor (InkFile inkFile, InkCompilerLog log) {
-			var targetFilePath = log.GetAbsoluteFilePath(inkFile);
+			var assetPath = AssetDatabase.GetAssetPath(inkFile);
+			var targetFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(assetPath);
+			
 			// EditorUtility.OpenWithDefaultApp(targetFilePath);
 			AssetDatabase.OpenAsset(inkFile, log.lineNumber);
 			// Unity.CodeEditor.CodeEditor.OSOpenFile();

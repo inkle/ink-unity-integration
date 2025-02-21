@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using UnityEditor;
 using UnityEngine;
 
 namespace Ink.UnityIntegration {
@@ -41,12 +40,13 @@ namespace Ink.UnityIntegration {
 		public List<InkCompilerLog> todos = new List<InkCompilerLog>();
 		public bool hasTodos => todos.Count > 0;
 
+#if UNITY_EDITOR
 		/// <summary>
 		/// Gets the last edit date of the file.
 		/// </summary>
 		/// <value>The last edit date of the file.</value>
-		public DateTime lastEditDate => File.GetLastWriteTime(AssetDatabase.GetAssetPath(this));
-
+		public DateTime lastEditDate => File.GetLastWriteTime(UnityEditor.AssetDatabase.GetAssetPath(this));
+#endif
         /// <summary>
         /// Invoked by <see cref="InkImporter"/> to initialize the ScriptableObject. This is not intended to be used elsewhere.
         /// </summary>
