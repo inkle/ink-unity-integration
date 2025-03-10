@@ -58,6 +58,15 @@ public class InkImporter : ScriptedImporter
             Debug.LogException(e);
         }
 
+        /** inform Unity about dependencies defined in ink files so that if included
+        files are modified, the main file is also reimported.**/
+        var includes = InkFile.InkIncludeParser.ParseIncludes(inputString);
+        foreach (var include in includes) {
+            // Unity wants the path relative to the Assets folder
+            var assetPath = Path.Combine(Path.GetDirectoryName(ctx.assetPath), include);
+            ctx.DependsOnSourceAsset(assetPath);
+        }
+
         ctx.AddObjectToAsset("InkFile", inkFile);
         ctx.SetMainObject(inkFile);
     }
