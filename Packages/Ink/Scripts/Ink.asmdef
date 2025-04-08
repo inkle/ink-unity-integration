@@ -1,13 +1,10 @@
 {
-    "name": "InkEditor",
+    "name": "Ink",
     "rootNamespace": "",
     "references": [
-        "Ink-Libraries",
-        "Ink"
+        "GUID:58bed0e7c5306824586d7eda03609289"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
