@@ -11,8 +11,19 @@ using Ink;
 [ScriptedImporter(1, "ink")]
 public class InkImporter : ScriptedImporter
 {
+    [SerializeField]
+    [Tooltip("Set this to false to stop the Ink file from being compiled on import. This is intended for " +
+    "Ink files that aren't intended to be compiled as standalone files, because they are included in other " + 
+    "Ink files and require other files to be compiled correctly e.g. global variables are defined in another file.")]
+    private bool compileOnImport = true;
+
     public override void OnImportAsset(AssetImportContext ctx)
     {
+        if (!compileOnImport) 
+        {
+            return;
+        }
+
         var inkFile = ScriptableObject.CreateInstance<InkFile>();
         var absolutePath = InkEditorUtils.UnityRelativeToAbsolutePath(ctx.assetPath);
         var inputString = File.ReadAllText(ctx.assetPath);
