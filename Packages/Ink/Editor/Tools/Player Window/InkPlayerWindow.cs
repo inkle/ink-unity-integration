@@ -407,6 +407,8 @@ namespace Ink.UnityIntegration {
 					currentStoryJSONLastEditDateTime = File.GetLastWriteTime(fullJSONFilePath);
 				} else {
 					InkPlayerWindowState.Instance.lastStoryJSONAssetPath = null;
+					storyJSON = null;
+					Stop();
 				}
 				InkPlayerWindowState.Save();
 			}
@@ -633,7 +635,22 @@ namespace Ink.UnityIntegration {
 		static float timeUntilNextAutomaticContinue = 0;
 
 
+		// This detects if the loaded story JSON is deleted.
+		// If it is, we clear the state and stop the story.
+		// This mirrors the effect of nulling storyJSONTextAsset
+		class StoryJSONFileDeletionWatcher : AssetPostprocessor {
+			static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths) {
+				foreach (var deleted in deletedAssets) {
+					if (deleted == InkPlayerWindowState.Instance.lastStoryJSONAssetPath) {
+						InkPlayerWindowState.Instance.lastStoryJSONAssetPath = null;
+						storyJSON = null;
+						Stop();
+					}
+				}
+			}
+		}
 
+		
         // TODO - find a way to restore tethered stories after recompile. This is tricky because we don't have a reference to the json, and stories aren't serialized.
         // We should probably save the story to this path - but watch out for giant stories.
         // var jsonStr = story.ToJson ();
