@@ -9,7 +9,6 @@ namespace Ink.UnityIntegration {
 	/// <summary>
     /// ScriptableObject that serves as the imported version of .ink files.
     /// </summary>
-	[Serializable]
 	public class InkFile : ScriptableObject {
         // TODO: Ink version. This should really come from the core ink code.
 		public static System.Version inkVersionCurrent = new System.Version(1,2,0);
