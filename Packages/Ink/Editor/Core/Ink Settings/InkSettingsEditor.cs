@@ -63,12 +63,7 @@ namespace Ink.UnityIntegration {
 				DrawTemplateMissingWarning();
 			settings.templateFile = (DefaultAsset)EditorGUILayout.ObjectField(new GUIContent("Ink Template", "Optional. The default content of files created via Assets > Create > Ink."), settings.templateFile, typeof(DefaultAsset));
       
-			settings.defaultJsonAssetPath = (DefaultAsset)EditorGUILayout.ObjectField(new GUIContent("New JSON Path", "By default, story JSON files are placed next to the ink. Drag a folder here to place new JSON files there instead."), settings.defaultJsonAssetPath, typeof(DefaultAsset));
-            settings.compileAllFilesAutomatically = EditorGUILayout.Toggle(new GUIContent("Compile All Ink Automatically", "When disabled, automatic compilation can be enabled on a per-story basis via the inspector for a master story file. This can be helpful when you have several stories in a single project."), settings.compileAllFilesAutomatically);
-            settings.delayInPlayMode = EditorGUILayout.Toggle(new GUIContent("Delay compilation if in Play Mode", "When enabled, ink compilation is delayed if in play mode. Files will be compiled on re-entering edit mode."), settings.delayInPlayMode);
             settings.printInkLogsInConsoleOnCompile = EditorGUILayout.Toggle(new GUIContent("Print ink TODOs in console on compile", "When enabled, ink lines starting with TODO are printed in the console."), settings.printInkLogsInConsoleOnCompile);
-            settings.handleJSONFilesAutomatically = EditorGUILayout.Toggle(new GUIContent("Handle JSON Automatically", "Whether JSON files are moved, renamed and deleted along with their ink files."), settings.handleJSONFilesAutomatically);
-			settings.compileTimeout = EditorGUILayout.IntField(new GUIContent("Compile Timeout", "The max time the compiler will attempt to compile for in case of unhanded errors. You may need to increase this for very large ink projects."), settings.compileTimeout);
 			settings.suppressStartupWindow = EditorGUILayout.Toggle(new GUIContent("Suppress Startup Window", "Prevent the \"what's new\" (the one that appears if you click the \"Show changelog\" button above) appearing when the version of this plugin has changed and Unity is opened. This can be useful for CI/CD pipelines, where auto-launching editor windows can fail to load due to a Unity bug."), settings.suppressStartupWindow);
 			settings.automaticallyAddDefineSymbols = EditorGUILayout.Toggle(new GUIContent("Add define symbols", "If true, automatically adds INK_EDITOR and INK_RUNTIME to the define symbols in the build settings. This is handy for conditional code."), settings.automaticallyAddDefineSymbols);
 			//// DrawDefineManagerButtons();
@@ -128,8 +123,8 @@ namespace Ink.UnityIntegration {
 		static void DrawVersions () {
 			EditorGUILayout.LabelField(new GUIContent("Version Info"), EditorStyles.boldLabel);
 			EditorGUI.BeginDisabledGroup(true);
-			EditorGUILayout.TextField(new GUIContent("Plugin version", "The version of the Ink Unity Integration package."), InkLibrary.unityIntegrationVersionCurrent.ToString());
-			EditorGUILayout.TextField(new GUIContent("Ink version", "The version of ink that is included by the Unity package, used to compile and play ink files."), InkLibrary.inkVersionCurrent.ToString());
+			EditorGUILayout.TextField(new GUIContent("Plugin version", "The version of the Ink Unity Integration package."), InkFile.unityIntegrationVersionCurrent.ToString());
+			EditorGUILayout.TextField(new GUIContent("Ink version", "The version of ink that is included by the Unity package, used to compile and play ink files."), InkFile.inkVersionCurrent.ToString());
 			EditorGUILayout.TextField(new GUIContent("Ink story format version", "Significant changes to the Ink runtime are recorded by the story format version.\nCompatibility between different versions is limited; see comments at Ink.Runtime.Story.inkVersionCurrent for more details."), Ink.Runtime.Story.inkVersionCurrent.ToString());
 			EditorGUILayout.TextField(new GUIContent("Ink save format version", "Version of the ink save/load system.\nCompatibility between different versions is limited; see comments at Ink.Runtime.StoryState.kInkSaveStateVersion for more details."), Ink.Runtime.StoryState.kInkSaveStateVersion.ToString());
 			EditorGUI.EndDisabledGroup();

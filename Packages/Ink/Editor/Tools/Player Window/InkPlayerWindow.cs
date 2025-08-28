@@ -63,27 +63,15 @@ namespace Ink.UnityIntegration {
 		
 
 		// Entry point for loading and playing a story.
-		public static void LoadAndPlay (TextAsset storyJSONTextAsset, bool focusWindow = true) {
+		public static void LoadAndPlay (InkFile inkFileAsset, bool focusWindow = true) {
 			GetWindow(focusWindow);
 			if(InkPlayerWindow.story != null) {
 				if(EditorUtility.DisplayDialog("Story in progress", "The Ink Player Window is already playing a story. Would you like to stop it and load the new story?", "Stop and load", "Cancel")) {
 					InkPlayerWindow.Stop();
-					InkPlayerWindow.Play(storyJSONTextAsset);
+					InkPlayerWindow.Play(inkFileAsset);
 				}
 			} else {
-				InkPlayerWindow.Play(storyJSONTextAsset);
-			}
-		}
-
-		public static void LoadAndPlay (string storyJSON, bool focusWindow = true) {
-			GetWindow(focusWindow);
-			if(InkPlayerWindow.story != null) {
-				if(EditorUtility.DisplayDialog("Story in progress", "The Ink Player Window is already playing a story. Would you like to stop it and load the new story?", "Stop and load", "Cancel")) {
-					InkPlayerWindow.Stop();
-					InkPlayerWindow.Play(storyJSON);
-				}
-			} else {
-				InkPlayerWindow.Play(storyJSON);
+				InkPlayerWindow.Play(inkFileAsset);
 			}
 		}
 	
@@ -109,7 +97,7 @@ namespace Ink.UnityIntegration {
 			InkPlayerWindow.story = story;
             
 			// Clear the last loaded story setup on attaching stories. We don't NEED to do this but it's never really helpful and often seems like a bug.
-			InkPlayerWindowState.Instance.lastStoryJSONAssetPath = null;
+			InkPlayerWindowState.Instance.lastInkAssetPath = null;
 			InkPlayerWindowState.Instance.lastStoryWasPlaying = false;
 
             // This allows reconstructing the story so it can be used after recompile. However, it can be expensive to run so there's a good argument for not running it on play!
@@ -311,7 +299,7 @@ namespace Ink.UnityIntegration {
 					return;
 				_storyStateTextAsset = value;
 				if(_storyStateTextAsset != null)
-					storyStateValid = InkEditorUtils.CheckStoryStateIsValid(storyJSONTextAsset.text, storyStateTextAsset.text);
+					storyStateValid = InkEditorUtils.CheckStoryStateIsValid(inkFile.storyJson, storyStateTextAsset.text);
 			}
 		}
 
@@ -364,13 +352,13 @@ namespace Ink.UnityIntegration {
 				}
 			}
 
-			public string lastStoryJSONAssetPath;
+			public string lastInkAssetPath;
 			public bool lastStoryWasPlaying;
-			public TextAsset TryGetLastStoryJSONAsset () {
-				if(lastStoryJSONAssetPath == null) return null;
-				var asset = AssetDatabase.LoadAssetAtPath<TextAsset>(lastStoryJSONAssetPath);
+			public InkFile TryGetLastInkAsset () {
+				if(lastInkAssetPath == null) return null;
+				var asset = AssetDatabase.LoadAssetAtPath<InkFile>(lastInkAssetPath);
 				if(asset == null) {
-					lastStoryJSONAssetPath = null;
+					lastInkAssetPath = null;
 					Save();
 				}
 				return asset;
@@ -394,19 +382,19 @@ namespace Ink.UnityIntegration {
 
 		static bool attachedWhileInPlayMode {get; set;}
 
-		static TextAsset _storyJSONTextAsset;
-		static TextAsset storyJSONTextAsset {
+		static InkFile _inkFile;
+		static InkFile inkFile {
 			get {
-				return _storyJSONTextAsset;
+				return _inkFile;
 			} set {
-				if(_storyJSONTextAsset == value) return;
-				_storyJSONTextAsset = value;
-				if (_storyJSONTextAsset != null) {
-					InkPlayerWindowState.Instance.lastStoryJSONAssetPath = AssetDatabase.GetAssetPath(storyJSONTextAsset);
-					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(InkPlayerWindowState.Instance.lastStoryJSONAssetPath);
+				if(_inkFile == value) return;
+				_inkFile = value;
+				if (_inkFile != null) {
+					InkPlayerWindowState.Instance.lastInkAssetPath = AssetDatabase.GetAssetPath(inkFile);
+					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(InkPlayerWindowState.Instance.lastInkAssetPath);
 					currentStoryJSONLastEditDateTime = File.GetLastWriteTime(fullJSONFilePath);
 				} else {
-					InkPlayerWindowState.Instance.lastStoryJSONAssetPath = null;
+					InkPlayerWindowState.Instance.lastInkAssetPath = null;
 					storyJSON = null;
 					Stop();
 				}
@@ -670,7 +658,7 @@ namespace Ink.UnityIntegration {
 			EditorApplication.update += Update;
 
 			if(story == null && !EditorApplication.isPlayingOrWillChangePlaymode) {
-				var lastLoadedStory = InkPlayerWindowState.Instance.TryGetLastStoryJSONAsset();
+				var lastLoadedStory = InkPlayerWindowState.Instance.TryGetLastInkAsset();
 				if(lastLoadedStory != null) {
 					if(InkPlayerWindowState.Instance.lastStoryWasPlaying) {
 						LoadAndPlay(lastLoadedStory, false);
@@ -841,45 +829,28 @@ namespace Ink.UnityIntegration {
 		}
 
 		
-		static void Play (TextAsset storyJSONTextAsset) {
-			Play(storyJSONTextAsset, InkPlayerParams.Standard);
+		static void Play (InkFile inkFile) {
+			Play(inkFile, InkPlayerParams.Standard);
 		}
-		static void Play (TextAsset storyJSONTextAsset, InkPlayerParams inkPlayerParams) {
-			if(TryPrepareInternal(storyJSONTextAsset)) {
+		static void Play (InkFile inkFile, InkPlayerParams inkPlayerParams) {
+			if(TryPrepareInternal(inkFile)) {
 				InkPlayerWindow.playerParams = inkPlayerParams;
 				PlayInternal();
 			}
 		}
-		static void Play (string storyJSON) {
-			Play(storyJSON, InkPlayerParams.Standard);
-		}
-		static void Play (string storyJSON, InkPlayerParams inkPlayerParams) {
-			if(TryPrepareInternal(storyJSON)) {
-				InkPlayerWindow.playerParams = inkPlayerParams;
-				PlayInternal();
-			}
-		}
-
 
 		static void PlayInternal () {
 			story = new Story(storyJSON);
 		}
 
 		// Loads the story, ready to be played
-		static bool TryPrepareInternal (TextAsset newStoryJSONTextAsset) {
+		static bool TryPrepareInternal (InkFile newInkFile) {
 			// This forces a refresh
-			storyJSONTextAsset = null;
-			storyJSONTextAsset = newStoryJSONTextAsset;
-			if(storyJSONTextAsset == null || !InkEditorUtils.CheckStoryIsValid(storyJSONTextAsset.text, out playStoryException))
+			inkFile = null;
+			inkFile = newInkFile;
+			if(inkFile == null || !InkEditorUtils.CheckStoryIsValid(inkFile.storyJson, out playStoryException))
 				return false;
-			storyJSON = storyJSONTextAsset.text;
-			return true;
-		}
-		static bool TryPrepareInternal (string newStoryJSON) {
-			if(!InkEditorUtils.CheckStoryIsValid(storyJSON, out playStoryException))
-				return false;
-			InkPlayerWindow.storyJSONTextAsset = null;
-			InkPlayerWindow.storyJSON = newStoryJSON;
+			storyJSON = inkFile.storyJson;
 			return true;
 		}
 
@@ -983,16 +954,14 @@ namespace Ink.UnityIntegration {
 		
 		static void Restart () {
 			Stop();
-			if(storyJSONTextAsset != null)
-				Play(storyJSONTextAsset);
-			else if(storyJSON != null)
-				Play(storyJSON);
+			if(inkFile != null)
+				Play(inkFile);
 			else
 				Debug.LogError("Can't restart because no text asset or cached JSON exists");
 		}
 
 		static bool CanRestart() {
-			return storyJSONTextAsset != null || storyJSON != null;
+            return inkFile != null;
 		}
 		
 		static void ContinueStory () {
@@ -1061,9 +1030,9 @@ namespace Ink.UnityIntegration {
 			// Text asset can be null if we attached to an existing story rather than loading our own
 			string dirPath = string.Empty;
 			string storyName = "story";
-			if( storyJSONTextAsset != null ) {
-				dirPath = System.IO.Path.GetDirectoryName(AssetDatabase.GetAssetPath(storyJSONTextAsset));
-				storyName = storyJSONTextAsset.name;
+			if( inkFile != null ) {
+				dirPath = System.IO.Path.GetDirectoryName(AssetDatabase.GetAssetPath(inkFile));
+				storyName = inkFile.name;
 			}
 
 			var newStateAsset = InkEditorUtils.CreateStoryStateTextFile(storyStateJSON, dirPath, storyName+"_SaveState");
@@ -1192,17 +1161,17 @@ namespace Ink.UnityIntegration {
 			} else {
 				EditorGUILayout.BeginVertical();
 				EditorGUI.BeginChangeCheck();
-				storyJSONTextAsset = EditorGUILayout.ObjectField("Story JSON", storyJSONTextAsset, typeof(TextAsset), false) as TextAsset;
+				inkFile = EditorGUILayout.ObjectField("Ink File", inkFile, typeof(InkFile), false) as InkFile;
 				if(EditorGUI.EndChangeCheck()) {
-					if(storyJSONTextAsset == null) {
+					if(inkFile == null) {
 						story = null;
 					} else {
 						Stop();
-						Play(storyJSONTextAsset);
+						Play(inkFile);
 					}
 				}
 				if(CanRestart()) {
-					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(storyJSONTextAsset));
+					string fullJSONFilePath = InkEditorUtils.UnityRelativeToAbsolutePath(AssetDatabase.GetAssetPath(inkFile));
 					var updatedStoryJSONLastEditDateTime = File.GetLastWriteTime(fullJSONFilePath);
 					if (currentStoryJSONLastEditDateTime != updatedStoryJSONLastEditDateTime ) {
 						EditorGUILayout.BeginHorizontal();
@@ -1210,7 +1179,7 @@ namespace Ink.UnityIntegration {
 						EditorGUILayout.BeginVertical();
 						if(GUILayout.Button(new GUIContent("Reload", restartIcon, "Reload and restart the current story, which has been updated."))) {
 							var storyStateJSON = story.state.ToJson();
-							Play(storyJSONTextAsset, InkPlayerWindow.playerParams);
+							Play(inkFile, InkPlayerWindow.playerParams);
 							story.state.LoadJson(storyStateJSON);
 						}
 						if(GUILayout.Button(new GUIContent("Restart", restartIcon, "Restart the current story"))) {
@@ -1232,11 +1201,11 @@ namespace Ink.UnityIntegration {
 			EditorGUILayout.BeginHorizontal (EditorStyles.toolbar);
 
 			if(story == null) {
-				EditorGUI.BeginDisabledGroup(storyJSONTextAsset == null);
+				EditorGUI.BeginDisabledGroup(inkFile == null);
 				if(GUILayout.Button(new GUIContent("Start", playIcon, "Run the story"), EditorStyles.toolbarButton)) {
 					var playerParams = InkPlayerParams.Standard;
 					playerParams.profileOnStart = InkPlayerWindow.playerParams.profileOnStart;
-					Play(storyJSONTextAsset, playerParams);
+					Play(inkFile, playerParams);
 				}
 				EditorGUI.EndDisabledGroup();
 			} else {

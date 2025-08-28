@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using UnityEditor;
 using Debug = UnityEngine.Debug;
 
 namespace Ink.UnityIntegration
@@ -15,12 +16,6 @@ namespace Ink.UnityIntegration
 			this.content = content;
 			this.relativeFilePath = relativeFilePath;
 			this.lineNumber = lineNumber;
-		}
-
-		public string GetAbsoluteFilePath (InkFile masterInkFile) {
-			Debug.Log(masterInkFile.absoluteFolderPath);
-			Debug.Log(relativeFilePath);
-			return System.IO.Path.Combine(masterInkFile.absoluteFolderPath, relativeFilePath);
 		}
 
 		public static bool TryParse (string rawLog, out InkCompilerLog log) {
