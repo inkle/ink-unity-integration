@@ -629,8 +629,8 @@ namespace Ink.UnityIntegration {
 		class StoryJSONFileDeletionWatcher : AssetPostprocessor {
 			static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths) {
 				foreach (var deleted in deletedAssets) {
-					if (deleted == InkPlayerWindowState.Instance.lastStoryJSONAssetPath) {
-						InkPlayerWindowState.Instance.lastStoryJSONAssetPath = null;
+					if (deleted == InkPlayerWindowState.Instance.lastInkAssetPath) {
+						InkPlayerWindowState.Instance.lastInkAssetPath = null;
 						storyJSON = null;
 						Stop();
 					}
