@@ -1,3 +1,51 @@
+## Unreleased
+- Added a scripted importer for Ink files ([PR #205](https://github.com/inkle/ink-unity-integration/pull/205)/[Issue #53](https://github.com/inkle/ink-unity-integration/issues/53)) that brings the following major changes: 
+  - JSON sidecar files are no longer generated. This means instead of referencing a JSON file in your scripts as a `TextAsset`, you can now reference the Ink file directly as a `InkFile`. This also means you  don't need to remember commit both `.ink` and `.json` files, which can happen if you're testing/writing outside Unity with Inky.
+  - Due to the nature of scripted importers, Ink files no longer automatically handle identifying master and include files. This has the following impacts:
+    - Ink files no longer display links to related include or master files.
+    - The new InkImporter exposes a `isMaster` toggle which defaults to `true`. When enabled, Ink files are compiled when first imported and when modified. If you have an Ink file that is not meant to be a standalone file (i.e. a file with content that is not playable by itself, usually when its intended to be included in another Ink file) you should set this toggle to `false`. Otherwise such files will log Ink compilation errors to the Unity console.
+  - Files are now automatically compiled when first imported or when modified. This change means some settings/menu items are now unnecessary, and have been removed:
+    - Menu option **Assets/Rebuild Ink Library**
+    - Menu option **Assets/Recompile Ink**
+    - Ink setting **Default Json Asset Path**
+    - Ink setting **Delay In Play Mode**
+    - Ink setting **Handle JSON Files Automatically**
+    - Ink setting **Compile Timeout**
+  - A significant refactor of Editor scripts was required, and many unnecessary methods have been removed. These changes shouldn't affect runtime game code, but may affect Editors tools. Removed public methods include:
+    - `InkLibrary`
+    - `InkPreBuildValidationCheck`
+    - `InkPostProcessor`
+    - `InkCompiler`
+    - `InkEditorUtils.RebuildLibrary()`
+    - `InkEditorUtils.RecompileAll()`
+    - `InkEditorUtils.RecompileAllImmediately()`
+    - `InkFile.isMaster`
+    - `InkFile.isMarkedToCompileAsMasterFile`
+    - `InkFile.compileAutomatically`
+    - `InkFile.inkAsset`
+    - `InkFile.jsonAssetDirectory`
+    - `InkFile.jsonAsset`
+    - `InkFile.filePath`
+    - `InkFile.absoluteFilePath`
+    - `InkFile.absoluteFolderPath`
+    - `InkFile.jsonPath`
+    - `InkFile.absoluteJSONPath`
+    - `InkFile.requiresCompile`
+    - `InkFile.lastCompileDate`
+    - `InkFile.FindCompiledJSONAsset()`
+    - `InkSettings.compileAllFilesAutomatically`
+    - `InkSettings.includeFilesToCompileAsMasterFiles`
+    - `InkSettings.filesToCompileAutomatically`
+    - `InkSettings.ShouldCompileInkFileAutomatically()`
+    - `DefaultAssetEditor`
+    - `DefaultAssetInspector`
+    - `InkPlayerWindow.LoadAndPlay(string storyJSON, bool focusWindow)` 
+  - The following public APIs were changed:
+    - `InkPlayerWindow.LoadAndPlay(TextAsset storyJSONTextAsset, bool focusWindow)` -> `InkPlayerWindow.LoadAndPlay(InkFile inkFileAsset, bool focusWindow)`
+    - `InkPlayerWindow.lastStoryJSONAssetPath` -> `InkPlayerWindow.lastInkAssetPath`
+    - `TextAsset InkPlayerWindow.TryGetLastStoryJSONAsset()` -> `InkFile InkPlayerWindow.TryGetLastInkAsset()`
+    - `InkFile` previously was an Editor only class, but has been converted to a ScriptableObject which represents an imported Ink file.
+
 ## Version 1.2.1 (31st July 2024):
 - Fixes broken demo script
 
