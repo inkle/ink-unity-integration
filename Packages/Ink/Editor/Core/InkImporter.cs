@@ -15,13 +15,13 @@ namespace Ink.UnityIntegration
     {
         [SerializeField]
         [Tooltip("Set this to false to stop the Ink file from being compiled on import. This is intended for " +
-        "Ink files that aren't intended to be compiled as standalone files, because they are included in other " +
+        "Ink files that aren't intended to be compiled as standalone files (aka master files) because they are included in other " +
         "Ink files and require other files to be compiled correctly e.g. global variables are defined in another file.")]
-        private bool compileOnImport = true;
+        private bool isMaster = true;
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            if (!compileOnImport)
+            if (!isMaster)
             {
                 return;
             }
