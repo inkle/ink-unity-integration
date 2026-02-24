@@ -1,9 +1,7 @@
 using UnityEngine;
 using UnityEditor.AssetImporters;
 using System.IO;
-using Ink.UnityIntegration;
-using UnityEditor;
-using Ink;
+using System.Collections.Generic;
 
 namespace Ink.UnityIntegration
 {
@@ -21,6 +19,23 @@ namespace Ink.UnityIntegration
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
+            try
+            {
+                /** Declare dependencies on all nested includes so that Unity correctly propagates changes.
+                We cannot guarantee the order in which ScriptedImporters run, so we need to capture this
+                information for all .ink assets, regardless of whether we compile the files standalone. **/
+                var pathsToAllIncludes = new HashSet<string>();
+                GetIncludesRecursively(ctx.assetPath, pathsToAllIncludes);
+                foreach (var path in pathsToAllIncludes)
+                {
+                    ctx.DependsOnSourceAsset(path);
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogException(e);
+            }
+
             if (!isMaster)
             {
                 return;
@@ -78,18 +93,38 @@ namespace Ink.UnityIntegration
                 Debug.LogException(e);
             }
 
-            /** inform Unity about dependencies defined in ink files so that if included
-            files are modified, the main file is also reimported.**/
-            var includes = InkFile.InkIncludeParser.ParseIncludes(inputString);
-            foreach (var include in includes)
-            {
-                // Unity wants the path relative to the Assets folder
-                var assetPath = Path.Combine(Path.GetDirectoryName(ctx.assetPath), include);
-                ctx.DependsOnSourceAsset(assetPath);
-            }
-
             ctx.AddObjectToAsset("InkFile", inkFile);
             ctx.SetMainObject(inkFile);
+        }
+        
+        /// <summary>
+        /// Adds project-relative paths to all include files found while recursively searching in the specified file.
+        /// </summary>
+        /// <param name="currentFilePath"></param>
+        /// <param name="allFoundIncludePaths"></param>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        private void GetIncludesRecursively(string currentFilePath, HashSet<string> allFoundIncludePaths)
+        {
+            var currentDirectory = Path.GetDirectoryName(currentFilePath);
+            if (currentDirectory == null)
+            {
+                throw new DirectoryNotFoundException($"Could not find directory for file path {currentFilePath}.");
+            }
+
+            var currentFileContents = File.ReadAllText(currentFilePath);
+            var includesForCurrentFile = InkFile.InkIncludeParser.ParseIncludes(currentFileContents);
+            foreach (var include in includesForCurrentFile)
+            {
+                var includePath = InkEditorUtils.CombinePaths(currentDirectory, include);
+                if (!allFoundIncludePaths.Add(includePath))
+                {
+                    // We have already processed this include
+                    continue;
+                }
+
+                // Examine this include for any nested includes
+                GetIncludesRecursively(includePath, allFoundIncludePaths);
+            }
         }
     }
 }
