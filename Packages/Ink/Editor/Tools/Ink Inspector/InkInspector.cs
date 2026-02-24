@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEditorInternal;
-using Object = UnityEngine.Object;
 
 namespace Ink.UnityIntegration {
     [CustomEditor(typeof(InkFile), true)]
