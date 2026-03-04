@@ -54,6 +54,52 @@ namespace Ink.UnityIntegration {
 			string filePath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(GetSelectedPathOrFallback(), fileName));
 			CreateNewInkFileAtPathWithTemplateAndStartNameEditing(filePath, InkSettings.instance.templateFilePath);
 		}
+
+		[Obsolete("Use ReimportAllInkFiles(ImportAssetOptions.Default) instead.")]
+		public static void RecompileAll()
+		{
+			ForceRecompileAllInkFilesAsync();
+		}
+
+		[Obsolete("Use ReimportAllInkFiles(ImportAssetOptions.ForceSynchronousImport) instead.")]
+		public static void RecompileAllImmediately()
+		{
+			ForceRecompileAllInkFilesSync();
+		}
+
+		[MenuItem("Assets/Recompile All Ink Files (Async)", false, 202)]
+		private static void ForceRecompileAllInkFilesAsync()
+		{
+			Debug.Log("Recompiling all ink files...");
+			ReimportAllInkFiles(ImportAssetOptions.Default);
+			Debug.Log("All ink files recompiled!");
+		}
+
+		[MenuItem("Assets/Recompile All Ink Files (Sync)", false, 201)]
+		private static void ForceRecompileAllInkFilesSync()
+		{
+			Debug.Log("Recompiling all ink files...");
+			ReimportAllInkFiles(ImportAssetOptions.ForceSynchronousImport);
+			Debug.Log("All ink files recompiled!");
+		}
+
+		public static void ReimportAllInkFiles(ImportAssetOptions options)
+		{
+			var guids = AssetDatabase.FindAssets("glob:\"*.ink\"");
+			AssetDatabase.StartAssetEditing();
+			try
+			{
+				foreach (var guid in guids)
+				{
+					var path = AssetDatabase.GUIDToAssetPath(guid);
+					AssetDatabase.ImportAsset(path, options | ImportAssetOptions.ForceUpdate);
+				}
+			}
+			finally
+			{
+				AssetDatabase.StopAssetEditing();
+			}
+		}
 		
 		public static void CreateNewInkFileAtPathWithTemplateAndStartNameEditing (string filePath, string templateFileLocation) {
 			if(Path.GetExtension(filePath) != inkFileExtension) filePath += inkFileExtension;
