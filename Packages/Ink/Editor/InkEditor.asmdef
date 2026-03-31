@@ -2,8 +2,8 @@
     "name": "InkEditor",
     "rootNamespace": "",
     "references": [
-        "Ink-Libraries",
-        "Ink"
+        "GUID:58bed0e7c5306824586d7eda03609289",
+        "GUID:c4337e8956065154cb8fa95a31286cf4"
     ],
     "includePlatforms": [
         "Editor"
