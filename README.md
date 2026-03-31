@@ -8,7 +8,7 @@ This Unity package allows you to integrate inkle's [ink narrative scripting lang
   
  - **ink player**: Provides a powerful [Ink Player Window](https://github.com/inkle/ink-unity-integration/blob/master/Documentation/InkPlayerWindow.md) for playing and debugging stories.
  
- - **Auto compilation**: Instantly creates and updates a JSON story file when a `.ink` is updated.
+ - **Auto compilation**: Instantly creates compiles story file when a `.ink` is updated.
   
  - **Inspector tools**: Provides an icon for ink files, and a custom inspector that provides information about a file.
 
@@ -77,18 +77,8 @@ To keep up to date with the latest news about ink [sign up for the mailing list]
 
 ## Compilation
   
-Ink files must be compiled to JSON before they can be used in-game. 
-**This package compiles all edited ink files automatically.**
-By default, compiled files are created next to their ink file.
-
-### Editor Compilation
-This package provides tools to automate this process when a .ink file is edited. 
-
-**Disabling auto-compilation**: You might want to have manual control over ink compilation. If this is the case, you can disable "Compile ink automatically" in the InkSettings file or delete the InkPostProcessor class.
-
-**Manual compilation**: If you have disabled auto-compilation, you can manually compile all ink files using the **Assets > Recompile Ink** menu item, individually via the inspector of an ink file, or via code using InkCompiler.CompileInk().
-
-**Play mode delay**: By default, ink does not compile while in play mode. This can be disabled in the InkSettings file.
+Ink files must be compiled to JSON before they can be used in-game at runtime. 
+**This package compiles all edited ink files automatically via a [scripted importer](https://docs.unity3d.com/Manual/ScriptedImporters.html)**. The compiled JSON string is stored within the imported ink asset.
 
 ### In-game Compilation
 
@@ -127,14 +117,6 @@ There's [unofficial support for PlayMaker here.](https://github.com/inkle/ink-un
 
 
 We'd love to see this supported more if you'd like to assist the effort!
-
-
-# Source control tips
-
-When you edit ink files, the compiler will also update the corresponding compiled .json file. If no compiled file existed before, Unity will also create a meta file for it. It is recommended that you always commit both ink and json files at the same time to avoid the file being re-compiled by your team members.
-
-Adding or removing ink files will also make changes to the InkLibrary file, and we could recommend authors also commit this file for the same reasons.
-
 
 # <a name="WebGLBestPractices"></a>WebGL best practices
 

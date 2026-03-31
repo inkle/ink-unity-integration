@@ -1,5 +1,6 @@
 ﻿using System;
 using Ink.Runtime;
+using Ink.UnityIntegration;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,7 +16,7 @@ public class BasicInkExample : MonoBehaviour {
 
 	// Creates a new Story object with the compiled story which we can then play!
 	void StartStory () {
-		story = new Story (inkJSONAsset.text);
+		story = new Story (inkFileAsset.storyJson);
 		if(OnCreateStory != null) OnCreateStory(story);
 		RefreshView();
 	}
@@ -96,7 +97,7 @@ public class BasicInkExample : MonoBehaviour {
 	}
 
 	[SerializeField]
-	private TextAsset inkJSONAsset = null;
+	private InkFile inkFileAsset = null;
 	public Story story;
 
 	[SerializeField]

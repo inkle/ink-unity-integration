@@ -49,7 +49,7 @@ public static class PublishingTools {
 
 		var match = Regex.Match(json, pattern);
 		var prevVersion = match.Groups[1].Value;
-		var nextVersion = InkLibrary.unityIntegrationVersionCurrent.ToString();
+		var nextVersion = InkFile.unityIntegrationVersionCurrent.ToString();
 		if (prevVersion == nextVersion) {
 			Debug.LogWarning("SyncPackageJsonVersion: package.json version was already " + nextVersion + ". Did you forget to update it in InkLibrary?");
 		} else {
@@ -134,7 +134,7 @@ public static class PublishingTools {
 		AssetDatabase.Refresh();
 
 		// Create a .unitypackage
-		var version = InkLibrary.unityIntegrationVersionCurrent;
+		var version = InkFile.unityIntegrationVersionCurrent;
 		var packageExportPath = string.Format("../Ink Unity Integration {0}.{1}.{2}.unitypackage", version.Major, version.Minor, version.Build);
 		AssetDatabase.ExportPackage("Assets/Ink", packageExportPath, ExportPackageOptions.Recurse);
 		
@@ -166,7 +166,7 @@ public static class PublishingTools {
 		
 		void OnGUI () {
 			EditorGUILayout.BeginVertical();
-			EditorGUILayout.LabelField("Version "+InkLibrary.unityIntegrationVersionCurrent, EditorStyles.centeredGreyMiniLabel);
+			EditorGUILayout.LabelField("Version "+InkFile.unityIntegrationVersionCurrent, EditorStyles.centeredGreyMiniLabel);
 		
 			if (GUILayout.Button("Unlock")) {
 				EditorApplication.UnlockReloadAssemblies();
@@ -179,9 +179,9 @@ public static class PublishingTools {
 			}
 			if (GUILayout.Button("Draft GitHub Release")) {
 				// 1.1.7
-				var version = UnityWebRequest.EscapeURL($"{InkLibrary.unityIntegrationVersionCurrent}");
+				var version = UnityWebRequest.EscapeURL($"{InkFile.unityIntegrationVersionCurrent}");
 				
-				var title = UnityWebRequest.EscapeURL($"{InkLibrary.unityIntegrationVersionCurrent} is out!");
+				var title = UnityWebRequest.EscapeURL($"{InkFile.unityIntegrationVersionCurrent} is out!");
 				
 				var packageDirectory = InkEditorUtils.FindAbsolutePluginDirectory();
 				var changelogText = File.ReadAllText(Path.Combine(packageDirectory, "CHANGELOG.md"));

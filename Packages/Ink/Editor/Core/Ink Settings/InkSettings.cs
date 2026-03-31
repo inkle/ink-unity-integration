@@ -1,7 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
-using Debug = UnityEngine.Debug;
 
 /// <summary>
 /// Holds a reference to an InkFile object for every .ink file detected in the Assets folder.
@@ -68,17 +66,6 @@ namespace Ink.UnityIntegration {
 				else return AssetDatabase.GetAssetPath(templateFile);
 			}
 		}
-
-
-        public DefaultAsset defaultJsonAssetPath;
-		[UnityEngine.Serialization.FormerlySerializedAs("compileAutomatically")]
-        public bool compileAllFilesAutomatically = true;
-        public List<DefaultAsset> includeFilesToCompileAsMasterFiles = new List<DefaultAsset>();
-        public List<DefaultAsset> filesToCompileAutomatically = new List<DefaultAsset>();
-		public bool delayInPlayMode = true;
-		public bool handleJSONFilesAutomatically = true;
-
-		public int compileTimeout = 30;
 		
 		public bool printInkLogsInConsoleOnCompile;
 		
@@ -96,30 +83,12 @@ namespace Ink.UnityIntegration {
 			return new SerializedObject(instance);
 		}
 		#endif
-        
-		public bool ShouldCompileInkFileAutomatically (InkFile inkFile) {
-			return compileAllFilesAutomatically || (inkFile.isMaster && filesToCompileAutomatically.Contains(inkFile.inkAsset));
-		}
-
 		
 		void OnEnable () {
 			// Oh gosh Unity never unloads ScriptableObjects once created! We destroy these objects before we recompile so there's only ever one in memory at once.
 			AssemblyReloadEvents.beforeAssemblyReload += () => {
 				DestroyImmediate(this);
 			};
-			// Validate the includeFilesToCompileAsMasterFiles list.
-            for (int i = includeFilesToCompileAsMasterFiles.Count - 1; i >= 0; i--) {
-                if(includeFilesToCompileAsMasterFiles[i] == null) {
-					includeFilesToCompileAsMasterFiles.RemoveAt(i);
-					Debug.LogError("REMOVE "+includeFilesToCompileAsMasterFiles.Count);
-				}
-            }
-			// Validate the filesToCompileAutomatically list.
-            for (int i = filesToCompileAutomatically.Count - 1; i >= 0; i--) {
-                if(filesToCompileAutomatically[i] == null) {
-					filesToCompileAutomatically.RemoveAt(i);
-				}
-            }
 		}
 	}	
 }
