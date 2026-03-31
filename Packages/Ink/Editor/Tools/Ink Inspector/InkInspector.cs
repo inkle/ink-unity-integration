@@ -238,8 +238,16 @@ namespace Ink.UnityIntegration {
 		void DrawFileContents () {
 			float width = EditorGUIUtility.currentViewWidth-50;
 			float height = EditorStyles.wordWrappedLabel.CalcHeight(new GUIContent(cachedTrimmedFileContents), width);
+
+            EditorGUILayout.LabelField("Ink source");
 			EditorGUILayout.BeginVertical(EditorStyles.textArea);
 			EditorGUILayout.SelectableLabel(cachedTrimmedFileContents, EditorStyles.wordWrappedLabel, GUILayout.ExpandHeight(true), GUILayout.Width(width), GUILayout.Height(height));
+            EditorGUILayout.EndVertical();
+
+            string json = ((InkFile)target).storyJson;
+            EditorGUILayout.LabelField("Compiled JSON");
+            EditorGUILayout.BeginVertical(EditorStyles.textArea);
+			EditorGUILayout.SelectableLabel(json, EditorStyles.wordWrappedLabel, GUILayout.ExpandHeight(true), GUILayout.Width(width), GUILayout.Height(height));
 			EditorGUILayout.EndVertical();
 		}
 	}
