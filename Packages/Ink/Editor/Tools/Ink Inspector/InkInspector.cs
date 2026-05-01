@@ -281,9 +281,11 @@ namespace Ink.UnityIntegration {
 					if(newCompileAsIfMaster) {
 						InkSettings.instance.includeFilesToCompileAsMasterFiles.Add(inkFile.inkAsset);
 						EditorUtility.SetDirty(InkSettings.instance);
+						InkSettings.instance.Save(true);
 					} else {
 						InkSettings.instance.includeFilesToCompileAsMasterFiles.Remove(inkFile.inkAsset);
 						EditorUtility.SetDirty(InkSettings.instance);
+						InkSettings.instance.Save(true);
 					}
 				}
 				EditorApplication.RepaintProjectWindow();
@@ -359,9 +361,11 @@ namespace Ink.UnityIntegration {
 					if(newCompileAutomatically) {
 						InkSettings.instance.filesToCompileAutomatically.Add(inkFile.inkAsset);
 						EditorUtility.SetDirty(InkSettings.instance);
+						InkSettings.instance.Save(true);
 					} else {
 						InkSettings.instance.filesToCompileAutomatically.Remove(inkFile.inkAsset);
 						EditorUtility.SetDirty(InkSettings.instance);
+						InkSettings.instance.Save(true);
 					}
 				}
 				EditorApplication.RepaintProjectWindow();
