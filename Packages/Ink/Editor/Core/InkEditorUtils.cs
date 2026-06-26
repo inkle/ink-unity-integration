@@ -12,8 +12,13 @@ using Path = System.IO.Path;
 namespace Ink.UnityIntegration {
 	[InitializeOnLoad]
 	public static class InkEditorUtils {
+#if UNITY_6000_4_OR_NEWER
+		class CreateInkAssetAction : AssetCreationEndAction {
+			public override void Action(EntityId entityId, string pathName, string resourceFile) {
+#else
 		class CreateInkAssetAction : EndNameEditAction {
 			public override void Action(int instanceId, string pathName, string resourceFile) {
+#endif
 				var text = "";
 				if(File.Exists(resourceFile)) {
 					StreamReader streamReader = new StreamReader(resourceFile);
@@ -83,7 +88,11 @@ namespace Ink.UnityIntegration {
 		
 		public static void CreateNewInkFileAtPathWithTemplateAndStartNameEditing (string filePath, string templateFileLocation) {
 			if(Path.GetExtension(filePath) != inkFileExtension) filePath += inkFileExtension;
+#if UNITY_6000_4_OR_NEWER
+			ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, ScriptableObject.CreateInstance<CreateInkAssetAction>(), filePath, InkBrowserIcons.inkFileIcon, templateFileLocation);
+#else
 			ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<CreateInkAssetAction>(), filePath, InkBrowserIcons.inkFileIcon, templateFileLocation);
+#endif
 		}
 
 		public static DefaultAsset CreateNewInkFileAtPath (string filePath, string text) {
