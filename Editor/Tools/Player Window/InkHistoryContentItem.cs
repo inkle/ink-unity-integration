@@ -78,6 +78,7 @@ namespace Ink.UnityIntegration.Debugging {
             return new InkHistoryContentItem(noteText, InkHistoryContentItem.ContentType.DebugNote);
         }
 
+        [System.Serializable]
         struct JsonDateTime {
             public long value;
             public static implicit operator DateTime(JsonDateTime jdt) {

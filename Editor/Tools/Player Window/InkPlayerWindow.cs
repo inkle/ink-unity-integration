@@ -386,7 +386,8 @@ namespace Ink.UnityIntegration {
 			public FunctionPanelState functionPanelState = new FunctionPanelState();
 			// public FunctionPanelState.FunctionParams functionParams = new FunctionPanelState.FunctionParams();
 			public VariablesPanelState variablesPanelState = new VariablesPanelState();
-			public ObservedVariablesPanelState observedVariablesPanelState = new ObservedVariablesPanelState();
+			// Runtime-only: holds live observed variables (backed by a Dictionary) that aren't persisted with the window state.
+			[NonSerialized] public ObservedVariablesPanelState observedVariablesPanelState = new ObservedVariablesPanelState();
 		}
 
 		
@@ -514,7 +515,8 @@ namespace Ink.UnityIntegration {
 					public bool boolValue;
 					public string inkVariablePath;
 					public object inkVariableValue;
-					public InkList inkListVariableValue;
+					// Runtime-only value refreshed from the story; InkList isn't serializable so it isn't persisted.
+					[NonSerialized] public InkList inkListVariableValue;
 					public string inkListVariablePath;
 
 					public void RefreshInkVariableValue (Story story) {

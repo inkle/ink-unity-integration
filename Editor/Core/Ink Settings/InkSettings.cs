@@ -86,16 +86,9 @@ namespace Ink.UnityIntegration {
 		
 		public bool automaticallyAddDefineSymbols = true;
 
-		#if UNITY_EDITOR && !UNITY_2018_1_OR_NEWER
-		[MenuItem("Edit/Project Settings/Ink", false, 500)]
-		public static void SelectFromProjectSettings() {
-			Selection.activeObject = instance;
-		}
-		#elif UNITY_EDITOR && UNITY_2018_1_OR_NEWER
 		public static SerializedObject GetSerializedSettings() {
 			return new SerializedObject(instance);
 		}
-		#endif
         
 		public bool ShouldCompileInkFileAutomatically (InkFile inkFile) {
 			return compileAllFilesAutomatically || (inkFile.isMaster && filesToCompileAutomatically.Contains(inkFile.inkAsset));

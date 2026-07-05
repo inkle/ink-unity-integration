@@ -26,7 +26,6 @@ namespace Ink.UnityIntegration {
 			serializedObject.ApplyModifiedProperties();
 	    }
 
-		#if UNITY_2018_1_OR_NEWER
 		[SettingsProvider]
 		public static SettingsProvider CreateInkSettingsProvider() {
 			// First parameter is the path in the Settings window.
@@ -46,7 +45,6 @@ namespace Ink.UnityIntegration {
 			};
 			return provider;
 		}
-		#endif
 
         static void DrawSettings (InkSettings settings) {
 	        EditorGUI.BeginChangeCheck();
