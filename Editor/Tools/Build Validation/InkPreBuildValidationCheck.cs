@@ -4,28 +4,16 @@ using UnityEditor.Build;
 using System.Text;
 using Ink.UnityIntegration;
 using System.Linq;
-#if UNITY_2018_1_OR_NEWER
 using UnityEditor.Build.Reporting;
-#endif
 
 class InkPreBuildValidationCheck : 
-#if UNITY_2018_1_OR_NEWER
 IPreprocessBuildWithReport
-#else
-IPreprocessBuild
-#endif
 {
 	public int callbackOrder { get { return 0; } }
 	
-    #if UNITY_2018_1_OR_NEWER
     public void OnPreprocessBuild(BuildReport report) {
         PreprocessValidationStep();
     }
-    #else
-    public void OnPreprocessBuild(BuildTarget target, string path) {
-		PreprocessValidationStep();
-	}
-    #endif
 
     static void PreprocessValidationStep () {
         // If we're compiling, we've throw an error to cancel the build. Exit out immediately.

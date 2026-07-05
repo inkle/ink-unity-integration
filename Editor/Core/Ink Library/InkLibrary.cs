@@ -11,15 +11,11 @@ using Debug = UnityEngine.Debug;
 /// Provides helper functions to easily obtain these files.
 /// </summary>
 namespace Ink.UnityIntegration {
-    #if UNITY_2020_1_OR_NEWER
     [FilePath("Library/asset", FilePathAttribute.Location.ProjectFolder)]
 	public class InkLibrary : ScriptableSingleton<InkLibrary>, IEnumerable<InkFile> {
-    #else
-	public class InkLibrary : ScriptableObject, IEnumerable<InkFile> {
-    #endif
         // Ink version. This should really come from the core ink code.
 		public static System.Version inkVersionCurrent = new System.Version(1,2,0);
-		public static System.Version unityIntegrationVersionCurrent = new System.Version(1,2,2);
+		public static System.Version unityIntegrationVersionCurrent = new System.Version(1,3,0);
 
 		static string absoluteSavePath {
 			get {
@@ -27,57 +23,6 @@ namespace Ink.UnityIntegration {
 			}
 		}
 		
-		#if !UNITY_2020_1_OR_NEWER
-		public static bool created {
-			get {
-				// If it's null, there's no InkLibrary loaded
-				return (_instance != (Object) null);
-			}
-		}
-		private static InkLibrary _instance;
-		public static InkLibrary instance {
-			get {
-				if(!created)
-                	LoadOrCreateInstance();
-				return _instance;
-			} private set {
-				if(_instance == value) return;
-				_instance = value;
-            }
-		}
-        
-		
-		// This occurs on recompile, creation and load (note that data has not necessarily been loaded at this point!)
-		protected InkLibrary () {
-			if (created)
-				Debug.LogError((object) "ScriptableSingleton already exists. Did you query the singleton in a constructor?");
-			else {
-				instance = this;
-			}
-		}
-
-		public static void LoadOrCreateInstance () {
-			InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
-			if(created) {
-				if(InkEditorUtils.isFirstCompile) {
-					Validate();
-				}
-			} else {
-				instance = ScriptableObject.CreateInstance<InkLibrary>();
-				instance.hideFlags = HideFlags.HideAndDontSave;
-				Rebuild();
-			}
-		}
-		
-		public void Save (bool saveAsText) {
-			if(!created) return;			
-			InternalEditorUtility.SaveToSerializedFileAndForget((Object[]) new InkLibrary[1] {instance}, absoluteSavePath, saveAsText);
-		}
-
-		static void EnsureCreated () {
-			if(!created) LoadOrCreateInstance();
-		}
-        #endif
         
         public class AssetSaver : UnityEditor.AssetModificationProcessor {
             static string[] OnWillSaveAssets(string[] paths) {
@@ -144,9 +89,6 @@ namespace Ink.UnityIntegration {
         /// This is a fairly performant check.
 		/// </summary>
         static bool RequiresRebuild () {
-            #if !UNITY_2020_1_OR_NEWER
-			EnsureCreated();
-            #endif
 			foreach(var inkFile in instance.inkLibrary) {
                 if(inkFile == null) {
                     return true;

@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace Ink.UnityIntegration {
 	[CustomEditor(typeof(DefaultAsset), true)]
@@ -43,15 +42,13 @@ namespace Ink.UnityIntegration {
 		}
 
 		private DefaultAssetInspector FindObjectInspector () {
-			var assembly = Assembly.GetExecutingAssembly();
 			var assetPath = AssetDatabase.GetAssetPath(target);
-			foreach(var type in assembly.GetTypes()) {
-				if(type.IsSubclassOf(typeof(DefaultAssetInspector))) {
-					DefaultAssetInspector objectInspector = (DefaultAssetInspector)Activator.CreateInstance(type);
-					if(objectInspector.IsValid(assetPath)) {
-						objectInspector.target = target;
-						return objectInspector;
-					}
+			foreach(var type in TypeCache.GetTypesDerivedFrom<DefaultAssetInspector>()) {
+				if(type.IsAbstract) continue;
+				DefaultAssetInspector objectInspector = (DefaultAssetInspector)Activator.CreateInstance(type);
+				if(objectInspector.IsValid(assetPath)) {
+					objectInspector.target = target;
+					return objectInspector;
 				}
 			}
 			return null;

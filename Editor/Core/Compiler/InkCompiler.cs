@@ -20,62 +20,8 @@ namespace Ink.UnityIntegration {
 	
 	// InkCompiler is designed as a ScriptableObject and is saved to the Library folder so that the queue persists across compilation.
 	// The way we currently handle threads isn't great. I'd love for a member of the community to find a better way to do it!
-	#if UNITY_2020_1_OR_NEWER
     [FilePath("Library/InkCompiler.asset", FilePathAttribute.Location.ProjectFolder)]
 	public class InkCompiler : ScriptableSingleton<InkCompiler> {
-    #else
-	public class InkCompiler : ScriptableObject {
-    #endif
-		#region Legacy ScriptableSingleton
-        #if !UNITY_2020_1_OR_NEWER
-		public static bool created {
-			get {
-				return (_instance != (UnityEngine.Object) null);
-			}
-		}
-		private static InkCompiler _instance;
-		public static InkCompiler instance {
-			get {
-				if(!created)
-                	LoadOrCreateInstance();
-				return _instance;
-			} private set {
-				if(_instance == value) return;
-				_instance = value;
-            }
-		}
-        
-		static string absoluteSavePath {
-			get {
-				return System.IO.Path.GetFullPath(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(),"Library","InkCompiler.asset"));
-			}
-		}
-		public static void LoadOrCreateInstance () {
-			InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
-			if(created) {
-				if(InkEditorUtils.isFirstCompile) {
-					ClearCompilationStacks();
-				}
-			} else {
-				instance = ScriptableObject.CreateInstance<InkCompiler>();
-				instance.hideFlags = HideFlags.HideAndDontSave;
-			}
-		}
-		public void Save (bool saveAsText) {
-			InternalEditorUtility.SaveToSerializedFileAndForget((UnityEngine.Object[]) new InkCompiler[1] {this}, absoluteSavePath, saveAsText);
-		}
-
-		protected InkCompiler () {
-			if (created)
-				Debug.LogError((object) "ScriptableSingleton already exists. Did you query the singleton in a constructor?");
-			else {
-				instance = this;
-			}
-		}
-        #endif
-		#endregion
-
-
 		#region Public Facing
 		// If any items are queued, compiling, or complete!
 		// If any items are in the queue, one is guaranteed to be compiling (or should begin to or complete imminently).
@@ -108,7 +54,6 @@ namespace Ink.UnityIntegration {
         }
 		public static void CompileInk (InkFile[] inkFiles, bool immediate, Action onComplete = null) {
 			if(inkFiles == null || inkFiles.Length == 0) return;
-			#if UNITY_2019_4_OR_NEWER
 			if(!disallowedAutoRefresh) {
 				disallowedAutoRefresh = true;
 				try {
@@ -117,7 +62,6 @@ namespace Ink.UnityIntegration {
 					Debug.LogWarning("Failed DisallowAutoRefresh "+e);
 				}
 			}
-			#endif
             
 			InkLibrary.Validate();
             if(onComplete != null) onCompleteActions.Add(onComplete);
@@ -257,10 +201,8 @@ namespace Ink.UnityIntegration {
 		static object _compileThreadActiveLock = new object();
 		#endregion
 
-		#if UNITY_2020_2_OR_NEWER
 		// ID for the Unity Progress API, which shows progress of the compile in the bottom right of Unity.
 		static int compileProgressID;
-		#endif
 		
 		#region Serialized Private Variables
 		// If InkSettings' delayInPlayMode option is true, dirty files are added here when they're changed in play mode
@@ -338,15 +280,10 @@ namespace Ink.UnityIntegration {
 		// This is called when Unity recompiles. 
 		[InitializeOnLoadMethod]
 		static void OnProjectLoadedInEditor() {
-			#if UNITY_2017_1_OR_NEWER
 			EditorApplication.playModeStateChanged += OnPlayModeChange;
-			#else
-			EditorApplication.playmodeStateChanged += LegacyOnPlayModeChange;
-			#endif
 			EditorApplication.update += Update;
             // I really don't know if this can fire, since it assumes that it compiled so can't have been locked. But safety first!
             EditorApplication.UnlockReloadAssemblies();
-			#if UNITY_2019_4_OR_NEWER
 			// This one, on the other hand, seems to actually occur sometimes - presumably because c# compiles at the same time as the ink.
 			if(disallowedAutoRefresh) {
 				disallowedAutoRefresh = false;
@@ -356,26 +293,15 @@ namespace Ink.UnityIntegration {
 					Debug.LogWarning("Failed AllowAutoRefresh "+e);
 				}
 			}
-			#endif
 		}
 		
 		// Update loop, using the EditorApplication.update callback.
 		private static void Update () {
-            #if UNITY_2020_1_OR_NEWER
             // If we're not compiling but have locked C# compilation then now is the time to reset
 			if (!executingCompilationStack && hasLockedUnityCompilation) {
 				hasLockedUnityCompilation = false;
 				EditorApplication.UnlockReloadAssemblies();
 			}
-			#else
-            // If we're not compiling but have locked C# compilation then now is the time to reset
-			if ((!InkLibrary.created || !compiling) && hasLockedUnityCompilation) {
-				hasLockedUnityCompilation = false;
-				EditorApplication.UnlockReloadAssemblies();
-			}
-			if(!InkLibrary.created) 
-				return;
-            #endif
 
 			// If we're working through the stack. This is true as soon as an item is added to the stack.
 			if(executingCompilationStack) {
@@ -526,10 +452,8 @@ namespace Ink.UnityIntegration {
 			}
 			item.state = CompilationStackItemState.Compiling;
 			item.startTime = DateTime.Now;
-			#if UNITY_2020_2_OR_NEWER
 			Progress.SetStepLabel(compileProgressID, item.inkFile.filePath);
 			Progress.Report(compileProgressID, instance.compilationStack.IndexOf(item), instance.compilationStack.Count);
-			#endif
 		}
 
 		// Marks a CompilationStackItem as Complete
@@ -588,9 +512,7 @@ namespace Ink.UnityIntegration {
 
 		// When the compilation stack first gains an item
 		private static void OnBeginCompilationStack () {
-			#if UNITY_2020_2_OR_NEWER
 			compileProgressID = Progress.Start("Compiling Ink", null, Progress.Options.None, -1);
-			#endif
 		}
 
 		// When all files in stack have been compiled. 
@@ -692,16 +614,13 @@ namespace Ink.UnityIntegration {
 
 
 			// Clean up locks and progress bars
-			#if UNITY_2020_2_OR_NEWER
 			Progress.Remove(compileProgressID);
 			compileProgressID = -1;
-			#endif
 			
 			#if !UNITY_EDITOR_LINUX
 			EditorUtility.ClearProgressBar();
 			#endif
 			
-			#if UNITY_2019_4_OR_NEWER
 			if(disallowedAutoRefresh) {
 				disallowedAutoRefresh = false;
 				try {
@@ -710,7 +629,6 @@ namespace Ink.UnityIntegration {
 					Debug.LogWarning("Failed AllowAutoRefresh "+e);
 				}
 			}
-			#endif
 
             // This is now allowed, if compiled manually. I've left this code commented out because at some point we might want to track what caused a file to compile. 
             // if(EditorApplication.isPlayingOrWillChangePlaymode && InkSettings.instance.delayInPlayMode) {
@@ -787,7 +705,6 @@ namespace Ink.UnityIntegration {
 
 
 		#region Prevent entering Play Mode while mid-compile
-		#if UNITY_2017_1_OR_NEWER
 		static void OnPlayModeChange (PlayModeStateChange mode) {
 			if(mode == PlayModeStateChange.EnteredEditMode && instance.pendingCompilationStack.Count > 0)
 				CompilePendingFiles();
@@ -796,16 +713,6 @@ namespace Ink.UnityIntegration {
 			if(mode == PlayModeStateChange.EnteredPlayMode && executingCompilationStack)
 				EnteredPlayModeWhenCompiling();
 		}
-		#else
-		static void LegacyOnPlayModeChange () {
-			if(!EditorApplication.isPlayingOrWillChangePlaymode && EditorApplication.isPlaying && instance.pendingCompilationStack.Count > 0) 
-				CompilePendingFiles();
-			if(EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying && compiling)
-				BlockPlayMode();
-			if(EditorApplication.isPlayingOrWillChangePlaymode && EditorApplication.isPlaying && compiling)
-				EnteredPlayModeWhenCompiling();
-		}
-		#endif
 
 		static void BlockPlayMode () {
 			EditorApplication.isPlaying = false;

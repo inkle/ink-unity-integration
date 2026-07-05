@@ -32,9 +32,6 @@ namespace Ink.UnityIntegration {
 				var importedAssetsThatWerentRenames = importedAssets.Except(movedAssets).ToArray();
 				OnImportAssets(importedAssetsThatWerentRenames);
 			}
-            #if !UNITY_2020_1_OR_NEWER
-			if(InkLibrary.created)
-            #endif
             InkLibrary.Clean();
 		}
 

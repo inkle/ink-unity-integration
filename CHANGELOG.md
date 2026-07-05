@@ -1,3 +1,10 @@
+## Version 1.3.0 (5th July 2026):
+- Updated Ink to 1.2.1
+- ⚠️ The minimum supported Unity version is now 2022.3 LTS
+- Updated for Unity 6: resolves obsolete API warnings (script define symbols now use NamedBuildTarget) and the Unity 6 serialization analyzer warnings
+- Removed legacy code paths for Unity versions older than 2022.3, modernising the editor code (e.g. using TypeCache for inspector lookup)
+- The demo now works with both the legacy Input Manager and the new Input System
+
 ## Version 1.2.1 (31st July 2024):
 - Fixes broken demo script
 
