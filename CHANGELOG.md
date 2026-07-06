@@ -5,6 +5,7 @@ Ink files are now compiled by a Unity ScriptedImporter, replacing the old compil
 - ⚠️ Breaking: minimum Unity version is now 2022.3 LTS.
 - Editing an include (even nested) now reliably reimports its master file(s).
 - Errors, warnings and TODOs show on the import inspector and in the console.
+- Ink file icons show state badges (error, warning, TODO, include) consistently in the Project window, inspector header and object fields.
 - Builds now fail if any ink file has compile errors.
 - Removed `InkLibrary`, the `InkCompiler` queue and the auto-compiler; "Rebuild Ink Library" is now "Recompile All Ink Files".
 - Editor inspectors and windows rebuilt with UI Toolkit.

@@ -64,6 +64,11 @@ namespace Ink.UnityIntegration {
 
 			root.Add(BuildTextFoldout("Compiled JSON", inkFile.storyJson));
 			root.Add(BuildTextFoldout("Source", ReadSource(assetPath)));
+
+			// Apply THIS file's per-object icon last — after the Included By/Files object fields have set
+			// theirs — because the inspector header reflects whichever object had its icon set last in the
+			// build. Setting it here keeps the header showing this file's icon, not the last file listed.
+			InkBrowserIcons.ApplyInstanceIcon(inkFile);
 			return root;
 		}
 
@@ -93,7 +98,11 @@ namespace Ink.UnityIntegration {
 		static void AddFileList (VisualElement root, string label, IReadOnlyList<string> paths) {
 			root.Add(Bold(label));
 			foreach (var path in paths) {
-				var field = new ObjectField { objectType = typeof(InkFile), value = AssetDatabase.LoadAssetAtPath<InkFile>(path) };
+				var file = AssetDatabase.LoadAssetAtPath<InkFile>(path);
+				// Refresh the referenced file's per-object icon so the field shows its current badges. Without
+				// this it can show a stale icon set on an earlier import (e.g. before it became a master file).
+				InkBrowserIcons.ApplyInstanceIcon(file);
+				var field = new ObjectField { objectType = typeof(InkFile), value = file };
 				field.SetEnabled(false);
 				root.Add(field);
 			}

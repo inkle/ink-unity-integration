@@ -138,9 +138,11 @@ namespace Ink.UnityIntegration {
                 }
             }
 
-            // Give the imported asset a real icon (shows everywhere: project browser, inspector header,
-            // object fields). State badges are still drawn as an overlay by InkBrowserIcons.
-            ctx.AddObjectToAsset("InkFile", inkFile, InkBrowserIcons.inkFileIcon);
+            // Bake the icon (base ink icon + state badges) into the asset thumbnail, so it shows everywhere
+            // the asset icon appears: project browser, inspector header and object fields. No live overlay.
+            var thumbnail = InkBrowserIcons.BuildInkFileThumbnail(
+                isMasterFile, inkFile.hasErrors, inkFile.hasWarnings, inkFile.hasTodos);
+            ctx.AddObjectToAsset("InkFile", inkFile, thumbnail);
             ctx.SetMainObject(inkFile);
         }
     }

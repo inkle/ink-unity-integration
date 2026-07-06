@@ -15,6 +15,10 @@ namespace Ink.UnityIntegration {
             var root = new VisualElement();
             var importer = (InkImporter)target;
 
+            // Give the imported asset its badged per-object icon so the header shows the same icon as the
+            // Project window (which uses the baked thumbnail). Only runs for the inspected asset — no scan.
+            InkBrowserIcons.ApplyInstanceIcon(assetTarget as InkFile);
+
             if (importer.IsMasterFile) {
                 var label = new Label("Master file (detected automatically).");
                 label.style.unityFontStyleAndWeight = UnityEngine.FontStyle.Italic;

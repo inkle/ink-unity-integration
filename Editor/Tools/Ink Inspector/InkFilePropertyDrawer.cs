@@ -25,6 +25,10 @@ namespace Ink.UnityIntegration {
 			root.Add(warning);
 
 			void Refresh (InkFile inkFile) {
+				// Give the referenced file its badged per-object icon, so the object field shows the same
+				// icon (with error/warning/include badges) as the Project window.
+				InkBrowserIcons.ApplyInstanceIcon(inkFile);
+
 				bool show = inkFile != null && !inkFile.isCompiled;
 				warning.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
 				if (show)
