@@ -133,7 +133,7 @@ Bug fixes
 - Reduced the amount of data saved in InkLibrary by storing metadata in EditorPrefs
 - Split some parts of InkLibrary into InkSettings ScriptableObject
 
-## VersionAdded in 0.7.0
+## Version 0.7.0
 - Update Ink to 0.7
 - New icon for manually compiled
 - Improved ink library editor
