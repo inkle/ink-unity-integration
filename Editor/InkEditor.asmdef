@@ -1,0 +1,17 @@
+{
+    "name": "InkEditor",
+    "references": [
+        "Ink-Libraries",
+        "Ink"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}

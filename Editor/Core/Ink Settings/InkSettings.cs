@@ -1,0 +1,86 @@
+using UnityEngine;
+using UnityEditor;
+using System.Collections.Generic;
+using Debug = UnityEngine.Debug;
+
+namespace Ink.UnityIntegration {
+	/// <summary>
+	/// Project-wide ink settings, stored in ProjectSettings/InkSettings.asset and edited via
+	/// Project Settings > Ink. Note: this singleton doesn't reload when its backing file changes, so
+	/// pulling changes from source control may need an editor recompile before they take effect.
+	/// </summary>
+	public class InkSettings : ScriptableObject {
+        // #if !UNITY_2020_1_OR_NEWER
+		public static bool created {
+			get {
+                // If it's null, there's just no InkSettings asset in the project
+                return _instance != null;
+            }
+		}
+		static string absoluteSavePath {
+			get {
+				return System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,"..","ProjectSettings","InkSettings.asset"));
+
+			}
+		}
+		public static void SaveStatic (bool saveAsText) {
+			UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget(new[] { instance }, absoluteSavePath, saveAsText);
+		}
+        public void Save (bool saveAsText) {
+			UnityEditorInternal.InternalEditorUtility.SaveToSerializedFileAndForget((UnityEngine.Object[]) new InkSettings[1] {this}, absoluteSavePath, saveAsText);
+		}
+
+		private static InkSettings _instance;
+		public static InkSettings instance {
+			get {
+				if(_instance == null) {
+					Object[] objects = UnityEditorInternal.InternalEditorUtility.LoadSerializedFileAndForget(absoluteSavePath);
+					if (objects != null && objects.Length > 0) {
+						instance = objects[0] as InkSettings;
+					} else {
+						instance = ScriptableObject.CreateInstance<InkSettings>();
+						instance.Save(true);
+					}
+					// Oh gosh Unity never unloads ScriptableObjects once created! This fixes it but is more of an expensive call than I like.
+					// I've commented this out in favour of a callback approach - see OnEnable. Left this for posterity in case we need to return to this. 
+					// foreach (var settings in Resources.FindObjectsOfTypeAll<InkSettings>()) {
+					// 	if(settings == instance) continue;
+					// 	DestroyImmediate(settings);
+					// }
+				}
+				return _instance;
+			} private set {
+                if(_instance == value) return;
+				_instance = value;
+			}
+		}
+		// #endif
+
+		public DefaultAsset templateFile;
+		public string templateFilePath {
+			get {
+				if(templateFile == null) return "";
+				else return AssetDatabase.GetAssetPath(templateFile);
+			}
+		}
+
+
+		
+		public bool printInkLogsInConsoleOnCompile;
+		
+		public bool suppressStartupWindow;
+		
+		public bool automaticallyAddDefineSymbols = true;
+
+		public static SerializedObject GetSerializedSettings() {
+			return new SerializedObject(instance);
+		}
+        
+		void OnEnable () {
+			// Oh gosh Unity never unloads ScriptableObjects once created! We destroy these objects before we recompile so there's only ever one in memory at once.
+			AssemblyReloadEvents.beforeAssemblyReload += () => {
+				DestroyImmediate(this);
+			};
+		}
+	}	
+}
