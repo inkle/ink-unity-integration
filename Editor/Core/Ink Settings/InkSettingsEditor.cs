@@ -46,9 +46,17 @@ namespace Ink.UnityIntegration {
 
 			// Only shown while there are leftover 1.x .json files to clean up; disappears once migrated.
 			if (InkMigrationTool.HasLegacyJson()) {
-				root.Add(Header("1.x Migration"));
-				root.Add(new HelpBox("This project has compiled .json files from ink 1.x that are no longer used.", HelpBoxMessageType.Info));
-				root.Add(new Button(InkMigrationTool.Migrate) { text = "Migrate Ink Project from 1.x" });
+				var migrate = new VisualElement();
+				migrate.Add(Header("Upgrade from 1.x to 2.0"));
+				migrate.Add(new HelpBox("This project has compiled .json files from ink 1.x that are no longer used.", HelpBoxMessageType.Info));
+				var migrateButton = new Button { text = "Migrate Ink Project (1.x → 2.0)" };
+				migrateButton.clicked += () => {
+					InkMigrationTool.Migrate();
+					// Migrate() re-scans; drop the section once there are no leftover .json left to clean up.
+					if (!InkMigrationTool.HasLegacyJson()) migrate.RemoveFromHierarchy();
+				};
+				migrate.Add(migrateButton);
+				root.Add(migrate);
 			}
 
 			root.Add(Header("Support + Requests"));

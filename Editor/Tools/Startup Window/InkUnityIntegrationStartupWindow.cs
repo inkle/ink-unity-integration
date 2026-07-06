@@ -33,7 +33,11 @@ namespace Ink.UnityIntegration {
 			var window = GetWindow(typeof(InkUnityIntegrationStartupWindow), true, "Ink Update " + InkEditorUtils.unityIntegrationVersionCurrent, true) as InkUnityIntegrationStartupWindow;
 			window.minSize = new Vector2(200, 200);
 			var size = new Vector2(520, 480);
-			window.position = new Rect((Screen.currentResolution.width - size.x) * 0.5f, (Screen.currentResolution.height - size.y) * 0.5f, size.x, size.y);
+			// Centre on the main editor window. Screen.currentResolution is in physical pixels (wrong on
+			// retina/scaled displays, pushing the window off toward the corner); the main window rect is in
+			// the same coordinate space as EditorWindow.position.
+			var main = EditorGUIUtility.GetMainWindowPosition();
+			window.position = new Rect(main.x + (main.width - size.x) * 0.5f, main.y + (main.height - size.y) * 0.5f, size.x, size.y);
 			EditorPrefs.SetInt(editorPrefsKeyForVersionSeen, announcementVersion);
 		}
 
@@ -61,14 +65,6 @@ namespace Ink.UnityIntegration {
 			root.Add(CenteredGrey("Version " + InkEditorUtils.unityIntegrationVersionCurrent));
 			root.Add(CenteredGrey("Ink version " + InkEditorUtils.inkVersionCurrent));
 
-			// Offer the 1.x migration only while there are leftover compiled .json files to clean up.
-			if (InkMigrationTool.HasLegacyJson()) {
-				var migrate = new VisualElement { style = { marginTop = 8 } };
-				migrate.Add(new HelpBox("This project has compiled .json files from ink 1.x that are no longer used.", HelpBoxMessageType.Info));
-				migrate.Add(new Button(InkMigrationTool.Migrate) { text = "Migrate Ink Project from 1.x" });
-				root.Add(migrate);
-			}
-
 			if (announcementVersionPreviouslySeen == -1) {
 				var newToInk = new Label("New to ink?");
 				newToInk.style.unityFontStyleAndWeight = FontStyle.Bold;
@@ -80,8 +76,33 @@ namespace Ink.UnityIntegration {
 			buttons.Add(Grow(new Button(() => Application.OpenURL("https://www.inklestudios.com/ink/")) { text = "About Ink" }));
 			buttons.Add(Grow(new Button(() => Application.OpenURL("https://www.patreon.com/inkle")) { text = "❤️ Support Us! ❤️" }));
 			buttons.Add(Grow(new Button(() => Application.OpenURL("https://discord.gg/inkle")) { text = "Discord Community + Support" }));
-			buttons.Add(Grow(new Button(Close) { text = "Close" }));
 			root.Add(buttons);
+
+			// Divider between the action buttons and the migration/changelog below. Semi-transparent grey
+			// reads on both the light and dark editor skins.
+			var separator = new VisualElement { style = { height = 1, marginTop = 10, marginBottom = 6, backgroundColor = new Color(0.5f, 0.5f, 0.5f, 0.5f) } };
+			root.Add(separator);
+
+			// Offer the 1.x migration only while there are leftover compiled .json files to clean up.
+			// Sits just above the changelog so it's the last thing before the notes.
+			if (InkMigrationTool.HasLegacyJson()) {
+				var migrate = new VisualElement { style = { marginTop = 8, marginBottom = 4 } };
+				migrate.Add(new HelpBox("This project has compiled .json files from ink 1.x that are no longer used.", HelpBoxMessageType.Info));
+				// No standard Unity "primary button" style exists, so make it prominent with size + weight
+				// (theme-safe, unlike a hardcoded accent colour).
+				var migrateButton = new Button { text = "Migrate Ink Project (1.x → 2.0)" };
+				migrateButton.clicked += () => {
+					InkMigrationTool.Migrate();
+					// Migrate() re-scans; drop the prompt once there are no leftover .json left to clean up.
+					if (!InkMigrationTool.HasLegacyJson()) migrate.RemoveFromHierarchy();
+				};
+				migrateButton.style.height = 32;
+				migrateButton.style.fontSize = 13;
+				migrateButton.style.unityFontStyleAndWeight = FontStyle.Bold;
+				migrateButton.style.marginTop = 4;
+				migrate.Add(migrateButton);
+				root.Add(migrate);
+			}
 
 			if (!string.IsNullOrEmpty(changelogText)) {
 				var scroll = new ScrollView { style = { flexGrow = 1, marginTop = 8 } };

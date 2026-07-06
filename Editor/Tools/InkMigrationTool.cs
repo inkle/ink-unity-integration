@@ -49,12 +49,12 @@ namespace Ink.UnityIntegration {
 		public static void Migrate () {
 			var oldJson = FindLegacyJson();
 			if (oldJson.Count == 0) {
-				EditorUtility.DisplayDialog("Migrate Ink Project from 1.x",
+				EditorUtility.DisplayDialog("Migrate Ink Project (1.x → 2.0)",
 					"No leftover compiled ink .json files were found — nothing to delete.\n\n" + codeReminder, "OK");
 				return;
 			}
 
-			if (!EditorUtility.DisplayDialog("Migrate Ink Project from 1.x",
+			if (!EditorUtility.DisplayDialog("Migrate Ink Project (1.x → 2.0)",
 				$"Found {oldJson.Count} compiled ink .json file(s) left over from ink 1.x. In 2.0 the compiled " +
 				"story lives inside each .ink file's InkFile, so these are no longer used.\n\nDelete them?\n\n" + codeReminder,
 				$"Delete {oldJson.Count} file(s)", "Cancel"))
