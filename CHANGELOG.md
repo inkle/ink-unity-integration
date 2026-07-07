@@ -1,4 +1,4 @@
-## Version 2.0.0 (5th July 2026):
+## Version 2.0.0 (7th July 2026):
 Ink files are now compiled by a Unity ScriptedImporter, replacing the old compile queue and its per-file `.json` output.
 
 - ⚠️ Breaking: `.ink` files import as an `InkFile` asset — no `.json` is generated. Reference `InkFile` and use `new Story(inkFile.storyJson)`.
