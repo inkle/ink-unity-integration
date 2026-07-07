@@ -17,13 +17,10 @@ This Unity package allows you to integrate inkle's [ink narrative scripting lang
 ## :inbox_tray: Installation
 The recommended way to install ink is as a UPM package via Unity's Package Manager. A few other options are listed below.
 
-### Via the Package Manager (recommended)
+### :star:Via the Package Manager:star:
 * Open the Package Manager (**Window > Package Manager**), click the **+** button and choose **Install package from git URL…**
 * Enter `https://github.com/inkle/ink-unity-integration.git#upm`
-* (You can instead add `"com.inkle.ink-unity-integration": "https://github.com/inkle/ink-unity-integration.git#upm"` to `PROJECT ROOT/Packages/manifest.json` by hand.)
 * It installs at Packages > Ink Unity Integration. Demos can be imported from Packages > Ink Unity Integration > Demos.
-
-Git-URL installs don't show "update available" prompts in the Package Manager. To update, remove and re-add the package (or delete its entry in `Packages/packages-lock.json`) to re-fetch the `#upm` branch. To pin a fixed version instead, use a tag — e.g. `…ink-unity-integration.git#2.0.0`.
 
 ### Via OpenUPM
 If you'd like the Package Manager to notify you when a new version is available, install through [OpenUPM](https://openupm.com/packages/com.inkle.ink-unity-integration/) instead. It distributes the same package through a scoped registry — follow the instructions there.
@@ -34,7 +31,7 @@ Best if you want to edit the source, or don't have git installed. This imports t
 * Open the downloaded file to import it into your Unity project.
 
 ### From GitHub
-Clone or fork the [GitHub repo](https://github.com/inkle/ink-unity-integration) if you want to work from or contribute to the source. To just install the latest version, use the git URL as described in [Via the Package Manager](#via-the-package-manager-recommended) above; to embed an editable copy, move the `Packages/com.inkle.ink-unity-integration` folder into your own project's `Packages` folder.
+Clone or fork the [GitHub repo](https://github.com/inkle/ink-unity-integration) if you want to work from or contribute to the source. To just install the latest version, use the git URL as described in [Via the Package Manager](#via-the-package-manager) above; to embed an editable copy, move the `Packages/com.inkle.ink-unity-integration` folder into your own project's `Packages` folder.
 
 ### Via the Asset Store
 For convenience a .UnityPackage is hosted at the [Unity Asset Store](https://assetstore.unity.com/packages/tools/integration/ink-unity-integration-60055). **This version is updated rarely, and so is not recommended.**
