@@ -57,27 +57,17 @@ namespace Ink.UnityIntegration {
 		}
 
 
-		[System.Obsolete("Use ForceRecompileAllInkFilesAsync() instead.")]
-		public static void RecompileAll() {
-			ForceRecompileAllInkFilesAsync();
-		}
-
-		[System.Obsolete("Use ForceRecompileAllInkFilesSync() instead.")]
-		public static void RecompileAllImmediately() {
-			ForceRecompileAllInkFilesSync();
-		}
-
 		/// <summary>
-		/// Reimports every ink file, recompiling all master files via the InkImporter. Useful if an import
-		/// didn't fire on an external change, or to be certain everything is freshly compiled.
+		/// Reimports every ink file, recompiling all master files via the InkImporter. A scripting utility
+		/// for the rare case you need to force a full recompile (e.g. a CI lint step) — ink recompiles
+		/// automatically on import, so this isn't exposed as a menu item.
 		/// </summary>
-		[MenuItem("Assets/Recompile All Ink Files (Async)", false, 202)]
 		public static void ForceRecompileAllInkFilesAsync() {
 			ReimportAllInkFiles(ImportAssetOptions.Default);
 		}
 
-		/// <summary>As <see cref="ForceRecompileAllInkFilesAsync"/>, but blocks until all imports finish. Suitable for build scripts.</summary>
-		[MenuItem("Assets/Recompile All Ink Files (Sync)", false, 201)]
+		/// <summary>As <see cref="ForceRecompileAllInkFilesAsync"/>, but blocks until all imports finish.
+		/// For build scripts; no menu item, since a synchronous reimport freezes the editor.</summary>
 		public static void ForceRecompileAllInkFilesSync() {
 			ReimportAllInkFiles(ImportAssetOptions.ForceSynchronousImport);
 		}

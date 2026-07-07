@@ -55,12 +55,9 @@ namespace Ink.UnityIntegration {
 			var dates = BuildDates(inkFile, assetPath);
 			if (!string.IsNullOrEmpty(dates)) root.Add(new HelpBox(dates, HelpBoxMessageType.None));
 
-			var actions = new VisualElement { style = { flexDirection = FlexDirection.Row } };
-			actions.Add(Grow(new Button(() => AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate)) { text = "Reimport" }));
-			var play = Grow(new Button(() => InkPlayerWindow.Attach(new Story(inkFile.storyJson))) { text = "Play in Ink Player" });
+			var play = new Button(() => InkPlayerWindow.Attach(new Story(inkFile.storyJson))) { text = "Play in Ink Player" };
 			play.SetEnabled(!string.IsNullOrEmpty(inkFile.storyJson));
-			actions.Add(play);
-			root.Add(actions);
+			root.Add(play);
 
 			root.Add(BuildTextFoldout("Compiled JSON", inkFile.storyJson));
 			root.Add(BuildTextFoldout("Source", ReadSource(assetPath)));

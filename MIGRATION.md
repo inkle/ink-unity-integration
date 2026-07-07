@@ -65,10 +65,10 @@ migrated automatically — re-tick **Compile As Master File** per file if you re
 | `inkFile.lastCompileDate` | `inkFile.compileDate` |
 | `InkCompiler.CompileInk(...)` | automatic on import; force with `AssetDatabase.ImportAsset(path)` or `InkEditorUtils.ForceRecompileAllInkFilesSync()` |
 | `InkCompiler.OnCompileInk` event | no direct equivalent — react in an `AssetPostprocessor.OnPostprocessAllAssets` to imported `.ink` paths |
-| `InkEditorUtils.RebuildLibrary()` | `InkEditorUtils.ForceRecompileAllInkFilesAsync()` (or `…Sync()` for build scripts) |
+| `InkEditorUtils.RebuildLibrary()` / `RecompileAll()` / `RecompileAllImmediately()` | `InkEditorUtils.ForceRecompileAllInkFilesAsync()` / `…Sync()` — scripting only, no menu |
 | `InkEditorUtils.DrawStoryPropertyField(...)` | assign an `InkFile` field — its default drawer shows the compile state |
 | `InkLibrary.inkVersionCurrent` / `.unityIntegrationVersionCurrent` | `InkEditorUtils.inkVersionCurrent` / `.unityIntegrationVersionCurrent` |
-| **Assets ▸ Rebuild Ink Library** menu | **Assets ▸ Recompile All Ink Files (Async / Sync)** |
+| **Assets ▸ Rebuild Ink Library** menu | Gone — ink recompiles automatically on import. Right-click ▸ **Reimport** if ever needed, or call `InkEditorUtils.ForceRecompileAllInkFiles*()` in scripts. |
 
 Removed **Ink Settings** fields — every file now compiles on import, so these have no
 replacement: `compileAllFilesAutomatically`, `filesToCompileAutomatically`,
