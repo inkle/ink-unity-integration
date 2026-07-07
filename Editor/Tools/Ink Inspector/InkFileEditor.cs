@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Ink.Runtime;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -55,7 +54,7 @@ namespace Ink.UnityIntegration {
 			var dates = BuildDates(inkFile, assetPath);
 			if (!string.IsNullOrEmpty(dates)) root.Add(new HelpBox(dates, HelpBoxMessageType.None));
 
-			var play = new Button(() => InkPlayerWindow.Attach(new Story(inkFile.storyJson))) { text = "Play in Ink Player" };
+			var play = new Button(() => InkPlayerWindow.LoadAndPlay(inkFile)) { text = "Play in Ink Player" };
 			play.SetEnabled(!string.IsNullOrEmpty(inkFile.storyJson));
 			root.Add(play);
 
