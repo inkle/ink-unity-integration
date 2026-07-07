@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -45,7 +46,7 @@ namespace Ink.UnityIntegration {
 			var packageDirectory = InkEditorUtils.FindAbsolutePluginDirectory();
 			if (packageDirectory != null) {
 				var changelogPath = Path.Combine(packageDirectory, "CHANGELOG.md");
-				if (File.Exists(changelogPath)) changelogText = File.ReadAllText(changelogPath);
+				if (File.Exists(changelogPath)) changelogText = StripUnsupportedGlyphs(File.ReadAllText(changelogPath));
 			}
 		}
 
@@ -74,7 +75,13 @@ namespace Ink.UnityIntegration {
 
 			var buttons = new VisualElement { style = { flexDirection = FlexDirection.Row, marginTop = 8 } };
 			buttons.Add(Grow(new Button(() => Application.OpenURL("https://www.inklestudios.com/ink/")) { text = "About Ink" }));
+#if UNITY_6000_0_OR_NEWER
+			// Unity 6+ ships a UI Toolkit font with emoji coverage, so use the real emoji.
 			buttons.Add(Grow(new Button(() => Application.OpenURL("https://www.patreon.com/inkle")) { text = "❤️ Support Us! ❤️" }));
+#else
+			// 2022.3's default font renders the emoji + its variation selector as a box; use a plain heart.
+			buttons.Add(Grow(new Button(() => Application.OpenURL("https://www.patreon.com/inkle")) { text = "♥ Support Us! ♥" }));
+#endif
 			buttons.Add(Grow(new Button(() => Application.OpenURL("https://discord.gg/inkle")) { text = "Discord Community + Support" }));
 			root.Add(buttons);
 
@@ -135,6 +142,24 @@ namespace Ink.UnityIntegration {
 			var label = new Label(line.StartsWith("- ") ? "• " + line.Substring(2).Trim() : line);
 			label.style.whiteSpace = WhiteSpace.Normal;
 			return label;
+		}
+
+		// Unity 6+ ships a UI Toolkit font with emoji coverage, so leave the changelog untouched — emoji and
+		// their variation selectors render fine. On 2022.3 the default font renders them as boxes, so strip
+		// the variation selectors (U+FE00-FE0F) and non-BMP emoji (surrogate pairs). Remove this whole
+		// fallback once the minimum supported version is Unity 6.
+		static string StripUnsupportedGlyphs (string text) {
+#if UNITY_6000_0_OR_NEWER
+			return text;
+#else
+			var sb = new StringBuilder(text.Length);
+			foreach (var c in text) {
+				if (c >= (char)0xFE00 && c <= (char)0xFE0F) continue; // variation selectors (FE00-FE0F)
+				if (char.IsSurrogate(c)) continue;                    // non-BMP emoji (surrogate pairs)
+				sb.Append(c);
+			}
+			return sb.ToString();
+#endif
 		}
 
 		static Label CenteredGrey (string text) {
