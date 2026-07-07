@@ -8,42 +8,36 @@ This Unity package allows you to integrate inkle's [ink narrative scripting lang
   
  - **ink player**: Provides a powerful [Ink Player Window](https://github.com/inkle/ink-unity-integration/blob/master/Documentation/InkPlayerWindow.md) for playing and debugging stories.
  
- - **Auto compilation**: Instantly creates and updates a JSON story file when a `.ink` is updated.
+ - **Automatic compilation**: `.ink` files are imported by Unity as an `InkFile` asset and compiled automatically.
   
  - **Inspector tools**: Provides an icon for ink files, and a custom inspector that provides information about a file.
 
 # Getting started
 
 ## :inbox_tray: Installation
-There are 4 different ways to install this plugin:
+The recommended way to install ink is as a UPM package via Unity's Package Manager. A few other options are listed below.
 
-### :star:As a .UnityPackage:star:
-This will import the source into your Assets folder. This is a good option if you intend to edit the source for your own needs.
+### Via the Package Manager (recommended)
+* Open the Package Manager (**Window > Package Manager**), click the **+** button and choose **Install package from git URL…**
+* Enter `https://github.com/inkle/ink-unity-integration.git#upm`
+* (You can instead add `"com.inkle.ink-unity-integration": "https://github.com/inkle/ink-unity-integration.git#upm"` to `PROJECT ROOT/Packages/manifest.json` by hand.)
+* It installs at Packages > Ink Unity Integration. Demos can be imported from Packages > Ink Unity Integration > Demos.
+
+Git-URL installs don't show "update available" prompts in the Package Manager. To update, remove and re-add the package (or delete its entry in `Packages/packages-lock.json`) to re-fetch the `#upm` branch. To pin a fixed version instead, use a tag — e.g. `…ink-unity-integration.git#2.0.0`.
+
+### Via OpenUPM
+If you'd like the Package Manager to notify you when a new version is available, install through [OpenUPM](https://openupm.com/packages/com.inkle.ink-unity-integration/) instead. It distributes the same package through a scoped registry — follow the instructions there.
+
+### As a .UnityPackage
+Best if you want to edit the source, or don't have git installed. This imports the source into your Assets folder.
 * [Download the latest .UnityPackage](https://github.com/inkle/ink-unity-integration/releases).
 * Open the downloaded file to import it into your Unity project.
 
-### As a UPM Package
-Installing via a package allows you to easily update via Unity's Package Manager window. This is best if you don't need to edit the source.
-* When installed via UPM, demo projects can be imported from Packages > Ink Unity Integration > Demos
-
-#### Via Package Manager
-* Add the following line to PROJECT ROOT/Packages/manifest.json:
-`"com.inkle.ink-unity-integration": "https://github.com/inkle/ink-unity-integration.git#upm"`
-#### OpenUPM
-* Navigate to [OpenUPM](https://openupm.com/packages/com.inkle.ink-unity-integration/) and follow their instructions
-* The project will have installed at Packages > Ink Unity Integration.
-
-
 ### From GitHub
-* You can clone/download/fork the project on [GitHub](https://github.com/inkle/ink-unity-integration).
-* The easiest way to download it is to click the green Code button and select Download ZIP
-* Install by moving the folder Packages/com.inkle.ink-unity-integration to anywhere in your Unity project's Assets folder
+Clone or fork the [GitHub repo](https://github.com/inkle/ink-unity-integration) if you want to work from or contribute to the source. To just install the latest version, use the git URL as described in [Via the Package Manager](#via-the-package-manager-recommended) above; to embed an editable copy, move the `Packages/com.inkle.ink-unity-integration` folder into your own project's `Packages` folder.
 
 ### Via the Asset Store
-
-For convenience a .UnityPackage is hosted at the [Unity Asset Store](https://assetstore.unity.com/packages/tools/integration/ink-unity-integration-60055).
-**This version is updated rarely, and so is not recommended.**
-This will import the source into your Assets folder. This is a good option if you intend to edit the source for your own needs.
+For convenience a .UnityPackage is hosted at the [Unity Asset Store](https://assetstore.unity.com/packages/tools/integration/ink-unity-integration-60055). **This version is updated rarely, and so is not recommended.**
 
 
 
@@ -77,69 +71,36 @@ To keep up to date with the latest news about ink [sign up for the mailing list]
 
 ## Compilation
   
-Ink files must be compiled to JSON before they can be used in-game. 
-**This package compiles all edited ink files automatically.**
-By default, compiled files are created next to their ink file.
+`.ink` files are compiled to a runnable story automatically by a Unity **ScriptedImporter**, whenever you create or edit one (or any file it `INCLUDE`s). There's no separate compile step and no `.json` file to manage — the compiled story is stored in the imported **`InkFile`** asset. Read it with `inkFile.storyJson` and pass it to `new Ink.Runtime.Story(...)`.
 
-### Editor Compilation
-This package provides tools to automate this process when a .ink file is edited. 
+Master files (any `.ink` not `INCLUDE`d by another file) compile to a story; include files compile as part of their master. To also compile an include on its own, tick **Compile As Master File** in its import settings.
 
-**Disabling auto-compilation**: You might want to have manual control over ink compilation. If this is the case, you can disable "Compile ink automatically" in the InkSettings file or delete the InkPostProcessor class.
-
-**Manual compilation**: If you have disabled auto-compilation, you can manually compile all ink files using the **Assets > Recompile Ink** menu item, individually via the inspector of an ink file, or via code using InkCompiler.CompileInk().
-
-**Play mode delay**: By default, ink does not compile while in play mode. This can be disabled in the InkSettings file.
-
-### In-game Compilation
-
-The compiler is included in builds (See [WebGL best practices](#WebGLBestPractices) for information on removing it), enabling you to allow the editing of ink files as part of your game.
+**Compiling at runtime**: the ink compiler ships in builds (part of the `Ink-Libraries` assembly), so you can compile `.ink` in-game if you need to. If you don't, see [WebGL best practices](#WebGLBestPractices) to trim it.
 
 
 ## <a name="InkPlayerWindow"></a>Ink Player Window
 
 The Ink Player Window (**Window > Ink Player**) allows you to play stories in an editor window, and provides functionality to edit variables on the fly, test functions, profile performance, save and load states, and divert.
 
-To play a story, click the "play" button shown on the inspector of a compiled ink file, or drag a compiled ink story TextAsset into the window.
+To play a story, click **Play in Ink Player** on an ink file's inspector, or assign an `InkFile` in the Ink Player window.
 
 **Editor Attaching**: Attaching the InkStory instance used by your game to the Ink Player window allows you to view and edit your story as it runs in game. 
 
-See BasicInkExampleEditor.cs in the Examples folder for an example of how to:
+See BasicInkExampleEditor.cs in the Basic Demo for an example of how to:
 * Show an attach/detach button on an inspector
 * Automatically attach on entering play mode
 
 [More information on using and extending Ink Player Window](https://github.com/inkle/ink-unity-integration/blob/master/Documentation/InkPlayerWindow.md)
 
 
-## Inspector tools
+## Inspector
 
-This package replaces the icon for ink files to make them easier to spot, and adds a custom inspector for a selected ink file.
-
-**The Inspector**: Selecting an ink file displays its last compile time; lists any include files; and shows any errors, warnings or todos. It also shows a Play button which runs the story in the Ink Player Window.
-
-
-# Visual Scripting Support
-
-## Bolt
-There is currently no support for Bolt, Unity's official visual scripting tool. If you're interested in building one, we'd love to see it!
-
-## PlayMaker
-There's [unofficial support for PlayMaker here.](https://github.com/inkle/ink-unity-integration/issues/22) 
-
-
-We'd love to see this supported more if you'd like to assist the effort!
-
-
-# Source control tips
-
-When you edit ink files, the compiler will also update the corresponding compiled .json file. If no compiled file existed before, Unity will also create a meta file for it. It is recommended that you always commit both ink and json files at the same time to avoid the file being re-compiled by your team members.
-
-Adding or removing ink files will also make changes to the InkLibrary file, and we could recommend authors also commit this file for the same reasons.
+Selecting an ink file shows any compile errors, warnings and TODOs, and maps out its include hierarchy: whether it's a master or an include file, and the files it includes and is included by.
 
 
 # <a name="WebGLBestPractices"></a>WebGL best practices
 
-WebGL builds should be as small as possible. The ink compiler is included in builds, but is typically only used in the editor. 
-If your game doesn't require compiling ink at runtime we recommend adding a .asmdef at Ink Unity Integration > InkLibs > InkCompiler that only functions in the editor.
+WebGL builds should be as small as possible. The ink compiler is bundled with the runtime in the `Ink-Libraries` assembly, so it ships in builds even though most games only use it at edit time. If build size matters and you never compile ink at runtime, you can split the compiler (`InkLibs/InkCompiler`) into its own editor-only assembly definition so it's stripped from builds — you'll also need the editor assembly to reference that new assembly. The runtime (`InkLibs/InkRuntime`) itself never needs the compiler.
 
 
 # FAQ
@@ -150,8 +111,7 @@ If your game doesn't require compiling ink at runtime we recommend adding a .asm
 
 * What versions of Unity are supported?
 
-  We support 2020 LTS and above.
-  Until version 1.1.1 we supported 2018 LTS, which should also work going back to at least Unity 5.
+  Ink for Unity 2.0 supports **Unity 2022.3 LTS and above**. (The 1.x line supports 2020 LTS and above.)
 
 # Support us! :heart:
 

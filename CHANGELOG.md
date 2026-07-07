@@ -7,6 +7,8 @@ Ink files are now compiled by a Unity ScriptedImporter, replacing the old compil
 - Errors, warnings and TODOs show on the import inspector and in the console.
 - Ink file icons show state badges (error, warning, TODO, include) consistently in the Project window, inspector header and object fields.
 - Builds now fail if any ink file has compile errors.
+- Ink Player: load a story by assigning an `InkFile` (not a JSON `TextAsset`); tethered stories let you edit variables by default; the history-visibility filter and the auto-play controls are now compact popups.
+- Ink Player: auto-play can use a fixed random seed to replay the exact same route — seeds both `RANDOM()`/shuffles and Auto-Choice.
 - Removed `InkLibrary`, the `InkCompiler` queue and the auto-compiler; "Rebuild Ink Library" is now "Recompile All Ink Files".
 - Editor inspectors and windows rebuilt with UI Toolkit.
 
