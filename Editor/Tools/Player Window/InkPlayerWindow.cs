@@ -136,42 +136,42 @@ namespace Ink.UnityIntegration {
 		}
 		public static void DrawStoryPropertyField (Story story, InkPlayerParams playerParams, ref bool expanded, GUIContent label, bool interactable = false) {
 			EditorGUILayout.BeginHorizontal();
+			// Pin the label to the standard label column so the buttons line up with — and stretch to fill —
+			// the field column of the object fields above.
 			// Only show the foldout arrow when there's something to expand (a live story); otherwise it's a
 			// dead dropdown, so draw a plain label instead — the field and its button still show.
-			if(story != null) expanded = EditorGUILayout.Foldout(expanded, label, true);
-			else EditorGUILayout.LabelField(label);
-			// var lastRect = GUILayoutUtility.GetLastRect();
-			// GUILayout.BeginArea(new Rect(lastRect.x+200,lastRect.y,lastRect.width-200,lastRect.height));
-			// Debug.Log(lastRect);
-			// GUI.Box(lastRect,"");
-			// GUILayout.BeginArea(lastRect);
+			// (Foldout takes no width option, so it needs a fixed-width wrapper; the plain label is pinned directly.)
+			if(story != null) {
+				EditorGUILayout.BeginHorizontal(GUILayout.Width(EditorGUIUtility.labelWidth));
+				expanded = EditorGUILayout.Foldout(expanded, label, true);
+				EditorGUILayout.EndHorizontal();
+			} else {
+				GUILayout.Label(label, GUILayout.Width(EditorGUIUtility.labelWidth));
+			}
 			if(EditorApplication.isPlaying) {
 				if(story != null) {
-					// InkPlayerWindow window = InkPlayerWindow.GetWindow(false);
 					if(InkPlayerWindow.attached && InkPlayerWindow.story == story) {
-						if(GUILayout.Button("Detach", GUILayout.Width(80))) {
+						if(GUILayout.Button(new GUIContent("Detach", brokenLinkIcon, "Detach this story from the Ink Player"), GUILayout.ExpandWidth(true))) {
 							InkPlayerWindow.Detach();
 						}
 					} else {
-						if(GUILayout.Button("Attach", GUILayout.Width(80))) {
+						if(GUILayout.Button(new GUIContent("Attach", linkIcon, "Attach this story to the Ink Player"), GUILayout.ExpandWidth(true))) {
 							InkPlayerWindow.Attach(story, playerParams);
 						}
 					}
-					// EditorGUI.BeginDisabledGroup(visible);
-					if(GUILayout.Button(InkPlayerWindow.isOpen ? "Show Player Window" : "Open Player Window", GUILayout.Width(140))) {
+					if(GUILayout.Button(new GUIContent(InkPlayerWindow.isOpen ? "Show Player Window" : "Open Player Window", playIcon), GUILayout.ExpandWidth(true))) {
 						InkPlayerWindow.GetWindow();
 					}
 				} else {
 					EditorGUI.BeginDisabledGroup(true);
-					GUILayout.Button("Story cannot be null to attach to editor");
+					GUILayout.Button("Story cannot be null to attach to editor", GUILayout.ExpandWidth(true));
 					EditorGUI.EndDisabledGroup();
 				}
 			} else {
 				EditorGUI.BeginDisabledGroup(true);
-				GUILayout.Button("Enter play mode to attach to editor", GUILayout.Width(220));
+				GUILayout.Button("Enter play mode to attach to editor", GUILayout.ExpandWidth(true));
 				EditorGUI.EndDisabledGroup();
 			}
-			// GUILayout.EndArea();
 			EditorGUILayout.EndHorizontal();
 			if(expanded) {
 
@@ -221,11 +221,11 @@ namespace Ink.UnityIntegration {
 			InkPlayerWindow.GetWindow(false);
 			if(EditorApplication.isPlaying && story != null/* && story.state != null*/) {
 				if(InkPlayerWindow.attached && InkPlayerWindow.story == story) {
-					if(GUI.Button(position, "Detach")) {
+					if(GUI.Button(position, new GUIContent("Detach", brokenLinkIcon, "Detach this story from the Ink Player"))) {
 						InkPlayerWindow.Detach();
 					}
 				} else {
-					if(GUI.Button(position, "Attach")) {
+					if(GUI.Button(position, new GUIContent("Attach", linkIcon, "Attach this story to the Ink Player"))) {
 						InkPlayerWindow.Attach(story);
 					}
 				}
@@ -762,6 +762,7 @@ namespace Ink.UnityIntegration {
         // https://docs.microsoft.com/en-us/dotnet/api/system.io.path.gettemppath
         // Directory.temporaryFolder
 		void OnEnable () {
+			titleContent = new GUIContent(windowTitle, playIcon);
 			if(isOpen) return;
 			isOpen = true;
 			
@@ -2883,6 +2884,24 @@ namespace Ink.UnityIntegration {
 					_attachedStoryIcon = EditorGUIUtility.IconContent("UnityEditor.FindDependencies").image;
 				}
 				return _attachedStoryIcon;
+			}
+		}
+		static Texture _linkIcon;
+		static Texture linkIcon {
+			get {
+				if(_linkIcon == null) {
+					_linkIcon = EditorGUIUtility.IconContent(EditorGUIUtility.isProSkin ? "d_Linked" : "Linked").image;
+				}
+				return _linkIcon;
+			}
+		}
+		static Texture _brokenLinkIcon;
+		static Texture brokenLinkIcon {
+			get {
+				if(_brokenLinkIcon == null) {
+					_brokenLinkIcon = EditorGUIUtility.IconContent(EditorGUIUtility.isProSkin ? "d_UnLinked" : "UnLinked").image;
+				}
+				return _brokenLinkIcon;
 			}
 		}
 		static Texture _saveIcon;
